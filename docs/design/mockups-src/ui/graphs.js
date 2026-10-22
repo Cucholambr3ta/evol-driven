@@ -105,11 +105,16 @@ function memoria() {
   const rooms = {}; for (const [w, rs] of Object.entries(MEM.taxonomia.taxonomy)) for (const [r, n] of Object.entries(rs)) { (rooms[r] ||= []).push([w, n]); }
   const roomList = Object.entries(rooms).map(([r, ws]) => ({ r, ws, total: ws.reduce((s, x) => s + x[1], 0) })).sort((a, b) => b.total - a.total);
   const total = wings.reduce((s, x) => s + x[1], 0);
-  const W = 960, H = Math.max(wings.length, roomList.length) * 70 + 60, xL = 330, xR = 640;
-  const yW = new Map(wings.map(([w], i) => [w, 50 + i * ((H - 100) / Math.max(wings.length - 1, 1))]));
-  const yR = new Map(roomList.map((o, i) => [o.r, 50 + i * ((H - 100) / Math.max(roomList.length - 1, 1))]));
+  // The canvas is sized from the labels, so the two columns sit in the middle with equal margins.
   const rad = (n) => 6 + 5 * Math.log10(n + 1);
-  const svg = sv("svg", { class: "graph", viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Wings de MemPalace conectados a sus salas" });
+  const CH = 7.6, PAD = 44, GAP = 300;
+  const leftW = Math.max(...wings.map(([w, n]) => (w.length + fmtNum(n).length + 2) * CH + rad(n) + 18));
+  const rightW = Math.max(...roomList.map((o) => (o.r.length + fmtNum(o.total).length + 2 + (o.ws.length > 1 ? `· túnel entre ${o.ws.length} wings`.length + 1 : 0)) * CH + rad(o.total) + 18));
+  const xL = PAD + leftW, xR = xL + GAP, W = Math.round(xR + rightW + PAD);
+  const H = Math.max(wings.length, roomList.length) * 64 + 84;
+  const yW = new Map(wings.map(([w], i) => [w, 68 + i * ((H - 138) / Math.max(wings.length - 1, 1))]));
+  const yR = new Map(roomList.map((o, i) => [o.r, 68 + i * ((H - 138) / Math.max(roomList.length - 1, 1))]));
+  const svg = sv("svg", { class: "graph", style: "max-width:1060px;margin:0 auto", viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Wings de MemPalace conectados a sus salas" });
   for (const o of roomList) for (const [w, n] of o.ws) svg.append(sv("path", { d: `M${xL},${yW.get(w)} C${xL + 110},${yW.get(w)} ${xR - 110},${yR.get(o.r)} ${xR},${yR.get(o.r)}`, fill: "none", stroke: o.ws.length > 1 ? "var(--s2)" : "var(--axis)", "stroke-width": 1 + Math.log10(n + 1) * 1.2, opacity: o.ws.length > 1 ? 0.55 : 0.9 }));
   for (const [w, n] of wings) {
     const g = sv("g", { tabindex: 0, role: "img", "aria-label": `Wing ${w}: ${n} recuerdos` });
@@ -123,7 +128,11 @@ function memoria() {
       sv("text", { x: xR + rad(o.total) + 12, y: yR.get(o.r) + 4, "font-size": 13, fill: ink }, o.r, sv("tspan", { fill: sub, dx: 8 }, fmtNum(o.total)), tun ? sv("tspan", { fill: sub, dx: 8 }, `· túnel entre ${o.ws.length} wings`) : null));
     g.addEventListener("mousemove", (ev) => tip([el("b", { text: "Sala " + o.r }), ...o.ws.map(([w, n]) => el("div", { text: `${w}: ${fmtNum(n)}` }))], ev.clientX, ev.clientY)); g.addEventListener("mouseleave", () => tip(null)); svg.append(g);
   }
-  svg.append(sv("text", { x: xL, y: 24, "text-anchor": "middle", "font-size": 12, fill: sub, "font-weight": 600 }, "WINGS (proyectos y personas)"), sv("text", { x: xR, y: 24, "text-anchor": "middle", "font-size": 12, fill: sub, "font-weight": 600 }, "SALAS (temas)"));
+  svg.append(sv("text", { x: xL, y: 20, "text-anchor": "middle", "font-size": 12, fill: sub, "font-weight": 600 }, "WINGS (proyectos y personas)"), sv("text", { x: xR, y: 20, "text-anchor": "middle", "font-size": 12, fill: sub, "font-weight": 600 }, "SALAS (temas)"));
+  // Fit the canvas to what was really drawn (label widths depend on the font), so the graph is centred.
+  queueMicrotask(() => {
+    try { const b = svg.getBBox(); if (b.width > 0) svg.setAttribute("viewBox", `${Math.floor(b.x - PAD)} ${Math.floor(b.y - 16)} ${Math.ceil(b.width + 2 * PAD)} ${Math.ceil(b.height + 32)}`); } catch { /* not rendered: keep the estimate */ }
+  });
   const kg = MEM.kg;
   return el("div", {},
     tiles([[wings.length, "Wings"], [roomList.length, "Salas"], [fmtNum(total), "Recuerdos"], [MEM.grafo.tunnel_rooms, "Túneles pasivos", "salas compartidas entre wings"], [kg.entities, "Entidades del grafo de conocimiento", kg.entities ? null : "vacío por ahora"]]),
