@@ -395,3 +395,60 @@ cambia entre proyectos, pero se marca el estado actual). Los de código (1, 3, 4
 - El informe no se puede generar en CI ni en Docker (ArtCraft y Graphviz no están instalados allí).
 - Graphviz no es parte de ArtCraft: solo calcula las posiciones; la imagen final la produce VectorCraft.
 - Los diagramas de código dependen de lo que el indexador entiende (TypeScript); en otros lenguajes serán «no aplica».
+
+## Ampliación 3: panel `evol ui` y documentación por proyecto
+
+> **Estado: BORRADOR.** Los mockups están hechos (`docs/design/mockups/`, fuentes en `docs/design/mockups-src/`);
+> falta que los revises. No se escribe `evol ui` hasta que los apruebes.
+
+Objetivo: ver **por proyecto** toda la documentación asociada (especificaciones, evidencias, mejoras, decisiones,
+diagramas e informe) y acceder a ella desde un único lugar, sin salir del panel.
+
+### Pantallas
+
+| Pantalla          | Qué responde                                                    | Estado    |
+| ----------------- | --------------------------------------------------------------- | --------- |
+| Tablero           | ¿En qué fase está cada proyecto y qué lo bloquea?               | Mockup    |
+| Proyecto          | ¿Qué falta en la fase actual y quién aprobó qué?                | Mockup    |
+| **Documentación** | ¿Qué documentos tiene, qué evidencia hay y qué hay que mejorar? | **Nuevo** |
+| Grafos            | ¿Qué depende de qué? Mapa de calor por alcance                  | Mockup    |
+
+### Qué agrupa «Documentación»
+
+| Grupo                 | Contenido                                                                                       | Fuente                                                                                   |
+| --------------------- | ----------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| Especificaciones      | SPEC, dominio, features, amenazas, plan, descubrimiento, escenarios `.feature`, OpenAPI         | Archivos del proyecto y artefactos de las disciplinas                                    |
+| Evidencias            | Aprobaciones firmadas, verificación por fase, informe de QA, diario, pruebas, trazabilidad CA-n | `.evol/`, `QA_REPORT.md`, `evol coverage`                                                |
+| Mejoras               | Propuestas, lecciones, pendientes, mapa de riesgo y huecos de la fase actual                    | `MEJORAS*.md`, `docs/mejoras/`, `proposals/`, `lecciones.md`, `evol risk`, `evol status` |
+| Decisiones y memoria  | ADR, constitución y memoria del proyecto                                                        | `docs/adr/`, `docs/constitucion.md`, `memoria.md`                                        |
+| Diagramas             | Los 14 diagramas UML con su fuente de datos; los que no aplican explican por qué                | `evol diagrams`                                                                          |
+| Informe               | El dossier DOCX/PDF si existe; si no, cómo generarlo                                            | `informe/`, `evol report`                                                                |
+| Documentación general | README, guías y archivos para agentes                                                           | `*.md` de la raíz y de `docs/`                                                           |
+
+Reglas de diseño:
+
+- **Solo lectura y sin inventar.** Un documento que el pipeline espera y no existe aparece como «No existe», con la
+  disciplina y la fase que lo exigen; un diagrama sin datos conserva su motivo.
+- **Una sola búsqueda** sobre títulos, rutas y texto de todos los documentos del proyecto; «Solo lo que falta» filtra lo
+  incompleto.
+- **Enlaces internos**: un enlace relativo dentro de un `.md` abre el documento en el panel si existe.
+- **Mejoras con progreso**: en las propuestas, las casillas `- [ ]` / `- [x]` dan el avance («3 de 8 tareas hechas»).
+- **Seguridad**: no muestra la clave del gate ni el contenido de MemPalace; el SVG se sanea antes de insertarlo.
+
+### Criterios de aceptación (preliminares)
+
+| #   | Criterio                                                                                                                 |
+| --- | ------------------------------------------------------------------------------------------------------------------------ |
+| 38  | `evol ui` sirve el panel en `127.0.0.1` sin dependencias nuevas y sin escribir en el proyecto.                           |
+| 39  | La pantalla Documentación lista, por proyecto, los 7 grupos con su conteo y los huecos, a partir de los archivos reales. |
+| 40  | Cada documento se abre en el lector: Markdown renderizado y texto original, metadatos (ruta, tamaño, huella, fase).      |
+| 41  | Los datos calculados (trazabilidad, riesgo, diagramas) coinciden con `evol export --json` y `evol diagrams`.             |
+| 42  | La búsqueda encuentra texto dentro de los documentos y «Solo lo que falta» deja únicamente lo incompleto.                |
+| 43  | Un archivo con `[[COMPLETAR]]` figura como «Por completar»; uno esperado y ausente, como «No existe».                    |
+| 44  | Ningún dato sensible (clave del gate, firmas, memoria de MemPalace) llega al HTML que sirve `evol ui`.                   |
+
+### Para revisar en los mockups
+
+- ¿Falta algún grupo o algún documento que quieras ver por proyecto?
+- Las **mejoras** salen de `MEJORAS*.md`, `docs/mejoras/` y `proposals/`: ¿es esa la convención que quieres fijar?
+- La fecha de modificación de cada archivo se mostrará en `evol ui` (los mockups usan copias, sin fecha real).

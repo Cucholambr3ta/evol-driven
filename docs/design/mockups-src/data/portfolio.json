@@ -1,0 +1,2250 @@
+[
+ {
+  "id": "ajicolor",
+  "nombre": "ajicolor-ecommerce",
+  "carpeta": "ajicolor",
+  "modulos": [
+   {
+    "nombre": "app",
+    "raiz": ".",
+    "disciplinas": [
+     "SDD",
+     "FDD",
+     "DDD",
+     "THREAT",
+     "BDD",
+     "ATDD",
+     "TDD",
+     "STDD",
+     "SecDD"
+    ]
+   }
+  ],
+  "estado": {
+   "fase": "briefing",
+   "completadas": [],
+   "adoptadas": [],
+   "aprobacion": {
+    "state": "pendiente"
+   },
+   "disciplinas": [
+    {
+     "module": "app",
+     "id": "FDD",
+     "nombre": "Feature-Driven Development",
+     "artefactos": [
+      {
+       "patron": "FEATURES.md",
+       "encontrados": 1,
+       "min": 1,
+       "pendientes": 0
+      }
+     ]
+    },
+    {
+     "module": "app",
+     "id": "BDD",
+     "nombre": "Behavior-Driven Development",
+     "artefactos": [
+      {
+       "patron": "tests/features/*.feature",
+       "encontrados": 0,
+       "min": 1,
+       "pendientes": 0
+      }
+     ]
+    },
+    {
+     "module": "app",
+     "id": "ATDD",
+     "nombre": "Acceptance Test-Driven Development",
+     "artefactos": [
+      {
+       "patron": "tests/acceptance/*.acceptance.test.ts",
+       "encontrados": 0,
+       "min": 1,
+       "pendientes": 0
+      }
+     ]
+    }
+   ]
+  },
+  "problemas": [
+   {
+    "modulo": "app",
+    "disciplina": "BDD",
+    "mensaje": "falta el artefacto «tests/features/*.feature» (se esperaba al menos 1, hay 0)"
+   },
+   {
+    "modulo": "app",
+    "disciplina": "ATDD",
+    "mensaje": "falta el artefacto «tests/acceptance/*.acceptance.test.ts» (se esperaba al menos 1, hay 0)"
+   }
+  ],
+  "fases": [
+   {
+    "phase": "briefing",
+    "disciplines": [
+     {
+      "module": "app",
+      "id": "FDD",
+      "nombre": "Feature-Driven Development",
+      "artefactos": [
+       {
+        "patron": "FEATURES.md",
+        "min": 1,
+        "archivos": [
+         "FEATURES.md"
+        ]
+       }
+      ]
+     },
+     {
+      "module": "app",
+      "id": "BDD",
+      "nombre": "Behavior-Driven Development",
+      "artefactos": [
+       {
+        "patron": "tests/features/*.feature",
+        "min": 1,
+        "archivos": []
+       }
+      ]
+     },
+     {
+      "module": "app",
+      "id": "ATDD",
+      "nombre": "Acceptance Test-Driven Development",
+      "artefactos": [
+       {
+        "patron": "tests/acceptance/*.acceptance.test.ts",
+        "min": 1,
+        "archivos": []
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "phase": "spec",
+    "disciplines": [
+     {
+      "module": "app",
+      "id": "SDD",
+      "nombre": "Spec-Driven Development",
+      "artefactos": [
+       {
+        "patron": "SPEC.md",
+        "min": 1,
+        "archivos": [
+         "SPEC.md"
+        ]
+       }
+      ]
+     },
+     {
+      "module": "app",
+      "id": "DDD",
+      "nombre": "Domain-Driven Design",
+      "artefactos": [
+       {
+        "patron": "DOMAIN.md",
+        "min": 1,
+        "archivos": [
+         "DOMAIN.md"
+        ]
+       }
+      ]
+     },
+     {
+      "module": "app",
+      "id": "THREAT",
+      "nombre": "Threat-Driven Development",
+      "artefactos": [
+       {
+        "patron": "THREATS.md",
+        "min": 1,
+        "archivos": [
+         "THREATS.md"
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "phase": "plan",
+    "disciplines": [
+     {
+      "module": "app",
+      "id": "SDD",
+      "nombre": "Spec-Driven Development",
+      "artefactos": [
+       {
+        "patron": "SPEC.md",
+        "min": 1,
+        "archivos": [
+         "SPEC.md"
+        ]
+       }
+      ]
+     },
+     {
+      "module": "app",
+      "id": "FDD",
+      "nombre": "Feature-Driven Development",
+      "artefactos": [
+       {
+        "patron": "FEATURES.md",
+        "min": 1,
+        "archivos": [
+         "FEATURES.md"
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "phase": "build",
+    "disciplines": [
+     {
+      "module": "app",
+      "id": "SDD",
+      "nombre": "Spec-Driven Development",
+      "artefactos": [
+       {
+        "patron": "SPEC.md",
+        "min": 1,
+        "archivos": [
+         "SPEC.md"
+        ]
+       }
+      ]
+     },
+     {
+      "module": "app",
+      "id": "TDD",
+      "nombre": "Test-Driven Development",
+      "artefactos": [
+       {
+        "patron": "tests/unit/*.test.ts",
+        "min": 1,
+        "archivos": []
+       }
+      ]
+     },
+     {
+      "module": "app",
+      "id": "STDD",
+      "nombre": "Security-Test-Driven Development",
+      "artefactos": [
+       {
+        "patron": "tests/security/**/*.security.test.ts",
+        "min": 1,
+        "archivos": []
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "phase": "qa",
+    "disciplines": [
+     {
+      "module": "app",
+      "id": "SDD",
+      "nombre": "Spec-Driven Development",
+      "artefactos": [
+       {
+        "patron": "SPEC.md",
+        "min": 1,
+        "archivos": [
+         "SPEC.md"
+        ]
+       }
+      ]
+     },
+     {
+      "module": "app",
+      "id": "BDD",
+      "nombre": "Behavior-Driven Development",
+      "artefactos": [
+       {
+        "patron": "tests/features/*.feature",
+        "min": 1,
+        "archivos": []
+       }
+      ]
+     },
+     {
+      "module": "app",
+      "id": "ATDD",
+      "nombre": "Acceptance Test-Driven Development",
+      "artefactos": [
+       {
+        "patron": "tests/acceptance/*.acceptance.test.ts",
+        "min": 1,
+        "archivos": []
+       }
+      ]
+     },
+     {
+      "module": "app",
+      "id": "SecDD",
+      "nombre": "Security-Driven Development",
+      "artefactos": [
+       {
+        "patron": "QA_REPORT.md",
+        "min": 1,
+        "archivos": [
+         "QA_REPORT.md"
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "phase": "retro",
+    "disciplines": [
+     {
+      "module": "app",
+      "id": "SDD",
+      "nombre": "Spec-Driven Development",
+      "artefactos": [
+       {
+        "patron": "SPEC.md",
+        "min": 1,
+        "archivos": [
+         "SPEC.md"
+        ]
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "aprobaciones": [],
+  "diario": [
+   {
+    "ts": "2026-10-22T11:34:06.985Z",
+    "tipo": "project-adopted",
+    "fase": "briefing"
+   }
+  ],
+  "lecciones": [
+   "[CATEGORÍA] Título breve — YYYY-MM-DD",
+   "[PROCESO] GitNexus `detect_changes()` antes de cada commit — 2026-05-28",
+   "[PROCESO] Commits separados por fase, no mezclados — 2026-05-28",
+   "[PROCESO] No saltar Fase 1 (Briefing) — siempre DISCOVERY.md primero — 2026-05-28",
+   "[HERRAMIENTAS] `xdd-gate.py` briefing esperaba SPEC.md y FEATURES.md — bug de artefactos — 2026-05-28",
+   "[PROCESO] Git Flow estricto: feature branch + PR → develop, sin commits directos — 2026-05-28",
+   "[HERRAMIENTAS] Gate espera artefactos en `.xdd/<fase>/`, no en raíz — copiar o symlinkear — 2026-05-29"
+  ],
+  "ultimaActividad": "2026-10-22T11:34:06.985Z",
+  "memoria": {
+   "wing": "ajicolor_ecommerce",
+   "enabled": false
+  }
+ },
+ {
+  "id": "api-pagos",
+  "nombre": "api-pagos",
+  "carpeta": "api-pagos",
+  "modulos": [
+   {
+    "nombre": "app",
+    "raiz": ".",
+    "disciplinas": [
+     "SDD",
+     "FDD",
+     "DDD",
+     "THREAT",
+     "BDD",
+     "ATDD",
+     "TDD",
+     "STDD",
+     "SecDD"
+    ]
+   }
+  ],
+  "estado": {
+   "fase": "spec",
+   "completadas": [
+    "briefing"
+   ],
+   "adoptadas": [],
+   "aprobacion": {
+    "state": "pendiente"
+   },
+   "disciplinas": [
+    {
+     "module": "app",
+     "id": "SDD",
+     "nombre": "Spec-Driven Development",
+     "artefactos": [
+      {
+       "patron": "docs/specs/SPEC.md",
+       "encontrados": 1,
+       "min": 1,
+       "pendientes": 1
+      }
+     ]
+    },
+    {
+     "module": "app",
+     "id": "DDD",
+     "nombre": "Domain-Driven Design",
+     "artefactos": [
+      {
+       "patron": "docs/specs/DOMAIN.md",
+       "encontrados": 1,
+       "min": 1,
+       "pendientes": 1
+      }
+     ]
+    },
+    {
+     "module": "app",
+     "id": "THREAT",
+     "nombre": "Threat-Driven Development",
+     "artefactos": [
+      {
+       "patron": "docs/specs/THREATS.md",
+       "encontrados": 1,
+       "min": 1,
+       "pendientes": 1
+      }
+     ]
+    }
+   ]
+  },
+  "problemas": [
+   {
+    "modulo": "app",
+    "disciplina": "SDD",
+    "mensaje": "«docs/specs/SPEC.md» tiene secciones sin completar (marcador [[COMPLETAR]])"
+   },
+   {
+    "modulo": "app",
+    "disciplina": "DDD",
+    "mensaje": "«docs/specs/DOMAIN.md» tiene secciones sin completar (marcador [[COMPLETAR]])"
+   },
+   {
+    "modulo": "app",
+    "disciplina": "THREAT",
+    "mensaje": "«docs/specs/THREATS.md» tiene secciones sin completar (marcador [[COMPLETAR]])"
+   }
+  ],
+  "fases": [
+   {
+    "phase": "briefing",
+    "disciplines": [
+     {
+      "module": "app",
+      "id": "FDD",
+      "nombre": "Feature-Driven Development",
+      "artefactos": [
+       {
+        "patron": "docs/features/FEATURES.md",
+        "min": 1,
+        "archivos": [
+         "docs/features/FEATURES.md"
+        ]
+       }
+      ]
+     },
+     {
+      "module": "app",
+      "id": "BDD",
+      "nombre": "Behavior-Driven Development",
+      "artefactos": [
+       {
+        "patron": "tests/features/*.feature",
+        "min": 1,
+        "archivos": [
+         "tests/features/ejemplo.feature"
+        ]
+       }
+      ]
+     },
+     {
+      "module": "app",
+      "id": "ATDD",
+      "nombre": "Acceptance Test-Driven Development",
+      "artefactos": [
+       {
+        "patron": "tests/acceptance/*.acceptance.test.ts",
+        "min": 1,
+        "archivos": [
+         "tests/acceptance/ejemplo.acceptance.test.ts"
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "phase": "spec",
+    "disciplines": [
+     {
+      "module": "app",
+      "id": "SDD",
+      "nombre": "Spec-Driven Development",
+      "artefactos": [
+       {
+        "patron": "docs/specs/SPEC.md",
+        "min": 1,
+        "archivos": [
+         "docs/specs/SPEC.md"
+        ]
+       }
+      ]
+     },
+     {
+      "module": "app",
+      "id": "DDD",
+      "nombre": "Domain-Driven Design",
+      "artefactos": [
+       {
+        "patron": "docs/specs/DOMAIN.md",
+        "min": 1,
+        "archivos": [
+         "docs/specs/DOMAIN.md"
+        ]
+       }
+      ]
+     },
+     {
+      "module": "app",
+      "id": "THREAT",
+      "nombre": "Threat-Driven Development",
+      "artefactos": [
+       {
+        "patron": "docs/specs/THREATS.md",
+        "min": 1,
+        "archivos": [
+         "docs/specs/THREATS.md"
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "phase": "plan",
+    "disciplines": [
+     {
+      "module": "app",
+      "id": "SDD",
+      "nombre": "Spec-Driven Development",
+      "artefactos": [
+       {
+        "patron": "docs/specs/SPEC.md",
+        "min": 1,
+        "archivos": [
+         "docs/specs/SPEC.md"
+        ]
+       }
+      ]
+     },
+     {
+      "module": "app",
+      "id": "FDD",
+      "nombre": "Feature-Driven Development",
+      "artefactos": [
+       {
+        "patron": "docs/features/FEATURES.md",
+        "min": 1,
+        "archivos": [
+         "docs/features/FEATURES.md"
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "phase": "build",
+    "disciplines": [
+     {
+      "module": "app",
+      "id": "SDD",
+      "nombre": "Spec-Driven Development",
+      "artefactos": [
+       {
+        "patron": "docs/specs/SPEC.md",
+        "min": 1,
+        "archivos": [
+         "docs/specs/SPEC.md"
+        ]
+       }
+      ]
+     },
+     {
+      "module": "app",
+      "id": "TDD",
+      "nombre": "Test-Driven Development",
+      "artefactos": [
+       {
+        "patron": "tests/unit/*.test.ts",
+        "min": 1,
+        "archivos": [
+         "tests/unit/index.test.ts"
+        ]
+       }
+      ]
+     },
+     {
+      "module": "app",
+      "id": "STDD",
+      "nombre": "Security-Test-Driven Development",
+      "artefactos": [
+       {
+        "patron": "tests/security/**/*.security.test.ts",
+        "min": 1,
+        "archivos": [
+         "tests/security/ejemplo.security.test.ts"
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "phase": "qa",
+    "disciplines": [
+     {
+      "module": "app",
+      "id": "SDD",
+      "nombre": "Spec-Driven Development",
+      "artefactos": [
+       {
+        "patron": "docs/specs/SPEC.md",
+        "min": 1,
+        "archivos": [
+         "docs/specs/SPEC.md"
+        ]
+       }
+      ]
+     },
+     {
+      "module": "app",
+      "id": "BDD",
+      "nombre": "Behavior-Driven Development",
+      "artefactos": [
+       {
+        "patron": "tests/features/*.feature",
+        "min": 1,
+        "archivos": [
+         "tests/features/ejemplo.feature"
+        ]
+       }
+      ]
+     },
+     {
+      "module": "app",
+      "id": "ATDD",
+      "nombre": "Acceptance Test-Driven Development",
+      "artefactos": [
+       {
+        "patron": "tests/acceptance/*.acceptance.test.ts",
+        "min": 1,
+        "archivos": [
+         "tests/acceptance/ejemplo.acceptance.test.ts"
+        ]
+       }
+      ]
+     },
+     {
+      "module": "app",
+      "id": "SecDD",
+      "nombre": "Security-Driven Development",
+      "artefactos": [
+       {
+        "patron": ".evol/qa/QA_REPORT.md",
+        "min": 1,
+        "archivos": [
+         ".evol/qa/QA_REPORT.md"
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "phase": "retro",
+    "disciplines": [
+     {
+      "module": "app",
+      "id": "SDD",
+      "nombre": "Spec-Driven Development",
+      "artefactos": [
+       {
+        "patron": "docs/specs/SPEC.md",
+        "min": 1,
+        "archivos": [
+         "docs/specs/SPEC.md"
+        ]
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "aprobaciones": [
+   {
+    "seq": 0,
+    "fase": "briefing",
+    "aprobador": "cucholambreta",
+    "fecha": "2026-10-22T11:34:39.386Z",
+    "artefactos": 4,
+    "hash": "69ac5089b6"
+   }
+  ],
+  "diario": [
+   {
+    "ts": "2026-10-22T11:34:39.259Z",
+    "tipo": "project-created",
+    "fase": null
+   },
+   {
+    "ts": "2026-10-22T11:34:39.392Z",
+    "tipo": "approved",
+    "fase": "briefing"
+   },
+   {
+    "ts": "2026-10-22T11:34:39.656Z",
+    "tipo": "phase-completed",
+    "fase": "briefing"
+   }
+  ],
+  "lecciones": [],
+  "ultimaActividad": "2026-10-22T11:34:39.656Z",
+  "memoria": {
+   "wing": "api_pagos",
+   "enabled": false
+  }
+ },
+ {
+  "id": "blog-estatico",
+  "nombre": "blog-estatico",
+  "carpeta": "blog-estatico",
+  "modulos": [
+   {
+    "nombre": "app",
+    "raiz": ".",
+    "disciplinas": [
+     "SDD",
+     "FDD",
+     "DDD",
+     "THREAT",
+     "BDD",
+     "ATDD",
+     "TDD",
+     "STDD",
+     "SecDD"
+    ]
+   }
+  ],
+  "estado": {
+   "fase": "done",
+   "completadas": [
+    "briefing",
+    "spec",
+    "plan",
+    "build",
+    "qa",
+    "retro"
+   ],
+   "adoptadas": [],
+   "aprobacion": {
+    "state": "pendiente"
+   },
+   "disciplinas": []
+  },
+  "problemas": [],
+  "fases": [
+   {
+    "phase": "briefing",
+    "disciplines": [
+     {
+      "module": "app",
+      "id": "FDD",
+      "nombre": "Feature-Driven Development",
+      "artefactos": [
+       {
+        "patron": "docs/features/FEATURES.md",
+        "min": 1,
+        "archivos": [
+         "docs/features/FEATURES.md"
+        ]
+       }
+      ]
+     },
+     {
+      "module": "app",
+      "id": "BDD",
+      "nombre": "Behavior-Driven Development",
+      "artefactos": [
+       {
+        "patron": "tests/features/*.feature",
+        "min": 1,
+        "archivos": [
+         "tests/features/ejemplo.feature"
+        ]
+       }
+      ]
+     },
+     {
+      "module": "app",
+      "id": "ATDD",
+      "nombre": "Acceptance Test-Driven Development",
+      "artefactos": [
+       {
+        "patron": "tests/acceptance/*.acceptance.test.ts",
+        "min": 1,
+        "archivos": [
+         "tests/acceptance/ejemplo.acceptance.test.ts"
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "phase": "spec",
+    "disciplines": [
+     {
+      "module": "app",
+      "id": "SDD",
+      "nombre": "Spec-Driven Development",
+      "artefactos": [
+       {
+        "patron": "docs/specs/SPEC.md",
+        "min": 1,
+        "archivos": [
+         "docs/specs/SPEC.md"
+        ]
+       }
+      ]
+     },
+     {
+      "module": "app",
+      "id": "DDD",
+      "nombre": "Domain-Driven Design",
+      "artefactos": [
+       {
+        "patron": "docs/specs/DOMAIN.md",
+        "min": 1,
+        "archivos": [
+         "docs/specs/DOMAIN.md"
+        ]
+       }
+      ]
+     },
+     {
+      "module": "app",
+      "id": "THREAT",
+      "nombre": "Threat-Driven Development",
+      "artefactos": [
+       {
+        "patron": "docs/specs/THREATS.md",
+        "min": 1,
+        "archivos": [
+         "docs/specs/THREATS.md"
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "phase": "plan",
+    "disciplines": [
+     {
+      "module": "app",
+      "id": "SDD",
+      "nombre": "Spec-Driven Development",
+      "artefactos": [
+       {
+        "patron": "docs/specs/SPEC.md",
+        "min": 1,
+        "archivos": [
+         "docs/specs/SPEC.md"
+        ]
+       }
+      ]
+     },
+     {
+      "module": "app",
+      "id": "FDD",
+      "nombre": "Feature-Driven Development",
+      "artefactos": [
+       {
+        "patron": "docs/features/FEATURES.md",
+        "min": 1,
+        "archivos": [
+         "docs/features/FEATURES.md"
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "phase": "build",
+    "disciplines": [
+     {
+      "module": "app",
+      "id": "SDD",
+      "nombre": "Spec-Driven Development",
+      "artefactos": [
+       {
+        "patron": "docs/specs/SPEC.md",
+        "min": 1,
+        "archivos": [
+         "docs/specs/SPEC.md"
+        ]
+       }
+      ]
+     },
+     {
+      "module": "app",
+      "id": "TDD",
+      "nombre": "Test-Driven Development",
+      "artefactos": [
+       {
+        "patron": "tests/unit/*.test.ts",
+        "min": 1,
+        "archivos": [
+         "tests/unit/index.test.ts"
+        ]
+       }
+      ]
+     },
+     {
+      "module": "app",
+      "id": "STDD",
+      "nombre": "Security-Test-Driven Development",
+      "artefactos": [
+       {
+        "patron": "tests/security/**/*.security.test.ts",
+        "min": 1,
+        "archivos": [
+         "tests/security/ejemplo.security.test.ts"
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "phase": "qa",
+    "disciplines": [
+     {
+      "module": "app",
+      "id": "SDD",
+      "nombre": "Spec-Driven Development",
+      "artefactos": [
+       {
+        "patron": "docs/specs/SPEC.md",
+        "min": 1,
+        "archivos": [
+         "docs/specs/SPEC.md"
+        ]
+       }
+      ]
+     },
+     {
+      "module": "app",
+      "id": "BDD",
+      "nombre": "Behavior-Driven Development",
+      "artefactos": [
+       {
+        "patron": "tests/features/*.feature",
+        "min": 1,
+        "archivos": [
+         "tests/features/ejemplo.feature"
+        ]
+       }
+      ]
+     },
+     {
+      "module": "app",
+      "id": "ATDD",
+      "nombre": "Acceptance Test-Driven Development",
+      "artefactos": [
+       {
+        "patron": "tests/acceptance/*.acceptance.test.ts",
+        "min": 1,
+        "archivos": [
+         "tests/acceptance/ejemplo.acceptance.test.ts"
+        ]
+       }
+      ]
+     },
+     {
+      "module": "app",
+      "id": "SecDD",
+      "nombre": "Security-Driven Development",
+      "artefactos": [
+       {
+        "patron": ".evol/qa/QA_REPORT.md",
+        "min": 1,
+        "archivos": [
+         ".evol/qa/QA_REPORT.md"
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "phase": "retro",
+    "disciplines": [
+     {
+      "module": "app",
+      "id": "SDD",
+      "nombre": "Spec-Driven Development",
+      "artefactos": [
+       {
+        "patron": "docs/specs/SPEC.md",
+        "min": 1,
+        "archivos": [
+         "docs/specs/SPEC.md"
+        ]
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "aprobaciones": [
+   {
+    "seq": 0,
+    "fase": "briefing",
+    "aprobador": "cucholambreta",
+    "fecha": "2026-10-22T11:34:33.909Z",
+    "artefactos": 4,
+    "hash": "7e6ae030ad"
+   },
+   {
+    "seq": 1,
+    "fase": "spec",
+    "aprobador": "cucholambreta",
+    "fecha": "2026-10-22T11:34:34.311Z",
+    "artefactos": 4,
+    "hash": "64137de58d"
+   },
+   {
+    "seq": 2,
+    "fase": "plan",
+    "aprobador": "cucholambreta",
+    "fecha": "2026-10-22T11:34:34.716Z",
+    "artefactos": 3,
+    "hash": "0428ff9081"
+   },
+   {
+    "seq": 3,
+    "fase": "build",
+    "aprobador": "cucholambreta",
+    "fecha": "2026-10-22T11:34:35.934Z",
+    "artefactos": 4,
+    "hash": "d351be7201"
+   },
+   {
+    "seq": 4,
+    "fase": "qa",
+    "aprobador": "cucholambreta",
+    "fecha": "2026-10-22T11:34:38.093Z",
+    "artefactos": 5,
+    "hash": "bfec88ed69"
+   },
+   {
+    "seq": 5,
+    "fase": "retro",
+    "aprobador": "cucholambreta",
+    "fecha": "2026-10-22T11:34:38.877Z",
+    "artefactos": 2,
+    "hash": "ca70c18bcc"
+   }
+  ],
+  "diario": [
+   {
+    "ts": "2026-10-22T11:34:31.901Z",
+    "tipo": "project-created",
+    "fase": null
+   },
+   {
+    "ts": "2026-10-22T11:34:33.914Z",
+    "tipo": "approved",
+    "fase": "briefing"
+   },
+   {
+    "ts": "2026-10-22T11:34:34.183Z",
+    "tipo": "phase-completed",
+    "fase": "briefing"
+   },
+   {
+    "ts": "2026-10-22T11:34:34.312Z",
+    "tipo": "approved",
+    "fase": "spec"
+   },
+   {
+    "ts": "2026-10-22T11:34:34.583Z",
+    "tipo": "phase-completed",
+    "fase": "spec"
+   },
+   {
+    "ts": "2026-10-22T11:34:34.717Z",
+    "tipo": "approved",
+    "fase": "plan"
+   },
+   {
+    "ts": "2026-10-22T11:34:34.977Z",
+    "tipo": "phase-completed",
+    "fase": "plan"
+   },
+   {
+    "ts": "2026-10-22T11:34:35.935Z",
+    "tipo": "approved",
+    "fase": "build"
+   },
+   {
+    "ts": "2026-10-22T11:34:36.848Z",
+    "tipo": "phase-completed",
+    "fase": "build"
+   },
+   {
+    "ts": "2026-10-22T11:34:38.094Z",
+    "tipo": "approved",
+    "fase": "qa"
+   },
+   {
+    "ts": "2026-10-22T11:34:38.752Z",
+    "tipo": "phase-completed",
+    "fase": "qa"
+   },
+   {
+    "ts": "2026-10-22T11:34:38.878Z",
+    "tipo": "approved",
+    "fase": "retro"
+   },
+   {
+    "ts": "2026-10-22T11:34:39.148Z",
+    "tipo": "phase-completed",
+    "fase": "retro"
+   }
+  ],
+  "lecciones": [
+   "Generar el sitio en CI desde el primer día — 2026-10-10",
+   "Las imágenes grandes frenan el build — 2026-10-12"
+  ],
+  "ultimaActividad": "2026-10-22T11:34:39.148Z",
+  "memoria": {
+   "wing": "blog_estatico",
+   "enabled": false
+  }
+ },
+ {
+  "id": "erp-demo",
+  "nombre": "erp-demo",
+  "carpeta": "erp-demo",
+  "modulos": [
+   {
+    "nombre": "ventas",
+    "raiz": "modules/ventas",
+    "disciplinas": [
+     "SDD",
+     "FDD",
+     "TDD"
+    ]
+   },
+   {
+    "nombre": "stock",
+    "raiz": "modules/stock",
+    "disciplinas": [
+     "SDD",
+     "MDD",
+     "SecDD"
+    ]
+   }
+  ],
+  "estado": {
+   "fase": "briefing",
+   "completadas": [],
+   "adoptadas": [],
+   "aprobacion": {
+    "state": "pendiente"
+   },
+   "disciplinas": [
+    {
+     "module": "ventas",
+     "id": "FDD",
+     "nombre": "Feature-Driven Development",
+     "artefactos": [
+      {
+       "patron": "docs/features/FEATURES.md",
+       "encontrados": 1,
+       "min": 1,
+       "pendientes": 0
+      }
+     ]
+    }
+   ]
+  },
+  "problemas": [],
+  "fases": [
+   {
+    "phase": "briefing",
+    "disciplines": [
+     {
+      "module": "ventas",
+      "id": "FDD",
+      "nombre": "Feature-Driven Development",
+      "artefactos": [
+       {
+        "patron": "docs/features/FEATURES.md",
+        "min": 1,
+        "archivos": [
+         "modules/ventas/docs/features/FEATURES.md"
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "phase": "spec",
+    "disciplines": [
+     {
+      "module": "ventas",
+      "id": "SDD",
+      "nombre": "Spec-Driven Development",
+      "artefactos": [
+       {
+        "patron": "docs/specs/SPEC.md",
+        "min": 1,
+        "archivos": [
+         "modules/ventas/docs/specs/SPEC.md"
+        ]
+       }
+      ]
+     },
+     {
+      "module": "stock",
+      "id": "SDD",
+      "nombre": "Spec-Driven Development",
+      "artefactos": [
+       {
+        "patron": "docs/specs/SPEC.md",
+        "min": 1,
+        "archivos": []
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "phase": "plan",
+    "disciplines": [
+     {
+      "module": "ventas",
+      "id": "SDD",
+      "nombre": "Spec-Driven Development",
+      "artefactos": [
+       {
+        "patron": "docs/specs/SPEC.md",
+        "min": 1,
+        "archivos": [
+         "modules/ventas/docs/specs/SPEC.md"
+        ]
+       }
+      ]
+     },
+     {
+      "module": "ventas",
+      "id": "FDD",
+      "nombre": "Feature-Driven Development",
+      "artefactos": [
+       {
+        "patron": "docs/features/FEATURES.md",
+        "min": 1,
+        "archivos": [
+         "modules/ventas/docs/features/FEATURES.md"
+        ]
+       }
+      ]
+     },
+     {
+      "module": "stock",
+      "id": "SDD",
+      "nombre": "Spec-Driven Development",
+      "artefactos": [
+       {
+        "patron": "docs/specs/SPEC.md",
+        "min": 1,
+        "archivos": []
+       }
+      ]
+     },
+     {
+      "module": "stock",
+      "id": "MDD",
+      "nombre": "Migration-Driven Development",
+      "artefactos": [
+       {
+        "patron": "migrations/*/up.sql",
+        "min": 1,
+        "archivos": []
+       },
+       {
+        "patron": "migrations/*/down.sql",
+        "min": 0,
+        "archivos": []
+       },
+       {
+        "patron": "migrations/*/data_migration.md",
+        "min": 0,
+        "archivos": []
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "phase": "build",
+    "disciplines": [
+     {
+      "module": "ventas",
+      "id": "SDD",
+      "nombre": "Spec-Driven Development",
+      "artefactos": [
+       {
+        "patron": "docs/specs/SPEC.md",
+        "min": 1,
+        "archivos": [
+         "modules/ventas/docs/specs/SPEC.md"
+        ]
+       }
+      ]
+     },
+     {
+      "module": "ventas",
+      "id": "TDD",
+      "nombre": "Test-Driven Development",
+      "artefactos": [
+       {
+        "patron": "tests/unit/*.test.ts",
+        "min": 1,
+        "archivos": []
+       }
+      ]
+     },
+     {
+      "module": "stock",
+      "id": "SDD",
+      "nombre": "Spec-Driven Development",
+      "artefactos": [
+       {
+        "patron": "docs/specs/SPEC.md",
+        "min": 1,
+        "archivos": []
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "phase": "qa",
+    "disciplines": [
+     {
+      "module": "ventas",
+      "id": "SDD",
+      "nombre": "Spec-Driven Development",
+      "artefactos": [
+       {
+        "patron": "docs/specs/SPEC.md",
+        "min": 1,
+        "archivos": [
+         "modules/ventas/docs/specs/SPEC.md"
+        ]
+       }
+      ]
+     },
+     {
+      "module": "stock",
+      "id": "SDD",
+      "nombre": "Spec-Driven Development",
+      "artefactos": [
+       {
+        "patron": "docs/specs/SPEC.md",
+        "min": 1,
+        "archivos": []
+       }
+      ]
+     },
+     {
+      "module": "stock",
+      "id": "SecDD",
+      "nombre": "Security-Driven Development",
+      "artefactos": [
+       {
+        "patron": ".evol/qa/QA_REPORT.md",
+        "min": 1,
+        "archivos": []
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "phase": "retro",
+    "disciplines": [
+     {
+      "module": "ventas",
+      "id": "SDD",
+      "nombre": "Spec-Driven Development",
+      "artefactos": [
+       {
+        "patron": "docs/specs/SPEC.md",
+        "min": 1,
+        "archivos": [
+         "modules/ventas/docs/specs/SPEC.md"
+        ]
+       }
+      ]
+     },
+     {
+      "module": "stock",
+      "id": "SDD",
+      "nombre": "Spec-Driven Development",
+      "artefactos": [
+       {
+        "patron": "docs/specs/SPEC.md",
+        "min": 1,
+        "archivos": []
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "aprobaciones": [],
+  "diario": [
+   {
+    "ts": "2026-10-22T11:34:39.772Z",
+    "tipo": "project-adopted",
+    "fase": "briefing"
+   }
+  ],
+  "lecciones": [],
+  "ultimaActividad": "2026-10-22T11:34:39.772Z",
+  "memoria": {
+   "wing": "erp_demo",
+   "enabled": false
+  }
+ },
+ {
+  "id": "evol-driven",
+  "nombre": "evol-driven",
+  "carpeta": "evol-driven",
+  "modulos": [
+   {
+    "nombre": "app",
+    "raiz": ".",
+    "disciplinas": [
+     "SDD",
+     "FDD",
+     "DDD",
+     "THREAT",
+     "BDD",
+     "ATDD",
+     "TDD",
+     "STDD",
+     "SecDD"
+    ]
+   }
+  ],
+  "estado": {
+   "fase": "build",
+   "completadas": [
+    "briefing",
+    "spec",
+    "plan"
+   ],
+   "adoptadas": [
+    "briefing",
+    "spec",
+    "plan"
+   ],
+   "aprobacion": {
+    "state": "pendiente"
+   },
+   "disciplinas": [
+    {
+     "module": "app",
+     "id": "SDD",
+     "nombre": "Spec-Driven Development",
+     "artefactos": [
+      {
+       "patron": "docs/ESPECIFICACION.md",
+       "encontrados": 1,
+       "min": 1,
+       "pendientes": 1
+      }
+     ]
+    },
+    {
+     "module": "app",
+     "id": "TDD",
+     "nombre": "Test-Driven Development",
+     "artefactos": [
+      {
+       "patron": "tests/*.test.ts",
+       "encontrados": 12,
+       "min": 1,
+       "pendientes": 3
+      }
+     ]
+    },
+    {
+     "module": "app",
+     "id": "STDD",
+     "nombre": "Security-Test-Driven Development",
+     "artefactos": [
+      {
+       "patron": "tests/security/**/*.security.test.ts",
+       "encontrados": 0,
+       "min": 1,
+       "pendientes": 0
+      }
+     ]
+    }
+   ]
+  },
+  "problemas": [
+   {
+    "modulo": "app",
+    "disciplina": "SDD",
+    "mensaje": "«docs/ESPECIFICACION.md» tiene secciones sin completar (marcador [[COMPLETAR]])"
+   },
+   {
+    "modulo": "app",
+    "disciplina": "TDD",
+    "mensaje": "«tests/cli.test.ts» tiene secciones sin completar (marcador [[COMPLETAR]])"
+   },
+   {
+    "modulo": "app",
+    "disciplina": "TDD",
+    "mensaje": "«tests/disciplines.test.ts» tiene secciones sin completar (marcador [[COMPLETAR]])"
+   },
+   {
+    "modulo": "app",
+    "disciplina": "TDD",
+    "mensaje": "«tests/e2e.test.ts» tiene secciones sin completar (marcador [[COMPLETAR]])"
+   },
+   {
+    "modulo": "app",
+    "disciplina": "STDD",
+    "mensaje": "falta el artefacto «tests/security/**/*.security.test.ts» (se esperaba al menos 1, hay 0)"
+   }
+  ],
+  "fases": [
+   {
+    "phase": "briefing",
+    "disciplines": [
+     {
+      "module": "app",
+      "id": "FDD",
+      "nombre": "Feature-Driven Development",
+      "artefactos": [
+       {
+        "patron": "docs/features/FEATURES.md",
+        "min": 1,
+        "archivos": []
+       }
+      ]
+     },
+     {
+      "module": "app",
+      "id": "BDD",
+      "nombre": "Behavior-Driven Development",
+      "artefactos": [
+       {
+        "patron": "tests/features/*.feature",
+        "min": 1,
+        "archivos": []
+       }
+      ]
+     },
+     {
+      "module": "app",
+      "id": "ATDD",
+      "nombre": "Acceptance Test-Driven Development",
+      "artefactos": [
+       {
+        "patron": "tests/acceptance/*.acceptance.test.ts",
+        "min": 1,
+        "archivos": []
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "phase": "spec",
+    "disciplines": [
+     {
+      "module": "app",
+      "id": "SDD",
+      "nombre": "Spec-Driven Development",
+      "artefactos": [
+       {
+        "patron": "docs/ESPECIFICACION.md",
+        "min": 1,
+        "archivos": [
+         "docs/ESPECIFICACION.md"
+        ]
+       }
+      ]
+     },
+     {
+      "module": "app",
+      "id": "DDD",
+      "nombre": "Domain-Driven Design",
+      "artefactos": [
+       {
+        "patron": "docs/specs/DOMAIN.md",
+        "min": 1,
+        "archivos": []
+       }
+      ]
+     },
+     {
+      "module": "app",
+      "id": "THREAT",
+      "nombre": "Threat-Driven Development",
+      "artefactos": [
+       {
+        "patron": "docs/specs/THREATS.md",
+        "min": 1,
+        "archivos": []
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "phase": "plan",
+    "disciplines": [
+     {
+      "module": "app",
+      "id": "SDD",
+      "nombre": "Spec-Driven Development",
+      "artefactos": [
+       {
+        "patron": "docs/ESPECIFICACION.md",
+        "min": 1,
+        "archivos": [
+         "docs/ESPECIFICACION.md"
+        ]
+       }
+      ]
+     },
+     {
+      "module": "app",
+      "id": "FDD",
+      "nombre": "Feature-Driven Development",
+      "artefactos": [
+       {
+        "patron": "docs/features/FEATURES.md",
+        "min": 1,
+        "archivos": []
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "phase": "build",
+    "disciplines": [
+     {
+      "module": "app",
+      "id": "SDD",
+      "nombre": "Spec-Driven Development",
+      "artefactos": [
+       {
+        "patron": "docs/ESPECIFICACION.md",
+        "min": 1,
+        "archivos": [
+         "docs/ESPECIFICACION.md"
+        ]
+       }
+      ]
+     },
+     {
+      "module": "app",
+      "id": "TDD",
+      "nombre": "Test-Driven Development",
+      "artefactos": [
+       {
+        "patron": "tests/*.test.ts",
+        "min": 1,
+        "archivos": [
+         "tests/agents.test.ts",
+         "tests/cli.test.ts",
+         "tests/codeintel.test.ts",
+         "tests/disciplines.test.ts",
+         "tests/e2e.test.ts",
+         "tests/gate.test.ts",
+         "tests/gitnexus.test.ts",
+         "tests/init.test.ts",
+         "tests/mcp.test.ts",
+         "tests/memory.test.ts",
+         "tests/pipeline.test.ts",
+         "tests/repo.test.ts"
+        ]
+       }
+      ]
+     },
+     {
+      "module": "app",
+      "id": "STDD",
+      "nombre": "Security-Test-Driven Development",
+      "artefactos": [
+       {
+        "patron": "tests/security/**/*.security.test.ts",
+        "min": 1,
+        "archivos": []
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "phase": "qa",
+    "disciplines": [
+     {
+      "module": "app",
+      "id": "SDD",
+      "nombre": "Spec-Driven Development",
+      "artefactos": [
+       {
+        "patron": "docs/ESPECIFICACION.md",
+        "min": 1,
+        "archivos": [
+         "docs/ESPECIFICACION.md"
+        ]
+       }
+      ]
+     },
+     {
+      "module": "app",
+      "id": "BDD",
+      "nombre": "Behavior-Driven Development",
+      "artefactos": [
+       {
+        "patron": "tests/features/*.feature",
+        "min": 1,
+        "archivos": []
+       }
+      ]
+     },
+     {
+      "module": "app",
+      "id": "ATDD",
+      "nombre": "Acceptance Test-Driven Development",
+      "artefactos": [
+       {
+        "patron": "tests/acceptance/*.acceptance.test.ts",
+        "min": 1,
+        "archivos": []
+       }
+      ]
+     },
+     {
+      "module": "app",
+      "id": "SecDD",
+      "nombre": "Security-Driven Development",
+      "artefactos": [
+       {
+        "patron": ".evol/qa/QA_REPORT.md",
+        "min": 1,
+        "archivos": []
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "phase": "retro",
+    "disciplines": [
+     {
+      "module": "app",
+      "id": "SDD",
+      "nombre": "Spec-Driven Development",
+      "artefactos": [
+       {
+        "patron": "docs/ESPECIFICACION.md",
+        "min": 1,
+        "archivos": [
+         "docs/ESPECIFICACION.md"
+        ]
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "aprobaciones": [],
+  "diario": [
+   {
+    "ts": "2026-10-22T11:34:45.946Z",
+    "tipo": "project-adopted",
+    "fase": "build"
+   }
+  ],
+  "lecciones": [],
+  "ultimaActividad": "2026-10-22T11:34:45.946Z",
+  "memoria": {
+   "wing": "evol_driven",
+   "enabled": false
+  }
+ },
+ {
+  "id": "tienda-online",
+  "nombre": "tienda-online",
+  "carpeta": "tienda-online",
+  "modulos": [
+   {
+    "nombre": "app",
+    "raiz": ".",
+    "disciplinas": [
+     "SDD",
+     "FDD",
+     "DDD",
+     "THREAT",
+     "BDD",
+     "ATDD",
+     "TDD",
+     "STDD",
+     "SecDD"
+    ]
+   }
+  ],
+  "estado": {
+   "fase": "qa",
+   "completadas": [
+    "briefing",
+    "spec",
+    "plan",
+    "build"
+   ],
+   "adoptadas": [],
+   "aprobacion": {
+    "state": "pendiente"
+   },
+   "disciplinas": [
+    {
+     "module": "app",
+     "id": "SDD",
+     "nombre": "Spec-Driven Development",
+     "artefactos": [
+      {
+       "patron": "docs/specs/SPEC.md",
+       "encontrados": 1,
+       "min": 1,
+       "pendientes": 0
+      }
+     ]
+    },
+    {
+     "module": "app",
+     "id": "BDD",
+     "nombre": "Behavior-Driven Development",
+     "artefactos": [
+      {
+       "patron": "tests/features/*.feature",
+       "encontrados": 1,
+       "min": 1,
+       "pendientes": 0
+      }
+     ]
+    },
+    {
+     "module": "app",
+     "id": "ATDD",
+     "nombre": "Acceptance Test-Driven Development",
+     "artefactos": [
+      {
+       "patron": "tests/acceptance/*.acceptance.test.ts",
+       "encontrados": 1,
+       "min": 1,
+       "pendientes": 0
+      }
+     ]
+    },
+    {
+     "module": "app",
+     "id": "SecDD",
+     "nombre": "Security-Driven Development",
+     "artefactos": [
+      {
+       "patron": ".evol/qa/QA_REPORT.md",
+       "encontrados": 1,
+       "min": 1,
+       "pendientes": 0
+      }
+     ]
+    }
+   ]
+  },
+  "problemas": [],
+  "fases": [
+   {
+    "phase": "briefing",
+    "disciplines": [
+     {
+      "module": "app",
+      "id": "FDD",
+      "nombre": "Feature-Driven Development",
+      "artefactos": [
+       {
+        "patron": "docs/features/FEATURES.md",
+        "min": 1,
+        "archivos": [
+         "docs/features/FEATURES.md"
+        ]
+       }
+      ]
+     },
+     {
+      "module": "app",
+      "id": "BDD",
+      "nombre": "Behavior-Driven Development",
+      "artefactos": [
+       {
+        "patron": "tests/features/*.feature",
+        "min": 1,
+        "archivos": [
+         "tests/features/ejemplo.feature"
+        ]
+       }
+      ]
+     },
+     {
+      "module": "app",
+      "id": "ATDD",
+      "nombre": "Acceptance Test-Driven Development",
+      "artefactos": [
+       {
+        "patron": "tests/acceptance/*.acceptance.test.ts",
+        "min": 1,
+        "archivos": [
+         "tests/acceptance/ejemplo.acceptance.test.ts"
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "phase": "spec",
+    "disciplines": [
+     {
+      "module": "app",
+      "id": "SDD",
+      "nombre": "Spec-Driven Development",
+      "artefactos": [
+       {
+        "patron": "docs/specs/SPEC.md",
+        "min": 1,
+        "archivos": [
+         "docs/specs/SPEC.md"
+        ]
+       }
+      ]
+     },
+     {
+      "module": "app",
+      "id": "DDD",
+      "nombre": "Domain-Driven Design",
+      "artefactos": [
+       {
+        "patron": "docs/specs/DOMAIN.md",
+        "min": 1,
+        "archivos": [
+         "docs/specs/DOMAIN.md"
+        ]
+       }
+      ]
+     },
+     {
+      "module": "app",
+      "id": "THREAT",
+      "nombre": "Threat-Driven Development",
+      "artefactos": [
+       {
+        "patron": "docs/specs/THREATS.md",
+        "min": 1,
+        "archivos": [
+         "docs/specs/THREATS.md"
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "phase": "plan",
+    "disciplines": [
+     {
+      "module": "app",
+      "id": "SDD",
+      "nombre": "Spec-Driven Development",
+      "artefactos": [
+       {
+        "patron": "docs/specs/SPEC.md",
+        "min": 1,
+        "archivos": [
+         "docs/specs/SPEC.md"
+        ]
+       }
+      ]
+     },
+     {
+      "module": "app",
+      "id": "FDD",
+      "nombre": "Feature-Driven Development",
+      "artefactos": [
+       {
+        "patron": "docs/features/FEATURES.md",
+        "min": 1,
+        "archivos": [
+         "docs/features/FEATURES.md"
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "phase": "build",
+    "disciplines": [
+     {
+      "module": "app",
+      "id": "SDD",
+      "nombre": "Spec-Driven Development",
+      "artefactos": [
+       {
+        "patron": "docs/specs/SPEC.md",
+        "min": 1,
+        "archivos": [
+         "docs/specs/SPEC.md"
+        ]
+       }
+      ]
+     },
+     {
+      "module": "app",
+      "id": "TDD",
+      "nombre": "Test-Driven Development",
+      "artefactos": [
+       {
+        "patron": "tests/unit/*.test.ts",
+        "min": 1,
+        "archivos": [
+         "tests/unit/index.test.ts"
+        ]
+       }
+      ]
+     },
+     {
+      "module": "app",
+      "id": "STDD",
+      "nombre": "Security-Test-Driven Development",
+      "artefactos": [
+       {
+        "patron": "tests/security/**/*.security.test.ts",
+        "min": 1,
+        "archivos": [
+         "tests/security/ejemplo.security.test.ts"
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "phase": "qa",
+    "disciplines": [
+     {
+      "module": "app",
+      "id": "SDD",
+      "nombre": "Spec-Driven Development",
+      "artefactos": [
+       {
+        "patron": "docs/specs/SPEC.md",
+        "min": 1,
+        "archivos": [
+         "docs/specs/SPEC.md"
+        ]
+       }
+      ]
+     },
+     {
+      "module": "app",
+      "id": "BDD",
+      "nombre": "Behavior-Driven Development",
+      "artefactos": [
+       {
+        "patron": "tests/features/*.feature",
+        "min": 1,
+        "archivos": [
+         "tests/features/ejemplo.feature"
+        ]
+       }
+      ]
+     },
+     {
+      "module": "app",
+      "id": "ATDD",
+      "nombre": "Acceptance Test-Driven Development",
+      "artefactos": [
+       {
+        "patron": "tests/acceptance/*.acceptance.test.ts",
+        "min": 1,
+        "archivos": [
+         "tests/acceptance/ejemplo.acceptance.test.ts"
+        ]
+       }
+      ]
+     },
+     {
+      "module": "app",
+      "id": "SecDD",
+      "nombre": "Security-Driven Development",
+      "artefactos": [
+       {
+        "patron": ".evol/qa/QA_REPORT.md",
+        "min": 1,
+        "archivos": [
+         ".evol/qa/QA_REPORT.md"
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "phase": "retro",
+    "disciplines": [
+     {
+      "module": "app",
+      "id": "SDD",
+      "nombre": "Spec-Driven Development",
+      "artefactos": [
+       {
+        "patron": "docs/specs/SPEC.md",
+        "min": 1,
+        "archivos": [
+         "docs/specs/SPEC.md"
+        ]
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "aprobaciones": [
+   {
+    "seq": 0,
+    "fase": "briefing",
+    "aprobador": "cucholambreta",
+    "fecha": "2026-10-22T11:34:28.847Z",
+    "artefactos": 4,
+    "hash": "817b655f1d"
+   },
+   {
+    "seq": 1,
+    "fase": "spec",
+    "aprobador": "cucholambreta",
+    "fecha": "2026-10-22T11:34:29.264Z",
+    "artefactos": 4,
+    "hash": "1c06c1fa87"
+   },
+   {
+    "seq": 2,
+    "fase": "plan",
+    "aprobador": "cucholambreta",
+    "fecha": "2026-10-22T11:34:29.656Z",
+    "artefactos": 3,
+    "hash": "fe2c15320e"
+   },
+   {
+    "seq": 3,
+    "fase": "build",
+    "aprobador": "cucholambreta",
+    "fecha": "2026-10-22T11:34:30.894Z",
+    "artefactos": 4,
+    "hash": "0a9ab3585d"
+   }
+  ],
+  "diario": [
+   {
+    "ts": "2026-10-22T11:34:24.300Z",
+    "tipo": "project-created",
+    "fase": null
+   },
+   {
+    "ts": "2026-10-22T11:34:28.853Z",
+    "tipo": "approved",
+    "fase": "briefing"
+   },
+   {
+    "ts": "2026-10-22T11:34:29.132Z",
+    "tipo": "phase-completed",
+    "fase": "briefing"
+   },
+   {
+    "ts": "2026-10-22T11:34:29.265Z",
+    "tipo": "approved",
+    "fase": "spec"
+   },
+   {
+    "ts": "2026-10-22T11:34:29.530Z",
+    "tipo": "phase-completed",
+    "fase": "spec"
+   },
+   {
+    "ts": "2026-10-22T11:34:29.657Z",
+    "tipo": "approved",
+    "fase": "plan"
+   },
+   {
+    "ts": "2026-10-22T11:34:29.924Z",
+    "tipo": "phase-completed",
+    "fase": "plan"
+   },
+   {
+    "ts": "2026-10-22T11:34:30.895Z",
+    "tipo": "approved",
+    "fase": "build"
+   },
+   {
+    "ts": "2026-10-22T11:34:31.796Z",
+    "tipo": "phase-completed",
+    "fase": "build"
+   }
+  ],
+  "lecciones": [],
+  "ultimaActividad": "2026-10-22T11:34:31.796Z",
+  "memoria": {
+   "wing": "tienda_online",
+   "enabled": false
+  }
+ }
+]
