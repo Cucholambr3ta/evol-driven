@@ -44,6 +44,10 @@ const COMMANDS: Record<string, CommandSpec> = {
     summary: "Cadena de llamadas desde un símbolo",
     load: async () => (await import("./commands/codeintel.js")).runTrace,
   },
+  lessons: {
+    summary: "Busca en otros proyectos las lecciones que ya registraste (check)",
+    load: async () => (await import("./commands/lessons.js")).default,
+  },
   coverage: {
     summary: "Matriz criterio CA-n → escenario → prueba, con los huecos",
     load: async () => (await import("./commands/analysis.js")).runCoverage,

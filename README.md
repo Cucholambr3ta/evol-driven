@@ -118,6 +118,18 @@ evol memory search "base de datos"
 Los eventos del pipeline quedan siempre en `.evol/journal.jsonl`; además van a MemPalace, pero si
 MemPalace falla solo se avisa. Los comandos `evol memory` sí fallan si no está disponible.
 
+### Lecciones repetidas entre proyectos
+
+```bash
+evol lessons check             # ¿alguna lección de lecciones.md la aprendió ya otro proyecto?
+evol lessons check --estricto  # sale con 1 si hay repetidas
+evol lessons check --umbral 0.8 --json
+```
+
+Busca cada lección de `lecciones.md` en la sala «lecciones» de **todos los demás wings** de MemPalace
+y descarta el del propio proyecto. Cuenta como repetida una coincidencia con similitud ≥ 0.7 (ajustable
+con `--umbral`). Necesita MemPalace; sin lecciones escritas no lo necesita.
+
 ### Agentes (Claude Code, Hermes y cualquier cliente MCP)
 
 `evol new`, `evol init` y `evol agents` dejan en el proyecto lo necesario para que un agente siga el

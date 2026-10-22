@@ -370,7 +370,7 @@ cambia entre proyectos, pero se marca el estado actual). Los de código (1, 3, 4
 
 1. Conjunto de datos (`export`), `risk` y `coverage`. **Hecho** (criterios 32, 33 y 36; `tests/analysis.test.ts`).
 2. Perfiles y `evol disciplines`. **Hecho** (criterio 34; `tests/disciplines-cmd.test.ts`). `enable` y `disable` exigen una persona en una terminal; los perfiles son `base`, `api`, `web`, `erp` y `lib`.
-3. `evol lessons check`.
+3. `evol lessons check`. **Hecho** (criterio 35; `tests/lessons.test.ts`, con un servidor MemPalace de prueba; el `search` real se cubre en `tests/memory.test.ts`).
 4. Generador de diagramas: primero los 7 estructurales y luego los 7 de comportamiento.
 5. `evol report` (DOCX y PDF con ArtCraft, y Markdown como alternativa).
 6. Documentación y CI.
