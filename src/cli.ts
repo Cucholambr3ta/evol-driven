@@ -12,6 +12,10 @@ const COMMANDS: Record<string, CommandSpec> = {
     summary: "Crea un proyecto TypeScript con pipeline y memoria",
     load: async () => (await import("./commands/new.js")).default,
   },
+  init: {
+    summary: "Adopta un proyecto que ya existe (sin tocar sus archivos)",
+    load: async () => (await import("./commands/init.js")).default,
+  },
   status: {
     summary: "Fase actual, disciplinas activas y artefactos pendientes",
     load: async () => (await import("./commands/status.js")).default,
@@ -39,6 +43,18 @@ const COMMANDS: Record<string, CommandSpec> = {
   trace: {
     summary: "Cadena de llamadas desde un símbolo",
     load: async () => (await import("./commands/codeintel.js")).runTrace,
+  },
+  agents: {
+    summary: "Crea o refresca la integración con Claude Code y MCP",
+    load: async () => (await import("./commands/agents.js")).default,
+  },
+  hook: {
+    summary: "Salida para los hooks de Claude Code (session-start)",
+    load: async () => (await import("./commands/hook.js")).default,
+  },
+  mcp: {
+    summary: "Servidor MCP de solo lectura (estado, verificación, código, memoria)",
+    load: async () => (await import("./commands/mcp.js")).default,
   },
   doctor: {
     summary: "Comprueba Node, Git, MemPalace y el proyecto",

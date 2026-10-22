@@ -2,6 +2,7 @@ import { spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { basename, join, resolve } from "node:path";
 import { parseArgs } from "node:util";
+import { writeAgentFiles } from "../agents/files.js";
 import { saveConfig } from "../core/config.js";
 import type { EvolConfig } from "../core/config.js";
 import { loadDisciplines } from "../core/disciplines.js";
@@ -46,6 +47,7 @@ export default async function run(argv: string[]): Promise<number> {
       "no-install": { type: "boolean" },
       "no-git": { type: "boolean" },
       "no-memory": { type: "boolean" },
+      "no-agentes": { type: "boolean" },
     },
   });
   const name = positionals[0];
@@ -82,6 +84,8 @@ export default async function run(argv: string[]): Promise<number> {
   const state = initState(target);
   ensureKey(state.projectId);
   journalAppend(target, "project-created", { name });
+
+  if (values["no-agentes"] !== true) writeAgentFiles(target);
 
   if (values["no-git"] !== true) {
     const git = spawnSync("git", ["init", "-q", "-b", "main"], { cwd: target, encoding: "utf8" });

@@ -5,6 +5,7 @@ import { loadDisciplines } from "../core/disciplines.js";
 import { readKey, readLog, verifyChain, keyPath } from "../core/gate.js";
 import { CONFIG_FILE, findProjectRoot, packageVersion } from "../core/paths.js";
 import { loadState } from "../core/state.js";
+import { agentFilesComplete } from "../agents/files.js";
 import { GitNexusProvider } from "../codeintel/gitnexus.js";
 import { withMemPalace } from "../memory/mempalace.js";
 import { out } from "./shared.js";
@@ -50,7 +51,7 @@ export default async function run(): Promise<number> {
     );
   } else {
     try {
-      const config = loadConfig(root, loadDisciplines().ids());
+      const config = loadConfig(root, loadDisciplines());
       memoryEnabled = config.memory.enabled;
       add(
         "ok",
@@ -74,6 +75,12 @@ export default async function run(): Promise<number> {
           chain.ok ? "íntegro" : `no íntegro (entrada ${chain.seq}: ${chain.reason})`,
         );
       }
+      const agents = agentFilesComplete(root);
+      add(
+        agents.ok ? "ok" : "aviso",
+        "Integración con agentes",
+        agents.ok ? "completa" : `falta ${agents.missing.join(", ")} (evol agents lo crea)`,
+      );
       if (config.codeIntel === "gitnexus") {
         const availability = await new GitNexusProvider().available();
         add(

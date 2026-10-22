@@ -39,6 +39,26 @@ evol next                # avanza si la fase está verificada y aprobada
 Las plantillas marcan con `[[COMPLETAR]]` lo que falta por escribir: mientras quede un marcador, la
 fase no se puede aprobar.
 
+### Adoptar un proyecto que ya existe
+
+```bash
+cd mi-proyecto
+evol init                                  # un módulo «app» con las 9 disciplinas base
+evol init --modulo ventas=modules/ventas:SDD,FDD,TDD --modulo stock=modules/stock:SDD,MDD
+evol init --fase build                     # se une a mitad del pipeline (pide una persona)
+```
+
+`evol init` **no modifica ningún archivo existente**: solo crea `evol.config.json`, `.evol/` y la
+integración con agentes, y añade sus propias entradas a `.gitignore`, `CLAUDE.md`,
+`.claude/settings.json` y `.mcp.json` sin tocar lo que ya hay. Antes de escribir nada valida todo;
+si falla, no queda nada a medias. Detecta por ti:
+
+- documentos en otra ruta (`SPEC.md`, `FEATURES.md`, `DOMAIN.md`… en la raíz) y los reasigna;
+- un comando de pruebas distinto de Vitest (usa `npm test`).
+
+Unirse en una fase avanzada marca las anteriores como **adoptadas** (`~` en `evol status`): hechas antes
+de evol, sin aprobación registrada. Por eso exige una terminal interactiva, igual que aprobar.
+
 ### Pipeline
 
 `briefing → spec → plan → build → qa → retro`. Para avanzar, una fase necesita **(1)** que las
@@ -70,6 +90,19 @@ Cada módulo de `evol.config.json` elige las suyas y tiene su propia raíz:
 }
 ```
 
+Cada módulo puede reasignar rutas y comandos de sus disciplinas, útil en proyectos que ya tenían su
+propia estructura:
+
+```json
+{
+  "name": "ventas",
+  "root": "modules/ventas",
+  "disciplinas": ["SDD", "TDD"],
+  "rutas": { "docs/specs/SPEC.md": "SPEC.md", "tests/unit/*.test.ts": "src/**/*.test.ts" },
+  "comandos": { "TDD": "npm test" }
+}
+```
+
 Nivel de verificación: **A** (el artefacto existe, no está vacío y su formato es válido) o **B**
 (además se ejecuta algo, por ejemplo las pruebas). Se exige el primer artefacto de cada disciplina; los
 demás se validan solo si existen. Los experimentos (Chaos, Performance) solo verifican su plan.
@@ -84,6 +117,24 @@ evol memory search "base de datos"
 
 Los eventos del pipeline quedan siempre en `.evol/journal.jsonl`; además van a MemPalace, pero si
 MemPalace falla solo se avisa. Los comandos `evol memory` sí fallan si no está disponible.
+
+### Agentes (Claude Code, Hermes y cualquier cliente MCP)
+
+`evol new`, `evol init` y `evol agents` dejan en el proyecto lo necesario para que un agente siga el
+pipeline (sin pisar archivos propios; se puede repetir cuando quieras):
+
+| Archivo                      | Qué hace                                                                                          |
+| ---------------------------- | ------------------------------------------------------------------------------------------------- |
+| `.claude/commands/evol-*.md` | `/evol-status`, `/evol-fase`, `/evol-impacto`, `/evol-memoria`                                    |
+| `CLAUDE.md` (bloque de evol) | Reglas: aprobar y avanzar es siempre humano; medir el impacto antes de editar; guardar decisiones |
+| `.claude/settings.json`      | _Hook_ de inicio de sesión (`evol hook session-start`): estado del pipeline y memoria relevante   |
+| `.mcp.json`                  | Registra el servidor `evol mcp`                                                                   |
+
+El servidor **`evol mcp`** es de **solo lectura**: `evol_status`, `evol_verify`, `evol_find_symbol`,
+`evol_impact`, `evol_trace`, `evol_index`, `evol_memory_search` y `evol_memory_add`. No ofrece ninguna
+herramienta para aprobar, avanzar de fase ni inicializar; eso sigue siendo de una persona en su
+terminal. Para Hermes: `hermes mcp add evol --command evol --args mcp` (con `EVOL_PROJECT` o
+`--project <carpeta>` si no arranca dentro del proyecto). `evol doctor` comprueba que todo esté.
 
 ### Indexador de código
 

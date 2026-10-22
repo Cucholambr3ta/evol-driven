@@ -7,6 +7,7 @@ import { saveConfig } from "../src/core/config.js";
 import type { EvolConfig } from "../src/core/config.js";
 import { loadDisciplines } from "../src/core/disciplines.js";
 import { ensureKey } from "../src/core/gate.js";
+import type { Phase } from "../src/core/phases.js";
 import { initState } from "../src/core/state.js";
 
 export const REPO = join(import.meta.dirname, "..");
@@ -132,4 +133,43 @@ export function writeValidArtifacts(root: string, id: string): void {
       }[a.formato];
     write(root, rel, content ?? "x");
   }
+}
+
+/** Like makeProject, but joins the pipeline at `phase` (earlier phases count as adopted). */
+export function makeProjectAt(
+  phase: Phase,
+  disciplinas: string[],
+  overrides: Partial<EvolConfig> = {},
+): string {
+  const root = tempDir("evol-project-");
+  saveConfig(root, baseConfig(disciplinas, overrides));
+  const state = initState(root, phase);
+  ensureKey(state.projectId);
+  return root;
+}
+
+/** A project that predates evol: documents at the root, Jest instead of Vitest, files of its own. */
+export function legacyProject(): string {
+  const root = tempDir("evol-legacy-");
+  write(
+    root,
+    "package.json",
+    '{ "name": "@acme/erp-ventas", "version": "1.2.0", "scripts": { "test": "jest" }, "devDependencies": { "jest": "^29" } }\n',
+  );
+  write(root, "SPEC.md", "# Spec\n\n## Criterios de aceptación\n\n1. algo\n");
+  write(root, "DOMAIN.md", "# Dominio\n\n## Entidades\n\nx\n\n## Reglas\n\ny\n");
+  write(root, "FEATURES.md", "# Features\n\n## Ventas\n");
+  write(
+    root,
+    "src/venta.ts",
+    "export function total(a: number, b: number): number {\n  return a + b;\n}\n",
+  );
+  write(root, "CLAUDE.md", "# Reglas del equipo\n\nNo usar any.\n");
+  write(root, ".gitignore", "node_modules\n");
+  write(
+    root,
+    ".claude/settings.json",
+    '{ "permissions": { "allow": ["Bash(npm test)"] }, "hooks": { "SessionStart": [{ "hooks": [{ "type": "command", "command": "echo hola" }] }] } }\n',
+  );
+  return root;
 }

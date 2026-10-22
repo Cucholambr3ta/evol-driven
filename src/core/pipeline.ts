@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join, posix } from "node:path";
 import { loadConfig } from "./config.js";
 import type { EvolConfig, ModuleConfig } from "./config.js";
-import { appliesIn, loadDisciplines } from "./disciplines.js";
+import { appliesIn, loadDisciplines, resolveDiscipline } from "./disciplines.js";
 import type { Discipline, DisciplineRegistry } from "./disciplines.js";
 import { CONFIG_FILE } from "./paths.js";
 import { NotInteractiveError, UserError } from "./errors.js";
@@ -38,7 +38,7 @@ export function loadContext(root: string, extra: Partial<PipelineContext> = {}):
   return {
     root,
     registry,
-    config: loadConfig(root, registry.ids()),
+    config: loadConfig(root, registry),
     state: loadState(root),
     ...extra,
   };
@@ -54,7 +54,9 @@ export function activeDisciplines(ctx: PipelineContext, phase: Phase): ActiveDis
   for (const module of ctx.config.modules) {
     for (const id of module.disciplinas) {
       const discipline = ctx.registry.get(id);
-      if (discipline && appliesIn(discipline, phase)) active.push({ module, discipline });
+      if (discipline && appliesIn(discipline, phase)) {
+        active.push({ module, discipline: resolveDiscipline(discipline, module) });
+      }
     }
   }
   return active;
@@ -201,7 +203,7 @@ export interface PhaseOverview {
     module: string;
     id: string;
     nombre: string;
-    artefactos: { patron: string; encontrados: number; min: number }[];
+    artefactos: { patron: string; encontrados: number; min: number; pendientes: number }[];
   }[];
 }
 
@@ -219,11 +221,17 @@ export function describe(ctx: PipelineContext): PhaseOverview {
       module: module.name,
       id: discipline.id,
       nombre: discipline.nombre,
-      artefactos: discipline.artefactos.map((a) => ({
-        patron: a.patron,
-        encontrados: matchFiles(a.patron, moduleRoot(ctx, module)).length,
-        min: a.min,
-      })),
+      artefactos: discipline.artefactos.map((a) => {
+        const files = matchFiles(a.patron, moduleRoot(ctx, module));
+        return {
+          patron: a.patron,
+          encontrados: files.length,
+          min: a.min,
+          pendientes: files.filter((f) =>
+            readFileSync(join(moduleRoot(ctx, module), f), "utf8").includes("[[COMPLETAR]]"),
+          ).length,
+        };
+      }),
     });
   }
   return overview;
