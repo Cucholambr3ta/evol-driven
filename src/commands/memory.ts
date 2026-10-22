@@ -16,7 +16,7 @@ const USAGE = [
 export default async function run(argv: string[]): Promise<number> {
   const [sub, ...rest] = argv;
   const root = requireProject();
-  const config = loadConfig(root, loadDisciplines().ids());
+  const config = loadConfig(root, loadDisciplines());
 
   if (sub === "add") {
     const { values } = parseArgs({

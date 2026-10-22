@@ -117,3 +117,74 @@ export function appliesIn(discipline: Discipline, phase: Phase): boolean {
 export function verificationAppliesIn(verification: Verification, phase: Phase): boolean {
   return verification.fases ? verification.fases.includes(phase) : true;
 }
+
+interface ModuleOverrides {
+  rutas?: Record<string, string> | undefined;
+  comandos?: Record<string, string> | undefined;
+  disciplinas: string[];
+}
+
+function insideModule(path: string): boolean {
+  return !path.startsWith("/") && !/^[A-Za-z]:/.test(path) && !path.split(/[\\/]/).includes("..");
+}
+
+/** Every default artifact path/pattern the given disciplines refer to. */
+export function artifactPaths(registry: DisciplineRegistry, ids: string[]): Set<string> {
+  const paths = new Set<string>();
+  for (const d of ids.flatMap((id) => registry.get(id) ?? [])) {
+    for (const a of d.artefactos) paths.add(a.patron);
+    for (const v of d.verificaciones) {
+      if (v.tipo === "contiene" || v.tipo === "sinCriticos") paths.add(v.archivo);
+      if (v.tipo === "sqlPar") paths.add(v.base);
+    }
+  }
+  return paths;
+}
+
+/** Everything in a module's `rutas`/`comandos` that does not match its disciplines. */
+export function validateModuleOverrides(
+  registry: DisciplineRegistry,
+  mod: ModuleOverrides,
+): string[] {
+  const paths = artifactPaths(registry, mod.disciplinas);
+  const problems: string[] = [];
+  for (const [from, to] of Object.entries(mod.rutas ?? {})) {
+    if (!paths.has(from)) {
+      problems.push(`rutas: «${from}» no es un artefacto de las disciplinas de este módulo`);
+    }
+    if (!insideModule(to))
+      problems.push(`rutas: «${to}» debe ser una ruta relativa dentro del módulo`);
+  }
+  for (const id of Object.keys(mod.comandos ?? {})) {
+    const d = registry.get(id);
+    if (!d || !mod.disciplinas.includes(id)) {
+      problems.push(`comandos: «${id}» no es una disciplina de este módulo`);
+    } else if (!d.verificaciones.some((v) => v.tipo === "comando")) {
+      problems.push(`comandos: «${id}» no ejecuta ningún comando`);
+    }
+  }
+  return problems;
+}
+
+/** The discipline as this module sees it: artifacts moved and commands replaced as configured. */
+export function resolveDiscipline(d: Discipline, mod: ModuleOverrides): Discipline {
+  const move = (path: string): string => mod.rutas?.[path] ?? path;
+  const command = mod.comandos?.[d.id];
+  return {
+    ...d,
+    artefactos: d.artefactos.map((a) => ({ ...a, patron: move(a.patron) })),
+    verificaciones: d.verificaciones.map((v) => {
+      switch (v.tipo) {
+        case "contiene":
+        case "sinCriticos":
+          return { ...v, archivo: move(v.archivo) };
+        case "sqlPar":
+          return { ...v, base: move(v.base) };
+        case "comando":
+          return command ? { ...v, comando: command } : v;
+        default:
+          return v;
+      }
+    }),
+  };
+}

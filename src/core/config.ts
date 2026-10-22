@@ -1,6 +1,8 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { isAbsolute, join, normalize } from "node:path";
 import { z } from "zod";
+import type { DisciplineRegistry } from "./disciplines.js";
+import { validateModuleOverrides } from "./disciplines.js";
 import { CONFIG_FILE } from "./paths.js";
 import { UserError } from "./errors.js";
 
@@ -8,6 +10,10 @@ const ModuleSchema = z.object({
   name: z.string().min(1),
   root: z.string().default("."),
   disciplinas: z.array(z.string().min(1)),
+  /** Moves an artifact: default path/pattern -> the path this project really uses (inside the module). */
+  rutas: z.record(z.string(), z.string().min(1)).optional(),
+  /** Replaces the command a discipline runs: discipline id -> command. */
+  comandos: z.record(z.string(), z.string().min(1)).optional(),
 });
 
 export const ConfigSchema = z.object({
@@ -29,7 +35,7 @@ export const ConfigSchema = z.object({
 export type EvolConfig = z.infer<typeof ConfigSchema>;
 export type ModuleConfig = z.infer<typeof ModuleSchema>;
 
-export function parseConfig(raw: unknown, knownDisciplines?: ReadonlySet<string>): EvolConfig {
+export function parseConfig(raw: unknown, registry?: DisciplineRegistry): EvolConfig {
   const parsed = ConfigSchema.safeParse(raw);
   if (!parsed.success) {
     const detail = parsed.error.issues
@@ -48,20 +54,27 @@ export function parseConfig(raw: unknown, knownDisciplines?: ReadonlySet<string>
         `${CONFIG_FILE}: la raíz del módulo "${mod.name}" debe estar dentro del proyecto`,
       );
     }
-    if (knownDisciplines) {
+    if (registry) {
+      const known = registry.ids();
       for (const id of mod.disciplinas) {
-        if (!knownDisciplines.has(id)) {
+        if (!known.has(id)) {
           throw new UserError(
             `${CONFIG_FILE}: el módulo "${mod.name}" usa la disciplina desconocida "${id}"`,
           );
         }
+      }
+      const problems = validateModuleOverrides(registry, mod);
+      if (problems.length > 0) {
+        throw new UserError(
+          `${CONFIG_FILE}: módulo "${mod.name}":\n  - ${problems.join("\n  - ")}`,
+        );
       }
     }
   }
   return config;
 }
 
-export function loadConfig(root: string, knownDisciplines?: ReadonlySet<string>): EvolConfig {
+export function loadConfig(root: string, registry?: DisciplineRegistry): EvolConfig {
   const file = join(root, CONFIG_FILE);
   if (!existsSync(file)) throw new UserError(`No existe ${CONFIG_FILE} en ${root}`);
   let raw: unknown;
@@ -70,7 +83,7 @@ export function loadConfig(root: string, knownDisciplines?: ReadonlySet<string>)
   } catch (error) {
     throw new UserError(`${CONFIG_FILE} no es JSON válido: ${(error as Error).message}`);
   }
-  return parseConfig(raw, knownDisciplines);
+  return parseConfig(raw, registry);
 }
 
 export function saveConfig(root: string, config: EvolConfig): void {

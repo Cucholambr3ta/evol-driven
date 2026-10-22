@@ -13,7 +13,7 @@ import { out } from "./shared.js";
 function context(): { root: string; config: EvolConfig } {
   const root = findProjectRoot() ?? process.cwd();
   const config = existsSync(join(root, CONFIG_FILE))
-    ? loadConfig(root, loadDisciplines().ids())
+    ? loadConfig(root, loadDisciplines())
     : parseConfig({
         name: "sin-proyecto",
         version: 1,
