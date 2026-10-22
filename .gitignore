@@ -1,0 +1,8 @@
+node_modules/
+dist/
+coverage/
+*.log
+.env
+.env.*
+# Local state of this repo's own pipeline, if any
+.evol/codegraph.sqlite*
