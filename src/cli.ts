@@ -44,6 +44,10 @@ const COMMANDS: Record<string, CommandSpec> = {
     summary: "Cadena de llamadas desde un símbolo",
     load: async () => (await import("./commands/codeintel.js")).runTrace,
   },
+  diagrams: {
+    summary: "Genera los diagramas UML del proyecto como SVG (--png con VectorCraft)",
+    load: async () => (await import("./commands/diagrams.js")).default,
+  },
   lessons: {
     summary: "Busca en otros proyectos las lecciones que ya registraste (check)",
     load: async () => (await import("./commands/lessons.js")).default,

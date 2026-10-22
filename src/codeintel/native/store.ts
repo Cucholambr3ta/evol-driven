@@ -255,6 +255,19 @@ export class GraphStore {
     return out;
   }
 
+  /** Every node and edge of the code (not the "uncommitted changes" node), ordered. */
+  dump(): { nodes: NodeRow[]; edges: EdgeRow[] } {
+    const nodes = this.db
+      .prepare(
+        "SELECT id, kind, name, file, start_line, end_line FROM nodes WHERE kind != 'change' ORDER BY id",
+      )
+      .all() as unknown as NodeRow[];
+    const edges = this.db
+      .prepare("SELECT src, dst, kind FROM edges WHERE src_file != ? ORDER BY src, dst, kind")
+      .all(CHANGES_FILE) as unknown as EdgeRow[];
+    return { nodes, edges };
+  }
+
   /** Dump used to compare two graphs (nodes and edges, ordered). */
   snapshot(): { nodes: string[]; edges: string[] } {
     const nodes = (

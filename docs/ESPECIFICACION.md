@@ -320,7 +320,7 @@ nunca se inventa contenido.**
 
 | #   | Diagrama              | Qué muestra                                                              | Fuente                                  |
 | --- | --------------------- | ------------------------------------------------------------------------ | --------------------------------------- |
-| 1   | Clases                | Clases, interfaces y tipos con herencia y composición                    | Índice de código (EXTENDS, CONTAINS)    |
+| 1   | Clases                | Clases e interfaces con su herencia y sus métodos                        | Índice de código (EXTENDS, CONTAINS)    |
 | 2   | Objetos               | Instantánea del proyecto: proyecto, fases y aprobaciones con sus valores | Estado de `evol`                        |
 | 3   | Componentes           | Módulos y dependencias entre ellos                                       | Índice de código (IMPORTS)              |
 | 4   | Estructura compuesta  | Interior de un componente elegido: archivos y puertos (exportaciones)    | Índice de código (CONTAINS, EXPORTS)    |
@@ -371,7 +371,11 @@ cambia entre proyectos, pero se marca el estado actual). Los de código (1, 3, 4
 1. Conjunto de datos (`export`), `risk` y `coverage`. **Hecho** (criterios 32, 33 y 36; `tests/analysis.test.ts`).
 2. Perfiles y `evol disciplines`. **Hecho** (criterio 34; `tests/disciplines-cmd.test.ts`). `enable` y `disable` exigen una persona en una terminal; los perfiles son `base`, `api`, `web`, `erp` y `lib`.
 3. `evol lessons check`. **Hecho** (criterio 35; `tests/lessons.test.ts`, con un servidor MemPalace de prueba; el `search` real se cubre en `tests/memory.test.ts`).
-4. Generador de diagramas: primero los 7 estructurales y luego los 7 de comportamiento.
+4. Generador de diagramas: primero los 7 estructurales y luego los 7 de comportamiento. **Hecho** (criterios 26 y 27;
+   `tests/diagrams.test.ts`; comando `evol diagrams`). Ajustes respecto al borrador: el diagrama de clases no dibuja
+   composición (el índice solo guarda herencia y miembros, no tipos de campos); el de secuencia sigue las llamadas por
+   niveles porque el índice no guarda el orden de ejecución; y la fuente es «Source Sans 3», que trae VectorCraft: el SVG
+   la nombra, no la incrusta, y el diseño se calcula con anchos estimados para no depender de las fuentes instaladas.
 5. `evol report` (DOCX y PDF con ArtCraft, y Markdown como alternativa).
 6. Documentación y CI.
 

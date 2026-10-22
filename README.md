@@ -118,6 +118,26 @@ evol memory search "base de datos"
 Los eventos del pipeline quedan siempre en `.evol/journal.jsonl`; además van a MemPalace, pero si
 MemPalace falla solo se avisa. Los comandos `evol memory` sí fallan si no está disponible.
 
+### Diagramas UML
+
+```bash
+evol diagrams                       # los 14 diagramas como SVG en .evol/diagramas/
+evol diagrams --solo 1,3,7 --png    # algunos, y también como PNG (VectorCraft)
+evol diagrams --entrada main        # punto de entrada de la secuencia y la comunicación
+evol diagrams --componente src/core # componente que abre la estructura compuesta
+```
+
+Estructurales: 1 clases, 2 objetos, 3 componentes, 4 estructura compuesta, 5 paquetes, 6 despliegue,
+7 perfiles. De comportamiento: 8 casos de uso, 9 actividad, 10 máquina de estados, 11 secuencia,
+12 comunicación, 13 tiempos, 14 visión de interacción.
+
+Salen de los datos reales del proyecto (índice de código, `evol.config.json`, `.feature`, Dockerfile,
+compose, workflows y el diario). **Si faltan los datos, el diagrama aparece como «no aplica» con el
+motivo; nunca se inventa.** Los diagramas de código solo cubren TypeScript/JavaScript con
+`codeIntel: native`. Necesita [Graphviz](https://graphviz.org) (`dot`) para calcular las posiciones;
+`--png` necesita además `vectorcraft-cli`. Sin ellos falla con un mensaje claro. La salida es
+determinista: los mismos datos dan el mismo SVG.
+
 ### Lecciones repetidas entre proyectos
 
 ```bash
