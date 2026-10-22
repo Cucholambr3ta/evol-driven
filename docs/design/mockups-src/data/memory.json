@@ -1,0 +1,76 @@
+{
+ "alas": {
+  "wings": {
+   "hermes": 1,
+   "linux_workstation": 1257,
+   "omarchy": 1,
+   "wing_cucholambreta": 33,
+   "wing_work": 3,
+   "work": 82
+  }
+ },
+ "taxonomia": {
+  "taxonomy": {
+   "hermes": {
+    "tmp": 1
+   },
+   "linux_workstation": {
+    "technical": 1257
+   },
+   "omarchy": {
+    "decisions": 1
+   },
+   "wing_cucholambreta": {
+    "diary": 33
+   },
+   "wing_work": {
+    "diary": 3
+   },
+   "work": {
+    "technical": 82
+   }
+  }
+ },
+ "kg": {
+  "entities": 0,
+  "triples": 0,
+  "current_facts": 0,
+  "expired_facts": 0,
+  "relationship_types": []
+ },
+ "grafo": {
+  "total_rooms": 4,
+  "total_room_instances": 6,
+  "tunnel_rooms": 2,
+  "passive_tunnel_rooms": 2,
+  "explicit_tunnels": 0,
+  "total_edges": 9,
+  "total_connections": 9,
+  "rooms_per_wing": {
+   "omarchy": 1,
+   "wing_work": 1,
+   "wing_cucholambreta": 1,
+   "work": 1,
+   "linux_workstation": 1,
+   "hermes": 1
+  },
+  "top_tunnels": [
+   {
+    "room": "diary",
+    "wings": [
+     "wing_cucholambreta",
+     "wing_work"
+    ],
+    "count": 36
+   },
+   {
+    "room": "technical",
+    "wings": [
+     "linux_workstation",
+     "work"
+    ],
+    "count": 1339
+   }
+  ]
+ }
+}

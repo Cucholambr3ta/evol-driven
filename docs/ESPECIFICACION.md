@@ -395,3 +395,123 @@ cambia entre proyectos, pero se marca el estado actual). Los de código (1, 3, 4
 - El informe no se puede generar en CI ni en Docker (ArtCraft y Graphviz no están instalados allí).
 - Graphviz no es parte de ArtCraft: solo calcula las posiciones; la imagen final la produce VectorCraft.
 - Los diagramas de código dependen de lo que el indexador entiende (TypeScript); en otros lenguajes serán «no aplica».
+
+## Ampliación 3: panel `evol ui` y documentación por proyecto
+
+> **Estado: BORRADOR.** Los mockups están hechos (`docs/design/mockups/`, fuentes en `docs/design/mockups-src/`);
+> falta que los revises. No se escribe `evol ui` hasta que los apruebes.
+
+Objetivo: ver **por proyecto** toda la documentación asociada (especificaciones, evidencias, mejoras, decisiones,
+diagramas e informe) y acceder a ella desde un único lugar, sin salir del panel.
+
+### Pantallas
+
+| Pantalla          | Qué responde                                                    | Estado    |
+| ----------------- | --------------------------------------------------------------- | --------- |
+| Tablero           | ¿En qué fase está cada proyecto y qué lo bloquea?               | Mockup    |
+| Proyecto          | ¿Qué falta en la fase actual y quién aprobó qué?                | Mockup    |
+| **Documentación** | ¿Qué documentos tiene, qué evidencia hay y qué hay que mejorar? | **Nuevo** |
+| Grafos            | ¿Qué depende de qué? Mapa de calor por alcance                  | Mockup    |
+| **Skills**        | ¿Qué sabe hacer evol, qué skills tengo y dónde puedo usarlas?   | **Nuevo** |
+
+### Qué agrupa «Documentación»
+
+| Grupo                 | Contenido                                                                                       | Fuente                                                                                   |
+| --------------------- | ----------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| Especificaciones      | SPEC, dominio, features, amenazas, plan, descubrimiento, escenarios `.feature`, OpenAPI         | Archivos del proyecto y artefactos de las disciplinas                                    |
+| Evidencias            | Aprobaciones firmadas, verificación por fase, informe de QA, diario, pruebas, trazabilidad CA-n | `.evol/`, `QA_REPORT.md`, `evol coverage`                                                |
+| Mejoras               | Propuestas, lecciones, pendientes, mapa de riesgo y huecos de la fase actual                    | `MEJORAS*.md`, `docs/mejoras/`, `proposals/`, `lecciones.md`, `evol risk`, `evol status` |
+| Decisiones y memoria  | ADR, constitución y memoria del proyecto                                                        | `docs/adr/`, `docs/constitucion.md`, `memoria.md`                                        |
+| Diagramas             | Los 14 diagramas UML con su fuente de datos; los que no aplican explican por qué                | `evol diagrams`                                                                          |
+| Informe               | El dossier DOCX/PDF si existe; si no, cómo generarlo                                            | `informe/`, `evol report`                                                                |
+| Documentación general | README, guías y archivos para agentes                                                           | `*.md` de la raíz y de `docs/`                                                           |
+
+Reglas de diseño:
+
+- **Solo lectura y sin inventar.** Un documento que el pipeline espera y no existe aparece como «No existe», con la
+  disciplina y la fase que lo exigen; un diagrama sin datos conserva su motivo.
+- **Una sola búsqueda** sobre títulos, rutas y texto de todos los documentos del proyecto; «Solo lo que falta» filtra lo
+  incompleto.
+- **Enlaces internos**: un enlace relativo dentro de un `.md` abre el documento en el panel si existe.
+- **Mejoras con progreso**: en las propuestas, las casillas `- [ ]` / `- [x]` dan el avance («3 de 8 tareas hechas»).
+- **Seguridad**: no muestra la clave del gate ni el contenido de MemPalace; el SVG se sanea antes de insertarlo.
+
+### Criterios de aceptación (preliminares)
+
+| #   | Criterio                                                                                                                 |
+| --- | ------------------------------------------------------------------------------------------------------------------------ |
+| 38  | `evol ui` sirve el panel en `127.0.0.1` sin dependencias nuevas y sin escribir en el proyecto.                           |
+| 39  | La pantalla Documentación lista, por proyecto, los 7 grupos con su conteo y los huecos, a partir de los archivos reales. |
+| 40  | Cada documento se abre en el lector: Markdown renderizado y texto original, metadatos (ruta, tamaño, huella, fase).      |
+| 41  | Los datos calculados (trazabilidad, riesgo, diagramas) coinciden con `evol export --json` y `evol diagrams`.             |
+| 42  | La búsqueda encuentra texto dentro de los documentos y «Solo lo que falta» deja únicamente lo incompleto.                |
+| 43  | Un archivo con `[[COMPLETAR]]` figura como «Por completar»; uno esperado y ausente, como «No existe».                    |
+| 44  | Ningún dato sensible (clave del gate, firmas, memoria de MemPalace) llega al HTML que sirve `evol ui`.                   |
+
+### Aplicación de escritorio
+
+`evol ui` se abre en el navegador, pero se comporta como una aplicación:
+
+- `evol ui --app` arranca el servidor local (solo `127.0.0.1`) si no está corriendo y abre una ventana propia, sin
+  pestañas ni barra de direcciones (Chromium en modo `--app`, lo mismo que hace `omarchy-launch-webapp`).
+- `evol ui install` crea `~/.local/share/applications/evol.desktop` con su icono para que aparezca en el lanzador del
+  menú; `evol ui uninstall` lo quita.
+- Al cerrar la ventana, el servidor se apaga solo tras unos minutos de inactividad.
+- No usa Electron ni Tauri: cero dependencias nuevas.
+
+### Skills de evol
+
+Una **skill** es una carpeta con un `SKILL.md` (frontmatter con `name` y `description`, más instrucciones) y, a veces,
+scripts y referencias. Son las capacidades que se irán sumando a evol.
+
+**Biblioteca.** Las skills de evol viven en `~/.config/evol/skills/<nombre>/`: una sola fuente para cualquier proyecto o
+tarea. El panel **vigila esa carpeta**: una skill creada, importada o copiada a mano aparece en la pantalla sin hacer
+nada más. Las que ya tienen instaladas otros agentes (Claude Code, Codex, Hermes, Omarchy) se muestran aparte, solo de
+lectura, y se pueden añadir a la biblioteca.
+
+**Organización.** El legado (`evol-system/skills`, 74 skills) tenía 18 categorías sueltas y 7 skills sin categoría. En la
+biblioteca cada skill pertenece a **un grupo** de 11: Disciplinas, Calidad y revisión, Contexto y memoria, Descubrimiento y
+producto, Equipo y gobierno, Código y plataforma, Dominio, Documentación y comunicación, Operación del sistema, Creación y
+ciclo de vida, y Diseño y medios. Las **31 skills de disciplina** se enlazan con las 31 disciplinas de evol (9 base y 22
+extendidas): cada disciplina sabe qué skill la aplica y en qué fases. Se conserva la categoría anterior para trazar el cambio.
+
+**Qué se puede hacer con una skill**
+
+| Acción                | Comando                                      | Qué hace                                                                                        |
+| --------------------- | -------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| Revisar               | `evol skills check [nombre]`                 | Frontmatter válido, `name` = carpeta, `description` útil, sin claves; avisa de scripts y de red |
+| Importar              | `evol skills import <ruta> [--grupo]`        | La copia a la biblioteca; con el legado reparte los grupos y ata las disciplinas (admite .zip)  |
+| Crear                 | `evol skills new <nombre> [--grupo]`         | Crea la carpeta con una plantilla                                                               |
+| Usar en un proyecto   | `evol skills add <nombre> --proyecto <id>`   | La copia al proyecto, visible para los agentes que use                                          |
+| Instalar en un agente | `evol skills install <nombre> --agente <id>` | La enlaza (symlink) en la carpeta del agente: se actualiza sola                                 |
+| Descargar             | `evol skills export <nombre>`                | Un `.zip` con toda la carpeta (una skill no es un solo archivo)                                 |
+| Quitar                | `evol skills remove <nombre>`                | La quita de la biblioteca; no toca los proyectos que ya la usan                                 |
+
+**Seguridad.** Una skill son instrucciones y, a veces, scripts que un agente ejecuta: por eso se revisa antes de usarla.
+Las acciones que escriben (importar, instalar, usar en un proyecto, quitar) piden confirmación, solo escriben en la
+biblioteca, en las carpetas de los agentes o en el proyecto elegido, y el servidor rechaza peticiones que no vengan de la
+propia página (token por sesión y comprobación de origen). La pantalla Documentación sigue siendo de solo lectura.
+
+### Criterios de aceptación adicionales (preliminares)
+
+| #   | Criterio                                                                                                                                      |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| 45  | `evol ui --app` abre una ventana sin barra de direcciones y no arranca un segundo servidor si ya hay uno.                                     |
+| 46  | `evol ui install` crea el `.desktop` con icono y `uninstall` lo borra; el servidor se apaga tras el tiempo de inactividad.                    |
+| 47  | `evol ui` no añade ninguna dependencia a `package.json`.                                                                                      |
+| 48  | La pantalla Skills lista la biblioteca y, aparte, las de los agentes; una skill con `SKILL.md` copiada a la biblioteca aparece sin reiniciar. |
+| 49  | Cada skill se revisa: frontmatter válido, `name` = carpeta, `description`, claves en claro, scripts y acceso a red.                           |
+| 50  | Un frontmatter roto no oculta la skill: se muestra con nombre y descripción recuperados y el error de YAML.                                   |
+| 51  | `evol skills import` del legado reparte las 74 skills en los 11 grupos, ata las 31 a su disciplina y no deja ninguna sin grupo.               |
+| 52  | Cada una de las 31 disciplinas indica la skill que la aplica; una disciplina sin skill se marca.                                              |
+| 53  | `evol skills export` genera un `.zip` con toda la carpeta de la skill y su huella; `import` lo lee y reproduce la misma huella.               |
+| 54  | `evol skills add` y `install` no sobrescriben una skill distinta con el mismo nombre sin confirmar.                                           |
+| 55  | Las acciones que escriben rechazan peticiones sin el token de sesión o con un origen ajeno.                                                   |
+| 56  | El texto de las skills de terceros no se copia a ningún archivo del repositorio ni del informe.                                               |
+
+### Para revisar en los mockups
+
+- ¿Falta algún grupo o algún documento que quieras ver por proyecto?
+- Las **mejoras** salen de `MEJORAS*.md`, `docs/mejoras/` y `proposals/`: ¿es esa la convención que quieres fijar?
+- ¿Los 11 grupos de skills te parecen bien, o mueves alguna skill de grupo? (la lista está en `docs/design/mockups-src/collect-skills.mjs`)
+- La fecha de modificación de cada archivo se mostrará en `evol ui` (los mockups usan copias, sin fecha real).

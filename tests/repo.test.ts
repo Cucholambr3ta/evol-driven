@@ -36,6 +36,8 @@ describe("una sola fuente de versión (criterio 16)", () => {
       "templates",
       "package-lock.json",
       "coverage",
+      // Mockups of the interface: snapshots of real data (a diagram prints the version it was made with).
+      "design",
     ]);
     const holders = walk(REPO, skip)
       .filter((f) => readFileSync(f, "utf8").includes(pkg.version))
