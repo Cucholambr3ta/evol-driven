@@ -62,6 +62,7 @@
         // 1. La biblioteca de evol está vacía y no arrastra nada del sistema anterior
         if (document.querySelectorAll("a.skill").length) fail("la biblioteca de evol debería estar vacía");
         const celdas = document.querySelectorAll(".disc-cell").length; if (celdas !== 31) fail("disciplinas sin skill = " + celdas + " (esperaba 31)");
+        const fases = document.querySelectorAll(".fase-plan").length; if (fases !== 6) fail("fases del plan = " + fases + " (esperaba 6)");
         if (/\bx-?dd\b|evol-system|evol-dd\b/i.test(document.querySelector("main").textContent)) fail("la página menciona X-DD o el sistema evol anterior");
         if (/^null$/m.test(document.querySelector("main").textContent)) fail("sobra un «null» en la página");
         // 2. No se pueden agregar skills desde la página
@@ -76,7 +77,8 @@
         if (document.querySelector(".evol-agent")) fail("no deben aparecer los agentes del sistema anterior");
         const orq = document.querySelector(".orchestrator"); if (!orq || !orq.textContent.includes("/evol") || orq.querySelectorAll("ol li").length !== 7) fail("falta el orquestador /evol con sus 7 pasos");
         const primeros = document.querySelectorAll(".ide-row.first").length; if (primeros !== 5) fail("IDE de la primera entrega = " + primeros + " (esperaba 5)");
-        const roles = document.querySelectorAll(".role").length; if (roles !== 6) fail("roles por fase = " + roles + " (esperaba 6)");
+        const roles = document.querySelectorAll(".role").length; if (roles !== 6) fail("roles = " + roles + " (esperaba 6)");
+        const conEnv = [...document.querySelectorAll(".role")].filter((r) => r.textContent.includes("envoltorio de subagente")).map((r) => r.dataset.rol).sort().join(","); if (conEnv !== "seguridad,verificador") fail("envoltorios de subagente: " + conEnv + " (esperaba seguridad,verificador)");
         const ides = document.querySelectorAll(".ide-row").length; if (ides !== 9) fail("IDE = " + ides + " (esperaba 9)");
         for (const n of ["Claude Code", "Codex", "Antigravity", "Hermes", "Gemini CLI", "OpenCode", "Cursor"]) if (!document.querySelector("main").textContent.includes(n)) fail("falta el IDE " + n);
         if (!document.querySelector(".auditor") || !document.querySelector(".auditor").textContent.includes("skill-auditor")) fail("falta el agente auditor");

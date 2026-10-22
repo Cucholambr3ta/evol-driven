@@ -219,12 +219,25 @@ function orchestratorView() {
 }
 function rolesView() {
   return el("section", {},
-    el("h2", { class: "h3", style: "margin-top:24px", text: `Subagentes: un rol por fase (${SK.roles.length})` }),
-    el("p", { class: "note", text: "Cada rol aplica las skills de las disciplinas de su fase. Es una propuesta: los roles y sus nombres se pueden cambiar." }),
-    el("div", { class: "cards wide" }, SK.roles.map((r) => el("article", { class: "panel agent role", "data-fase": r.fase },
-      el("h2", {}, el("span", { class: "mono", text: r.rol }), " ", el("span", { class: "note", text: PHASE_NAMES[r.fase] })),
-      el("div", { class: "chips" }, chip("muted", "–", "por crear"), chip("info", "•", `${r.disciplinas.length} ${r.disciplinas.length === 1 ? "disciplina" : "disciplinas"}`)),
+    el("h2", { class: "h3", style: "margin-top:24px", text: `Roles: skills con envoltorio de subagente (${SK.roles.length})` }),
+    el("p", { class: "note", text: "Cada rol es una skill: lo que sabe y cómo trabaja, igual en todos los IDE. Donde importa la independencia, el adaptador genera además un envoltorio de subagente de unas pocas líneas que solo carga esa skill, con contexto limpio y en solo lectura. Los demás roles se ejecutan en línea, en la sesión del orquestador." }),
+    el("div", { class: "cards wide" }, SK.roles.map((r) => el("article", { class: "panel agent role", "data-rol": r.rol },
+      el("h2", {}, el("span", { class: "mono", text: r.rol }), " ", el("span", { class: "note", text: "skill de rol" })),
+      el("div", { class: "chips env" }, chip("muted", "–", "por crear"), r.envoltorio === "subagente" ? chip("info", "◆", "Con envoltorio de subagente · solo lectura") : chip("good", "✓", "En línea"),
+        r.fases.map((f) => el("span", { class: "pill", text: PHASE_NAMES[f] }))),
+      el("p", { text: r.texto }),
       el("p", {}, r.disciplinas.map((d) => el("span", { class: "pill mono" + (d.tipo === "base" ? "" : " dim"), title: d.tipo, text: d.id })))))));
+}
+function phasePlanView() {
+  const KIND = { analista: "", arquitecto: "", constructor: "", verificador: "", seguridad: "", operaciones: "" };
+  return el("section", {},
+    el("h2", { class: "h3", style: "margin-top:16px", text: `Qué skills toca en cada fase del pipeline (${SK.mapaFases.length})` }),
+    el("p", { class: "note", text: "Cada skill tiene que estar ligada a una fase. Las disciplinas salen de sus fichas; en oscuro, las 9 base (ola 1); en gris, las extendidas (después); ◆ = rol con envoltorio de subagente." }),
+    el("div", { class: "cards wide" }, SK.mapaFases.map((f) => el("article", { class: "panel fase-plan", "data-fase": f.fase },
+      el("h2", { text: PHASE_NAMES[f.fase] }),
+      f.razonamiento.length ? el("p", {}, el("span", { class: "note", text: "Razonamiento: " }), f.razonamiento.map((n) => el("span", { class: "pill mono", text: n }))) : el("p", { class: "note", text: "Sin skill de razonamiento." }),
+      el("p", {}, el("span", { class: "note", text: "Roles: " }), f.roles.map((r) => el("span", { class: "pill", title: r.disciplinas.join(", "), text: r.rol + (r.envoltorio === "subagente" ? " ◆" : "") }))),
+      el("p", {}, el("span", { class: "note", text: "Disciplinas: " }), f.base.map((d) => el("span", { class: "pill mono", text: d })), f.extendidas.map((d) => el("span", { class: "pill mono dim", text: d })))))));
 }
 function idesView() {
   const cols = [["instrucciones", "Instrucciones"], ["skills", "Skills"], ["mcp", "MCP"], ["entrada", "Entrada /evol"], ["subagentes", "Subagentes"], ["bloqueo", "Bloquear evol approve"]];
@@ -264,13 +277,15 @@ function libraryEmpty() {
   return el("div", {},
     el("div", { class: "tiles" },
       el("div", { class: "tile" }, el("b", { text: "0" }), el("span", { text: "Skills de evol" }), el("small", { text: "la biblioteca está vacía" })),
+      el("div", { class: "tile" }, el("b", { text: SK.inicial.length }), el("span", { text: "Skills de la primera ola" }), el("small", { text: "9 disciplinas, 3 de razonamiento, 6 de rol y /evol" })),
       el("div", { class: "tile" }, el("b", { text: `0/${ds.length}` }), el("span", { text: "Disciplinas con su skill" }), el("small", { text: "todas por crear" })),
       el("div", { class: "tile" }, el("b", { text: others.length }), el("span", { text: "Skills en tus agentes" }), el("small", { text: "no son de evol" }))),
     el("div", { class: "empty-state banner" }, el("b", { text: "Todavía no hay skills de evol-driven. " }),
       "Las skills y los agentes de evol se crean nuevos, sin nada del sistema anterior, y cada una entra a la biblioteca solo después de que un agente la audite. ",
       el("button", { class: "chip", type: "button", onclick: () => auditDialogEl.showModal() }, "Cómo se agrega una skill")),
+    phasePlanView(),
     el("h2", { class: "h3", style: "margin-top:16px", text: `Lo que hay que construir: una skill por disciplina (${ds.length})` }),
-    el("p", { class: "note", text: "Las 31 disciplinas son las de evol-driven (disciplines/*.json). Cada una necesita la skill que la aplica; una disciplina sin skill se marca." }),
+    el("p", { class: "note", text: "Las 31 disciplinas son las de evol-driven (disciplines/*.json). Cada una necesita la skill que la aplica; una disciplina sin skill se marca. La primera ola son las 9 base." }),
     el("details", { open: true, class: "skill-group" }, el("summary", {}, el("b", { text: "Base" }), el("span", { class: "count", text: bases.length })), el("div", { class: "disc-grid" }, bases.map(star))),
     el("details", { open: true, class: "skill-group" }, el("summary", {}, el("b", { text: "Extendidas" }), el("span", { class: "count", text: ext.length })), el("div", { class: "disc-grid" }, ext.map(star))));
 }

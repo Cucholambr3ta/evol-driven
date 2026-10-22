@@ -230,27 +230,53 @@ const agentes = AGENTS.map((a) => {
 // The first agent of evol-driven: /evol, the orchestrator. It is the single entry point in any IDE; it splits the work
 // among sub-agents (one role per pipeline phase) that apply the skill of each discipline. Proposal, not built yet.
 const PHASES = ["briefing", "spec", "plan", "build", "qa", "retro"];
-const ROL = { briefing: "analista", spec: "especificador", plan: "arquitecto", build: "constructor", qa: "verificador", retro: "facilitador" };
-const roles = PHASES.map((fase) => ({
-  fase, rol: ROL[fase],
-  disciplinas: [...disciplines.values()].filter((d) => (d.fases ?? []).includes(fase)).map((d) => ({ id: d.id, tipo: d.tipo })).sort((x, y) => (x.tipo === y.tipo ? x.id.localeCompare(y.id) : x.tipo === "base" ? -1 : 1)),
-}));
+// A role is a SKILL (what it knows and does, portable to every IDE). Where independence matters it also gets a thin sub-agent
+// wrapper, generated from the skill: fresh context, read-only. The others run in line, in the orchestrator's own session.
+const ROLES = {
+  analista: { ids: ["UDD", "UXDD", "FDD", "A11yDD"], envoltorio: "en línea", texto: "Entiende al usuario y el problema: casos de uso, experiencia, accesibilidad y funcionalidades." },
+  arquitecto: { ids: ["SDD", "DDD", "ADD", "EDA", "ESDD", "ODD_API", "APIVDD", "MDD", "DeprecationDD"], envoltorio: "en línea", texto: "Diseña el sistema: especificación, dominio, arquitectura, eventos, interfaces, versiones y migraciones." },
+  constructor: { ids: ["TDD", "RDD", "DebtBudgetDD", "CDCDD"], envoltorio: "en línea", texto: "Escribe el código con pruebas primero, refactoriza y vigila la deuda técnica." },
+  verificador: { ids: ["BDD", "ATDD", "CCDD", "PDD", "CHAOS"], envoltorio: "subagente", texto: "Comprueba con ojos frescos: comportamiento, aceptación, contratos, rendimiento y resiliencia. Revisar en el mismo contexto en que se construyó sesga el resultado." },
+  seguridad: { ids: ["SecDD", "STDD", "THREAT", "PrivacyDD", "COMPLIANCE"], envoltorio: "subagente", texto: "Amenazas, pruebas de seguridad, privacidad y cumplimiento, en solo lectura y con contexto limpio." },
+  operaciones: { ids: ["PIPELINE", "IODD", "ODD_OBS", "SLO"], envoltorio: "en línea", texto: "Integración continua, infraestructura como código, observabilidad y objetivos de servicio." },
+};
+const ALL = [...disciplines.values()];
+const roles = Object.entries(ROLES).map(([rol, r]) => {
+  const ds = r.ids.map((id) => disciplines.get(id)).filter(Boolean);
+  return { rol, skill: rol, texto: r.texto, envoltorio: r.envoltorio, disciplinas: ds.map((d) => ({ id: d.id, tipo: d.tipo, fases: d.fases ?? [] })), fases: PHASES.filter((f) => ds.some((d) => (d.fases ?? []).includes(f))) };
+});
+const REASON = { briefing: ["afinar-idea"], spec: ["verificar-afirmaciones"], plan: ["interrogar-plan"], qa: ["verificar-afirmaciones"] };
+const mapaFases = PHASES.map((fase) => {
+  const activas = ALL.filter((d) => (d.fases ?? []).includes(fase));
+  return {
+    fase, razonamiento: REASON[fase] ?? [],
+    roles: roles.map((r) => ({ rol: r.rol, envoltorio: r.envoltorio, disciplinas: r.disciplinas.filter((d) => d.fases.includes(fase)).map((d) => d.id) })).filter((r) => r.disciplinas.length),
+    base: activas.filter((d) => d.tipo === "base").map((d) => d.id).sort(), extendidas: activas.filter((d) => d.tipo !== "base").map((d) => d.id).sort(),
+  };
+});
+// The first skills to write (wave 1), and the one sub-agent that is not a skill on purpose.
+const inicial = [
+  ...ALL.filter((d) => d.tipo === "base").map((d) => ({ nombre: d.id, tipo: "disciplina" })).sort((x, y) => x.nombre.localeCompare(y.nombre)),
+  ...["afinar-idea", "interrogar-plan", "verificar-afirmaciones"].map((nombre) => ({ nombre, tipo: "razonamiento" })),
+  ...Object.keys(ROLES).map((nombre) => ({ nombre, tipo: "rol" })),
+  { nombre: "evol", tipo: "entrada" },
+];
 const orquestador = {
   id: "/evol", estado: "por crear",
-  resumen: "El único punto de entrada en cualquier IDE: lee el estado del proyecto, parte el trabajo en encargos y reparte cada uno al subagente del rol de la fase, con la skill de la disciplina que toque.",
+  resumen: "El único punto de entrada en cualquier IDE: lee el estado del proyecto, parte el trabajo en encargos y los resuelve con la skill del rol que toque, en línea o delegando en un subagente cuando aporta independencia.",
   pasos: [
     ["Arrancar", "Lee el estado por el MCP de evol (fase, qué falta, disciplinas activas), la memoria relevante y las lecciones antes de proponer nada."],
     ["Clasificar", "Decide qué pide la persona: una idea vaga (va a briefing), implementar algo (según la fase), cerrar el ciclo (retrospectiva) o el comando de una fase."],
     ["Comprobar", "Mira que existan los artefactos de la fase anterior; si falta alguno se detiene y dice cuál, en vez de seguir."],
     ["Dividir", "Parte el trabajo en encargos pequeños, cada uno con su artefacto y su criterio de «terminado», y activa las disciplinas de la fase respetando sus dependencias."],
-    ["Repartir", "Entrega cada encargo al subagente del rol de la fase con la skill de la disciplina; en paralelo si el IDE lo permite, uno tras otro si no."],
+    ["Repartir", "Carga la skill del rol y la de la disciplina y trabaja en línea; o delega en un subagente con contexto limpio cuando hace falta revisar con ojos frescos, en solo lectura o en paralelo."],
     ["Verificar", "Reúne los resultados y los pasa por la verificación de evol, que responde PASS, WARN o BLOCK. Un BLOCK detiene el avance."],
     ["Parar", "Se detiene ante cada aprobación: aprobar y avanzar de fase lo hace una persona, en su terminal."],
   ],
   patrones: [
-    ["Secuencial", "Un rol tras otro en la misma sesión. Funciona en cualquier IDE."],
-    ["Paralelo", "Varios roles a la vez con subagentes nativos, con un tope de concurrencia."],
-    ["Paralelo con sincronización", "Varios roles a la vez y un punto de encuentro formal (p. ej. antes de aprobar la especificación)."],
+    ["En línea", "Carga la skill del rol y trabaja en la misma sesión. Funciona en cualquier IDE y es lo normal."],
+    ["Delegado", "Un subagente con contexto limpio hace la tarea: revisión con ojos frescos y en solo lectura."],
+    ["Delegado en paralelo, con sincronización", "Varios subagentes a la vez y un punto de encuentro formal (p. ej. antes de aprobar la especificación)."],
   ],
   razonamiento: [
     ["Antes del briefing", "Afinar la idea: convertir un pedido vago en una propuesta de una página."],
@@ -258,7 +284,7 @@ const orquestador = {
     ["En especificación y calidad", "Verificar afirmaciones externas (benchmarks, avisos de seguridad) antes de darlas por ciertas."],
   ],
   hace: ["Elegir la fase, las disciplinas y los roles que tocan", "Dividir el trabajo y repartirlo", "Pedir verificaciones y reunir resultados", "Proponer, nunca imponer, el siguiente paso"],
-  noHace: ["Aprobar ni avanzar de fase", "Instalar skills ni crear agentes", "Tocar la gobernanza ni la configuración de evol", "Escribir el código él mismo: lo delega en el rol constructor"],
+  noHace: ["Aprobar ni avanzar de fase", "Instalar skills ni crear agentes", "Tocar la gobernanza ni la configuración de evol", "Escribir el código él mismo: lo hace el rol constructor, en línea o delegado"],
 };
 // How each tool is reached. "si" = known and used; "verificar" = reported by secondary sources, check the vendor docs first.
 const ides = [
@@ -274,7 +300,7 @@ const ides = [
 ];
 // The only way into the library: an agent audits the skill first. These are the checks it runs.
 const auditoria = {
-  agente: "skill-auditor",
+  agente: "skill-auditor", // a sub-agent, not a skill: read-only, no shell, so a hostile skill cannot steer it
   etapas: [
     ["solicitud", "Solicitud", "Le pasas la ruta, el .zip o el enlace con la versión fijada (@sha) de la skill. La página no la recibe ni la copia."],
     ["cuarentena", "Cuarentena", "El agente la copia a una carpeta aislada fuera de la biblioteca; nada se ejecuta ni queda visible para otros agentes."],
@@ -294,7 +320,7 @@ const auditoria = {
   ],
 };
 const out = {
-  generado: new Date(NOW).toISOString(), diasNueva: NEW_DAYS, totalDisciplinas: disciplines.size, fuentes: sources, agentes, orquestador, roles, ides, auditoria,
+  generado: new Date(NOW).toISOString(), diasNueva: NEW_DAYS, totalDisciplinas: disciplines.size, fuentes: sources, agentes, orquestador, roles, mapaFases, inicial, ides, auditoria,
   grupos: [], disciplinas: [...disciplines.values()].map((d) => ({ id: d.id, nombre: d.nombre, tipo: d.tipo, fases: d.fases ?? [] })).sort((a, b) => (a.tipo === b.tipo ? a.id.localeCompare(b.id) : a.tipo === "base" ? -1 : 1)), skills: list,
 };
 writeFileSync(join(here, "data/skills.json"), `${JSON.stringify(out)}\n`);

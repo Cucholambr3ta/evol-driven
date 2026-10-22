@@ -624,12 +624,12 @@ trabajo entre subagentes y skills. La **primera entrega** cubre los IDE que usa 
 | 2   | Clasificar | Idea vaga (va a briefing), implementar algo (según la fase), cerrar el ciclo (retrospectiva) o el comando de una fase                  |
 | 3   | Comprobar  | Si falta un artefacto de la fase anterior, se detiene y nombra cuál                                                                    |
 | 4   | Dividir    | Encargos pequeños, cada uno con su artefacto y su criterio de «terminado»; activa las disciplinas de la fase respetando sus dependencias |
-| 5   | Repartir   | Cada encargo al subagente del rol de la fase, con la skill de la disciplina                                                            |
+| 5   | Repartir   | Carga la skill del rol y la de la disciplina y trabaja en línea; o delega en un subagente con contexto limpio si hace falta independencia |
 | 6   | Verificar  | Reúne resultados y los pasa por la verificación de evol: **PASS, WARN o BLOCK**; un BLOCK detiene el avance                            |
 | 7   | Parar      | Se detiene ante cada aprobación: aprobar y avanzar de fase lo hace una persona, en su terminal                                         |
 
 **No hace:** aprobar ni avanzar de fase, instalar skills, crear agentes, tocar la gobernanza ni escribir el código él mismo
-(lo delega en el rol constructor). **Sí hace:** elegir fase, disciplinas y roles; dividir y repartir; pedir verificaciones;
+(lo hace el rol constructor, en línea o delegado). **Sí hace:** elegir fase, disciplinas y roles; dividir y repartir; pedir verificaciones;
 proponer, nunca imponer, el siguiente paso.
 
 **Skills de razonamiento en puntos fijos.** Antes del briefing, afinar la idea (de un pedido vago a una propuesta de una
@@ -637,18 +637,60 @@ página); antes de aprobar el plan, interrogarlo (un plan que nadie cuestionó n
 marca con el hash del plan, con una anulación explícita que queda registrada); y en especificación y calidad, verificar las
 afirmaciones externas antes de darlas por ciertas. Sus nombres definitivos los fija el hito O3.
 
-### Subagentes: un rol por fase (propuesta)
+### Roles: skills con envoltorio de subagente
 
-`analista` (briefing), `especificador` (spec), `arquitecto` (plan), `constructor` (build), `verificador` (qa) y `facilitador`
-(retro). Cada rol aplica las skills de las disciplinas cuya ficha declara esa fase. Los nombres se pueden cambiar. `skill-auditor`
-es aparte: solo propone veredictos sobre skills nuevas (ver el hito de skills).
+> **Aprobado:** los seis roles por competencia de la tabla.
+
+Un rol es una **skill**: lo que sabe y cómo trabaja, escrito una vez y en el mismo formato `SKILL.md` en todos los IDE. Los roles se
+reparten por **competencia**, no por fase, porque una fase necesita varias competencias a la vez y una competencia sirve en varias fases.
+
+| Rol | Disciplinas que aplica | Se ejecuta |
+| --- | --- | --- |
+| `analista` | UDD, UXDD, FDD, A11yDD | en línea |
+| `arquitecto` | SDD, DDD, ADD, EDA, ESDD, ODD_API, APIVDD, MDD, DeprecationDD | en línea |
+| `constructor` | TDD, RDD, DebtBudgetDD, CDCDD | en línea |
+| `verificador` | BDD, ATDD, CCDD, PDD, CHAOS | **subagente** (solo lectura, contexto limpio) |
+| `seguridad` | SecDD, STDD, THREAT, PrivacyDD, COMPLIANCE | **subagente** (solo lectura, contexto limpio) |
+| `operaciones` | PIPELINE, IODD, ODD_OBS, SLO | en línea |
+
+Cubren las 31 disciplinas, sin repetir ninguna. La retrospectiva la hace el propio orquestador.
+
+- **En línea:** `/evol` carga la skill del rol y la de la disciplina y trabaja en su propia sesión. Es el modo normal y funciona igual
+  en cualquier IDE, con o sin subagentes.
+- **Envoltorio de subagente:** un archivo de unas pocas líneas, **generado** por el adaptador en el formato de cada IDE, que solo dice
+  «carga la skill X y haz la tarea». No lleva instrucciones propias. Se genera para los roles donde la independencia importa
+  (`verificador` y `seguridad`: revisar con ojos frescos, en solo lectura) y se puede generar para cualquiera.
+- **Cuándo delega el orquestador:** cuando el trabajo es independiente y se puede paralelizar, cuando hace falta revisar sin el sesgo
+  del contexto en que se construyó, o cuando el contexto ya es muy grande.
+- **`skill-auditor` es la excepción:** es un subagente definido como tal, de solo lectura y sin acceso al shell, y **no** una skill. Si se
+  cargara como skill en el contexto principal, el contenido de una skill hostil podría influir en el propio auditor.
+- **Precaución:** ejecutar roles en línea acumula contexto. Como evol guarda los artefactos de cada fase en disco, el orquestador puede
+  pasar el relevo con archivos y empezar una sesión limpia entre fases.
+
+### Mapa de skills por fase del pipeline
+
+Cada skill declara a qué fase o fases pertenece, en el manifiesto de la biblioteca (no en el frontmatter, para no depender de lo que
+cada IDE ignora). `evol skills check` marca la que no esté ligada a ninguna. La primera ola son **19 skills**: las 9 disciplinas base,
+3 de razonamiento, los 6 roles y `evol`.
+
+| Fase | Razonamiento | Disciplinas base | Roles que intervienen | Después (extendidas y otras) |
+| --- | --- | --- | --- | --- |
+| briefing | `afinar-idea` | FDD, ATDD, BDD | analista, verificador | UDD, UXDD, A11yDD, `explorar-codigo-existente` |
+| spec | `verificar-afirmaciones` | SDD, DDD, THREAT | arquitecto, seguridad, operaciones | ADD, EDA, ESDD, ODD_API, COMPLIANCE, PrivacyDD, IODD |
+| plan | `interrogar-plan` | SDD, FDD | analista, arquitecto, constructor | APIVDD, MDD, CDCDD, DebtBudgetDD, DeprecationDD, `analizar-costes` |
+| build | — | SDD, TDD, STDD | arquitecto, constructor, seguridad, operaciones | RDD, PIPELINE, `afinar-prompt`, `minimo-necesario` |
+| qa | `verificar-afirmaciones` | SDD, ATDD, BDD, SecDD | analista, arquitecto, verificador, seguridad, operaciones | CCDD, PDD, CHAOS, A11yDD, ODD_OBS, SLO, `revisar-cambios`, `evaluar-skill` |
+| retro | — | SDD | arquitecto | `escribir-skill` |
+
+Los nombres de las skills de razonamiento y de las «después» son provisionales. Las tres «después» que estaban en duda (`minimo-necesario`, `escribir-skill` y `escribir-readme`) quedaron **aprobadas**: se recrean, en una ola posterior a la primera. La clasificación completa de lo que se recrea y lo que
+no está en `docs/design/referencia-evol-system.md`.
 
 ### Cómo reparte según el IDE
 
 | Nivel | Cuándo                                       | Qué hace `/evol`                                                                 |
 | ----- | -------------------------------------------- | -------------------------------------------------------------------------------- |
-| A     | El IDE tiene subagentes nativos              | Delega de verdad, en paralelo, con un tope de concurrencia y un punto de sincronización antes de las aprobaciones |
-| B     | Hay comando de entrada pero no subagentes    | Ejecuta los roles uno tras otro en la misma sesión, cargando una skill cada vez; mismos artefactos |
+| A     | El IDE tiene subagentes nativos              | Trabaja en línea lo habitual y delega `verificador`, `seguridad` y el trabajo paralelo, con un tope de concurrencia y un punto de sincronización antes de las aprobaciones |
+| B     | Hay comando de entrada pero no subagentes    | Todo en línea, cargando una skill cada vez; mismos artefactos. Los dos roles de revisión pierden la independencia y `evol doctor` lo avisa |
 | C     | Solo instrucciones y MCP                     | Sin comando `/evol`: el archivo de instrucciones explica el flujo y el MCP da el estado |
 
 `evol doctor` detecta qué IDE hay en el equipo y a qué nivel funciona cada uno.
@@ -687,9 +729,9 @@ Los cinco IDE de la primera entrega admiten subagentes, así que **todos funcion
 3. **El punto de entrada se llama distinto según el IDE:** `/evol` en Claude Code, OpenCode y Antigravity, y **`$evol` en Codex**.
    Como los cinco leen carpetas de skills, una skill `evol` común sirve de respaldo en todos y los adaptadores solo añaden el
    comando nativo donde existe.
-4. **Orquestación plana.** El orquestador es el agente principal y los roles son subagentes de un solo nivel: OpenCode no deja
-   crear subagentes desde un subagente (profundidad 1), Hermes tampoco por defecto, y en Codex y Antigravity el límite no está
-   claro. Los roles no lanzan otros subagentes, y el `skill-auditor` tampoco.
+4. **Orquestación plana.** El orquestador es el agente principal y los envoltorios de subagente son de un solo nivel: OpenCode no deja
+   crear subagentes desde un subagente (profundidad 1), Hermes tampoco por defecto, y en Codex y Antigravity el límite no está claro.
+   Los subagentes no lanzan otros, y el `skill-auditor` tampoco. Ejecutar los roles en línea evita el problema por completo.
 5. **El tope de concurrencia se impone donde se puede.** Codex (`agents.max_concurrent_threads_per_session`) y Hermes lo hacen
    cumplir; OpenCode y Antigravity lo deciden en cada turno y no tienen un tope conocido. En esos dos, el tope de evol es una
    instrucción al orquestador. Los subagentes de Antigravity no se hablan entre sí: el orquestador reúne y reenvía todo.
@@ -701,8 +743,9 @@ Los cinco IDE de la primera entrega admiten subagentes, así que **todos funcion
    global en Antigravity y Hermes y solo vale para repos de confianza en Codex. El orquestador usa `evol status` y compañía
    (con salida JSON) y aprovecha el MCP cuando está. El adaptador no edita archivos globales del usuario: imprime el fragmento y
    pide confirmación (criterio 23).
-8. **Los formatos de subagente son todos distintos** (Markdown con frontmatter en Claude Code, OpenCode y Antigravity; TOML en
-   Codex; llamada en tiempo de ejecución en Hermes), así que los seis roles se definen **una vez** y el adaptador los traduce.
+8. **Los formatos de subagente son todos distintos** (Markdown con frontmatter en Claude Code, OpenCode y Antigravity; TOML en Codex;
+   llamada en tiempo de ejecución en Hermes). Por eso los roles son **skills**, que son iguales en todos los IDE, y el adaptador solo
+   genera los envoltorios de subagente, que son de unas pocas líneas.
 9. **Estado del proyecto:** Claude Code y Codex tienen `SessionStart`; Antigravity, `PreInvocation` (su `SessionStart` existe en el
    motor pero no está documentado); OpenCode, un plugin pequeño con el gancho `context`.
 10. **Auditoría de skills:** el `skill-auditor` marca los comandos con bloques de shell (`!` + comando, que en OpenCode corren fuera
@@ -720,7 +763,7 @@ Los cinco IDE de la primera entrega admiten subagentes, así que **todos funcion
 | --- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------- |
 | O1  | Contrato del orquestador: una sola fuente para `/evol` con los 7 pasos, y las herramientas de lectura que le faltan al MCP (prerrequisitos, disciplinas activas por fase, lecciones) | criterios 66, 69, 70  |
 | O2  | Adaptadores: `evol agents --ide <id>\|all`, primero para Claude Code, Codex, Antigravity, OpenCode y Hermes y después para los demás de la matriz; `evol doctor` detecta IDE y nivel | criterios 67 y 72     |
-| O3  | Los 6 roles y las skills de razonamiento; subagentes nativos donde existan y modo secuencial donde no                                                    | criterio 68           |
+| O3  | Los 6 roles como skills, los envoltorios de subagente generados (`verificador`, `seguridad`) y las 3 skills de razonamiento; el orquestador decide si ejecuta en línea o delega | criterios 68, 73 y 74 |
 | O4  | Verificación PASS/WARN/BLOCK al iniciar y terminar cada fase; marca de «plan interrogado» antes de aprobarlo                                              | criterios 71          |
 | O5  | Pruebas de portabilidad: archivos generados por adaptador, idempotencia y un simulador de IDE sin subagentes                                             | criterios 67 y 68     |
 
@@ -730,15 +773,18 @@ Los cinco IDE de la primera entrega admiten subagentes, así que **todos funcion
 | --- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
 | 66  | `/evol` sin argumentos muestra el estado y propone el siguiente paso sin modificar nada.                                                        |
 | 67  | `evol agents --ide <id>` instala `/evol` en cada IDE de la matriz de forma idempotente y sin pisar archivos del usuario.                        |
-| 68  | En un IDE sin subagentes, `/evol` ejecuta los roles en secuencia y produce los mismos artefactos que con subagentes.                            |
+| 68  | En un IDE sin subagentes, `/evol` ejecuta los roles en línea y produce los mismos artefactos que con subagentes.                                |
 | 69  | `/evol` nunca ejecuta `evol approve` ni `evol next`; aprobar y avanzar exige una persona en una terminal. Donde el IDE lo permite, el adaptador instala la regla que bloquea esos comandos; donde no, `evol doctor` lo avisa. |
 | 70  | Si falta un artefacto de la fase anterior, `/evol` se detiene y nombra el artefacto.                                                            |
 | 71  | `evol approve plan` falla si el plan no se interrogó (marca con su hash); la anulación explícita queda registrada.                              |
 | 72  | `evol doctor` informa de los IDE detectados y del nivel (A, B o C) de cada uno.                                                                 |
+| 73  | Cada rol existe como skill; su envoltorio de subagente se genera a partir de ella y no contiene instrucciones propias.                          |
+| 74  | `verificador` y `seguridad` se delegan como subagentes de solo lectura donde el IDE lo permite; `skill-auditor` no tiene acceso al shell.       |
+| 75  | Cada skill declara en el manifiesto la fase o fases a las que pertenece; `evol skills check` marca la que no esté ligada a ninguna.             |
+| 76  | Cada una de las 31 disciplinas es aplicada por exactamente un rol, y la suma de las de los seis roles es 31.                                    |
 
 ### Preguntas abiertas
 
-- ¿Roles por fase o por competencia? La propuesta recomendada es **por competencia**: `analista` (UDD, UXDD, FDD, A11yDD), `arquitecto` (SDD, DDD, ADD, EDA, ESDD, ODD_API, APIVDD, MDD, DeprecationDD), `constructor` (TDD, RDD, DebtBudgetDD, CDCDD), `verificador` (BDD, ATDD, CCDD, PDD, CHAOS), `seguridad` (SecDD, STDD, THREAT, PrivacyDD, COMPLIANCE) y `operaciones` (PIPELINE, IODD, ODD_OBS, SLO). Cubre las 31 disciplinas, la retrospectiva la hace el orquestador y varios roles pueden trabajar a la vez en una misma fase.
 - ¿El tope de concurrencia y el punto de sincronización los fija evol o cada proyecto en `evol.config.json`? (Hermes ya trae su propio tope de subagentes simultáneos; el de evol no puede superarlo.)
 - Hermes crea y refina skills por su cuenta en `~/.hermes/skills`: para evol son skills de terceros, sin auditar, y no entran a la biblioteca salvo por el auditor.
 - ¿Las skills de razonamiento (afinar la idea, interrogar el plan, verificar afirmaciones) entran en la biblioteca inicial junto a las 9 de disciplinas base?
