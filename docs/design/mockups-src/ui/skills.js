@@ -200,7 +200,7 @@ function auditDialog() {
 }
 
 /* ---------- the agents themselves ---------- */
-const IDE_CELL = { si: ["good", "✓"], verificar: ["warning", "?"] };
+const IDE_CELL = { si: ["good", "✓"], parcial: ["info", "◐"], verificar: ["warning", "?"] };
 const PHASE_NAMES = { briefing: "Briefing", spec: "Especificación", plan: "Plan", build: "Construcción", qa: "Calidad", retro: "Retrospectiva" };
 function orchestratorView() {
   const o = SK.orquestador;
@@ -227,11 +227,11 @@ function rolesView() {
       el("p", {}, r.disciplinas.map((d) => el("span", { class: "pill mono" + (d.tipo === "base" ? "" : " dim"), title: d.tipo, text: d.id })))))));
 }
 function idesView() {
-  const cols = [["instrucciones", "Instrucciones"], ["skills", "Skills"], ["mcp", "MCP"], ["entrada", "Entrada /evol"], ["subagentes", "Subagentes"]];
-  const cell = (v) => el("td", {}, el("span", { class: "st " + IDE_CELL[v[0]][0], title: v[0] === "si" ? "Confirmado" : "Por verificar en la documentación oficial" }, el("i", { "aria-hidden": "true", text: IDE_CELL[v[0]][1] }), el("small", { text: v[1] })));
+  const cols = [["instrucciones", "Instrucciones"], ["skills", "Skills"], ["mcp", "MCP"], ["entrada", "Entrada /evol"], ["subagentes", "Subagentes"], ["bloqueo", "Bloquear evol approve"]];
+  const cell = (v) => el("td", {}, el("span", { class: "st " + IDE_CELL[v[0]][0], title: v[0] === "si" ? "Confirmado" : v[0] === "parcial" ? "Funciona, con límites" : "Por verificar en la documentación oficial" }, el("i", { "aria-hidden": "true", text: IDE_CELL[v[0]][1] }), el("small", { text: v[1] })));
   return el("section", {},
     el("h2", { class: "h3", style: "margin-top:24px", text: `Compatibilidad con IDE (${SK.ides.length})` }),
-    el("p", { class: "note", text: "La primera entrega cubre los cinco que usas: Claude Code (en terminal y en VS Code, con la misma configuración), Codex, Antigravity, OpenCode y Hermes. Los demás esperan, pero el diseño no cambia. evol-driven no depende de un IDE: se apoya en tres capas que todos comparten (AGENTS.md, carpetas SKILL.md y el MCP de evol) y en un adaptador fino por IDE que expone /evol. Donde un IDE no tiene subagentes, /evol ejecuta los roles uno tras otro en la misma sesión. «?» = por confirmar en la documentación oficial antes de construirlo." }),
+    el("p", { class: "note", text: "La primera entrega cubre los cinco que usas: Claude Code (en terminal y en VS Code, con la misma configuración), Codex, Antigravity, OpenCode y Hermes. Los demás esperan, pero el diseño no cambia. evol-driven no depende de un IDE: se apoya en tres capas que todos comparten (AGENTS.md, carpetas SKILL.md y la CLI de evol, con su MCP como apoyo opcional) y en un adaptador fino por IDE que expone /evol. Donde un IDE no tiene subagentes, /evol ejecuta los roles uno tras otro en la misma sesión. ✓ = confirmado por la propia herramienta, ◐ = funciona con límites, ? = por confirmar en su documentación oficial antes de construirlo." }),
     el("div", { class: "panel", style: "overflow:auto" }, el("table", {}, el("thead", {}, el("tr", {}, el("th", { text: "IDE" }), cols.map(([, l]) => el("th", { text: l })))),
       el("tbody", {}, SK.ides.map((i) => el("tr", { class: "ide-row" + (i.entrega === "primera" ? " first" : "") }, el("td", {}, el("b", { text: i.label }), i.entrega === "primera" ? el("div", {}, chip("info", "★", "Primera entrega")) : el("div", { class: "note", text: "después" })), cols.map(([k]) => cell(i[k]))))))));
 }

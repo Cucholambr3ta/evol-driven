@@ -655,16 +655,64 @@ es aparte: solo propone veredictos sobre skills nuevas (ver el hito de skills).
 
 ### Capas portables y un adaptador fino por IDE
 
-1. **Instrucciones:** `AGENTS.md` como fuente; Claude Code lo importa desde `CLAUDE.md` y Gemini CLI se configura para leerlo.
+1. **Instrucciones:** `AGENTS.md` como fuente; Claude Code lo importa desde `CLAUDE.md`. Codex, OpenCode, Antigravity y Hermes lo leen directamente.
 2. **Skills:** carpetas `SKILL.md` (formato abierto de amplia adopción) enlazadas a la carpeta de cada herramienta.
-3. **Herramientas:** el servidor MCP de evol, que todos soportan.
-4. **Entrada `/evol`:** la expone un adaptador por IDE, generado desde una sola fuente: comando (Claude Code, OpenCode, Gemini CLI),
-   workflow (Windsurf), prompt (Copilot), regla o comando (Cursor) o skill (Codex). `evol agents --ide <id>|all` los crea, hoy solo
+3. **Herramientas:** la CLI de evol con salida JSON, que todos pueden ejecutar, y el servidor MCP de evol como acelerador opcional.
+4. **Entrada `/evol`:** la expone un adaptador por IDE, generado desde una sola fuente: comando (Claude Code, OpenCode), workflow
+   (Antigravity) o skill `$evol` (Codex); los demás IDE de la matriz, cuando entren. `evol agents --ide <id>|all` los crea, hoy solo
    para Claude Code. Es idempotente y no pisa archivos del usuario (criterio 23).
 
-La pantalla Skills muestra la matriz con lo que cada IDE ofrece. Las celdas marcadas «?» vienen de fuentes secundarias y **hay
-que confirmarlas en la documentación oficial antes de construir el adaptador**, sobre todo subagentes, skills en Cursor y Copilot,
-y la entrada de Codex. Hermes se confirmó en su propio código instalado (subagentes con `delegate_task`, MCP, skills y `AGENTS.md`). Para Antigravity, las fuentes discrepan en si la carpeta es `.agent` o `.agents`.
+La pantalla Skills muestra la matriz con lo que cada IDE ofrece. Las celdas marcadas «?» **hay que confirmarlas antes de construir el adaptador**. Hermes se confirmó en su propio código instalado (subagentes con `delegate_task`, MCP, skills y `AGENTS.md`). Para Antigravity, las fuentes discrepan en si la carpeta es `.agent` o `.agents`.
+
+### Lo que confirmó cada IDE
+
+Se consultó a los propios agentes de cada IDE y a su instalación; las respuestas completas están en `docs/design/consultas/`.
+Los cinco IDE de la primera entrega admiten subagentes, así que **todos funcionan en el nivel A**.
+
+| IDE | Instrucciones | Skills | Entrada `/evol` | Subagentes (roles) | MCP del proyecto | Estado del proyecto al iniciar | Bloqueo de `evol approve` |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Claude Code | `CLAUDE.md` que importa `AGENTS.md` | `.claude/skills` | `.claude/commands/evol.md` | `.claude/agents/*.md` | `.mcp.json` | gancho `SessionStart` (`evol hook session-start`) | `permissions.deny` en `settings.json` |
+| Codex 0.163 | `AGENTS.md` (máx. 32 KiB); no lee `CLAUDE.md` salvo configurarlo | `.agents/skills` | **skill `$evol`**: no hay comandos `/` propios | `.codex/agents/*.toml`; tope `agents.max_concurrent_threads_per_session` | `.codex/config.toml` (solo repos de confianza) | gancho `SessionStart` | regla `forbidden` en `.codex/rules/*.rules`, que cubre solo lo que corre fuera del sandbox; se refuerza con un gancho `PreToolUse` |
+| Antigravity 1.107 | `AGENTS.md` y `GEMINI.md` (se combinan); reglas en `.agents/rules/` | `.agents/skills` | workflow `.agents/workflows/evol.md` → `/evol` | `.agents/agents/*.md`; en paralelo, sin tope conocido | **global** (`~/.gemini/config/mcp_config.json`); por proyecto solo dentro de un plugin | `PreInvocation` en `.agents/hooks.json` | gancho `PreToolUse` con `deny`, o la lista de bloqueo de comandos del IDE |
+| OpenCode 2.1 | `AGENTS.md`; **no** lee `CLAUDE.md` | `.opencode/skills`; lee también `.claude/skills` y `.agents/skills` | `.opencode/commands/evol.md` | `.opencode/agents/*.md`; sin tope configurable | `opencode.json › mcp.servers` | plugin con el gancho `context` | permiso `shell` con recurso `evol approve *` y efecto `deny` (probado) |
+| Hermes | `AGENTS.md` y `SOUL.md` | `~/.hermes/skills` | por confirmar | `delegate_task`, con tope de concurrencia propio | **global** (`~/.hermes/config.yaml`) | por confirmar | por confirmar |
+
+**Consecuencias de diseño**
+
+1. **Una sola fuente de skills, instalada por enlace.** Las skills viven en `skills/` y el adaptador enlaza esa carpeta a
+   `.agents/skills` (Codex, OpenCode y Antigravity la leen de ahí, confirmado en los tres) y a `.claude/skills` (Claude Code), y a la
+   carpeta global de Hermes. Nada se copia a mano.
+2. **`AGENTS.md` es el único archivo de instrucciones portable.** `CLAUDE.md` solo lo importa; el estado del proyecto nunca se
+   escribe en `CLAUDE.md`, porque OpenCode y Codex lo ignoran. Cuidado con el tamaño: Codex corta en 32 KiB.
+3. **El punto de entrada se llama distinto según el IDE:** `/evol` en Claude Code, OpenCode y Antigravity, y **`$evol` en Codex**.
+   Como los cinco leen carpetas de skills, una skill `evol` común sirve de respaldo en todos y los adaptadores solo añaden el
+   comando nativo donde existe.
+4. **Orquestación plana.** El orquestador es el agente principal y los roles son subagentes de un solo nivel: OpenCode no deja
+   crear subagentes desde un subagente (profundidad 1), Hermes tampoco por defecto, y en Codex y Antigravity el límite no está
+   claro. Los roles no lanzan otros subagentes, y el `skill-auditor` tampoco.
+5. **El tope de concurrencia se impone donde se puede.** Codex (`agents.max_concurrent_threads_per_session`) y Hermes lo hacen
+   cumplir; OpenCode y Antigravity lo deciden en cada turno y no tienen un tope conocido. En esos dos, el tope de evol es una
+   instrucción al orquestador. Los subagentes de Antigravity no se hablan entre sí: el orquestador reúne y reenvía todo.
+6. **El bloqueo de `evol approve` lo instala el adaptador** con la regla de cada IDE. Ninguno es una frontera absoluta: en Codex las
+   reglas solo cubren lo que corre fuera del sandbox y los ganchos no cubren todas las rutas. Por eso se refuerza con la
+   instrucción al modelo y con la propia CLI de evol, que exige una terminal interactiva para aprobar (criterio 21), y
+   `evol doctor` informa del nivel de protección de cada IDE.
+7. **La CLI de evol va primero y el MCP es opcional.** Todos los IDE ejecutan comandos de shell, mientras que registrar un MCP es
+   global en Antigravity y Hermes y solo vale para repos de confianza en Codex. El orquestador usa `evol status` y compañía
+   (con salida JSON) y aprovecha el MCP cuando está. El adaptador no edita archivos globales del usuario: imprime el fragmento y
+   pide confirmación (criterio 23).
+8. **Los formatos de subagente son todos distintos** (Markdown con frontmatter en Claude Code, OpenCode y Antigravity; TOML en
+   Codex; llamada en tiempo de ejecución en Hermes), así que los seis roles se definen **una vez** y el adaptador los traduce.
+9. **Estado del proyecto:** Claude Code y Codex tienen `SessionStart`; Antigravity, `PreInvocation` (su `SessionStart` existe en el
+   motor pero no está documentado); OpenCode, un plugin pequeño con el gancho `context`.
+10. **Auditoría de skills:** el `skill-auditor` marca los comandos con bloques de shell (`!` + comando, que en OpenCode corren fuera
+    del flujo de permisos), las skills cuyo `name` no coincide con la carpeta (OpenCode toma el identificador de la ruta), los hooks
+    que ejecutan comandos y, en Codex, las skills pesadas, porque su cuerpo se lee al invocarlas.
+11. **El modelo puede negarse aunque el permiso esté concedido** (le pasó al agente de OpenCode con `evol approve --yes`): el
+    bloqueo técnico y la instrucción se refuerzan, no se sustituyen.
+12. **Dudas que quedan para cuando se construya cada adaptador:** profundidad máxima de subagentes en Codex y Antigravity; tope real
+    de concurrencia en OpenCode y Antigravity; si `.agents/mcp_config.json` suelto lo lee Antigravity; si `SessionStart` es utilizable
+    en Antigravity; y la entrada y el bloqueo en Hermes.
 
 ### Hitos
 
@@ -683,14 +731,14 @@ y la entrada de Codex. Hermes se confirmó en su propio código instalado (subag
 | 66  | `/evol` sin argumentos muestra el estado y propone el siguiente paso sin modificar nada.                                                        |
 | 67  | `evol agents --ide <id>` instala `/evol` en cada IDE de la matriz de forma idempotente y sin pisar archivos del usuario.                        |
 | 68  | En un IDE sin subagentes, `/evol` ejecuta los roles en secuencia y produce los mismos artefactos que con subagentes.                            |
-| 69  | `/evol` nunca ejecuta `evol approve` ni `evol next`; aprobar y avanzar exige una persona en una terminal.                                       |
+| 69  | `/evol` nunca ejecuta `evol approve` ni `evol next`; aprobar y avanzar exige una persona en una terminal. Donde el IDE lo permite, el adaptador instala la regla que bloquea esos comandos; donde no, `evol doctor` lo avisa. |
 | 70  | Si falta un artefacto de la fase anterior, `/evol` se detiene y nombra el artefacto.                                                            |
 | 71  | `evol approve plan` falla si el plan no se interrogó (marca con su hash); la anulación explícita queda registrada.                              |
 | 72  | `evol doctor` informa de los IDE detectados y del nivel (A, B o C) de cada uno.                                                                 |
 
 ### Preguntas abiertas
 
-- ¿Los seis roles por fase te parecen bien, o prefieres otros (por ejemplo seguridad como rol propio)?
+- ¿Roles por fase o por competencia? La propuesta recomendada es **por competencia**: `analista` (UDD, UXDD, FDD, A11yDD), `arquitecto` (SDD, DDD, ADD, EDA, ESDD, ODD_API, APIVDD, MDD, DeprecationDD), `constructor` (TDD, RDD, DebtBudgetDD, CDCDD), `verificador` (BDD, ATDD, CCDD, PDD, CHAOS), `seguridad` (SecDD, STDD, THREAT, PrivacyDD, COMPLIANCE) y `operaciones` (PIPELINE, IODD, ODD_OBS, SLO). Cubre las 31 disciplinas, la retrospectiva la hace el orquestador y varios roles pueden trabajar a la vez en una misma fase.
 - ¿El tope de concurrencia y el punto de sincronización los fija evol o cada proyecto en `evol.config.json`? (Hermes ya trae su propio tope de subagentes simultáneos; el de evol no puede superarlo.)
 - Hermes crea y refina skills por su cuenta en `~/.hermes/skills`: para evol son skills de terceros, sin auditar, y no entran a la biblioteca salvo por el auditor.
 - ¿Las skills de razonamiento (afinar la idea, interrogar el plan, verificar afirmaciones) entran en la biblioteca inicial junto a las 9 de disciplinas base?
