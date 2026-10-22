@@ -2,6 +2,7 @@
   "id": "A11yDD",
   "nombre": "Accessibility-Driven Development",
   "tipo": "extendida",
+  "skill": "a11ydd",
   "fases": ["briefing", "qa"],
   "artefactos": [
     {

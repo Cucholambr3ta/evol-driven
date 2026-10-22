@@ -2,6 +2,7 @@
   "id": "SecDD",
   "nombre": "Security-Driven Development",
   "tipo": "base",
+  "skill": "secdd",
   "fases": ["qa"],
   "artefactos": [
     {

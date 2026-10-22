@@ -2,6 +2,7 @@
   "id": "MDD",
   "nombre": "Migration-Driven Development",
   "tipo": "extendida",
+  "skill": "mdd",
   "fases": ["plan"],
   "artefactos": [
     {

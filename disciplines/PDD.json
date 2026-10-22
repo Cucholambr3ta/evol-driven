@@ -2,6 +2,7 @@
   "id": "PDD",
   "nombre": "Performance-Driven Development",
   "tipo": "extendida",
+  "skill": "pdd",
   "fases": ["qa"],
   "artefactos": [
     {

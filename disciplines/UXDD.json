@@ -2,6 +2,7 @@
   "id": "UXDD",
   "nombre": "UX-Driven Development",
   "tipo": "extendida",
+  "skill": "uxdd",
   "fases": ["briefing"],
   "artefactos": [
     {

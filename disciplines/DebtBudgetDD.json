@@ -2,6 +2,7 @@
   "id": "DebtBudgetDD",
   "nombre": "Tech Debt Budgeting",
   "tipo": "extendida",
+  "skill": "debtbudgetdd",
   "fases": ["plan"],
   "artefactos": [
     {

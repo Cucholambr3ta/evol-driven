@@ -2,6 +2,7 @@
   "id": "APIVDD",
   "nombre": "API Versioning-Driven Development",
   "tipo": "extendida",
+  "skill": "apivdd",
   "fases": ["plan"],
   "artefactos": [
     {

@@ -211,6 +211,26 @@ diario. Si la disciplina aplica a una fase que ya estaba aprobada, el pipeline *
 (la configuración es parte de lo que firma una aprobación, así que la anterior deja de valer). Las
 fases adoptadas no retroceden: nunca tuvieron aprobación. `--perfil` y `--disciplinas` no se combinan.
 
+### Biblioteca de skills
+
+Las skills (carpetas con un `SKILL.md`) viven en `~/.config/evol/skills/<nombre>/`, una sola para todos
+tus proyectos. La biblioteca arranca **vacía**.
+
+```bash
+evol skills list                   # las skills, si están auditadas y a qué fase del pipeline pertenecen
+evol skills list --disciplinas     # qué skill aplica cada disciplina y cuáles faltan
+evol skills check [nombre]         # frontmatter, name, description, claves, scripts, red, enlaces y binarios
+evol skills export <nombre>        # un .zip con toda la carpeta y su huella SHA-256
+```
+
+`--dir <carpeta>` trabaja sobre otra carpeta de skills (por ejemplo `skills/` de un repositorio) y
+`--json` da la salida para máquinas. `check` termina con error si alguna skill tiene errores.
+
+Una skill con el frontmatter roto **no desaparece**: se lista con el nombre y la descripción que se
+pudieron recuperar y el error de YAML. La huella de una skill depende solo de sus archivos, y una
+auditoría solo vale para los bytes que se auditaron: si la carpeta cambia después, vuelve a figurar
+«sin auditar». Agregar skills (`audit`, `approve`) llega en los siguientes hitos.
+
 ### Trazabilidad, riesgo y datos del proyecto
 
 ```bash

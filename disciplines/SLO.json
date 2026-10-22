@@ -2,6 +2,7 @@
   "id": "SLO",
   "nombre": "SLO/SLA-Driven Development",
   "tipo": "extendida",
+  "skill": "slo",
   "fases": ["qa"],
   "artefactos": [
     {

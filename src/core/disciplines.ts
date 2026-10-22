@@ -52,6 +52,11 @@ export const DisciplineSchema = z.object({
   id: z.string().regex(/^[A-Za-z0-9_]+$/),
   nombre: z.string().min(1),
   tipo: z.enum(["base", "extendida"]),
+  /** The skill that applies this discipline: its id (folder name) in the skills library. */
+  skill: z
+    .string()
+    .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/)
+    .optional(),
   fases: z.array(PhaseSchema).min(1),
   /** Transversal disciplines apply from their first phase onwards. */
   transversal: z.boolean().optional(),

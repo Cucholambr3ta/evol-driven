@@ -73,6 +73,10 @@ const COMMANDS: Record<string, CommandSpec> = {
       "Lista, sugiere, activa y desactiva disciplinas (list | profiles | suggest | enable | disable)",
     load: async () => (await import("./commands/disciplines.js")).default,
   },
+  skills: {
+    summary: "Biblioteca de skills: lista, revisa y exporta (list | check | export)",
+    load: async () => (await import("./commands/skills.js")).default,
+  },
   agents: {
     summary: "Crea o refresca la integración con Claude Code y MCP",
     load: async () => (await import("./commands/agents.js")).default,

@@ -55,6 +55,7 @@ function list(ctx: PipelineContext, json: boolean): void {
     id: d.id,
     nombre: d.nombre,
     tipo: d.tipo,
+    skill: d.skill ?? null,
     fases: d.fases,
     transversal: d.transversal === true,
     modulos: enabledIn(d.id),

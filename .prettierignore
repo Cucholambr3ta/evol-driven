@@ -8,3 +8,6 @@ tests/fixtures
 # Mockups de la interfaz: HTML generado con datos embebidos
 docs/design/mockups
 docs/design/mockups-src
+
+# Consultas a los agentes de cada IDE y sus respuestas literales: son evidencia, no se reformatean
+docs/design/consultas

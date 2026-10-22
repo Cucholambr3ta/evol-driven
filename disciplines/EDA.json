@@ -2,6 +2,7 @@
   "id": "EDA",
   "nombre": "Event-Driven Architecture",
   "tipo": "extendida",
+  "skill": "eda",
   "fases": ["spec"],
   "artefactos": [
     {

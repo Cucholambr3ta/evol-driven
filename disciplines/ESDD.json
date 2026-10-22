@@ -2,6 +2,7 @@
   "id": "ESDD",
   "nombre": "Event Sourcing-Driven Development",
   "tipo": "extendida",
+  "skill": "esdd",
   "fases": ["spec"],
   "artefactos": [
     {

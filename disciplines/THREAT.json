@@ -2,6 +2,7 @@
   "id": "THREAT",
   "nombre": "Threat-Driven Development",
   "tipo": "base",
+  "skill": "threat",
   "fases": ["spec"],
   "artefactos": [
     {

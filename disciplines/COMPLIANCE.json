@@ -2,6 +2,7 @@
   "id": "COMPLIANCE",
   "nombre": "Compliance-Driven Development",
   "tipo": "extendida",
+  "skill": "compliance",
   "fases": ["spec"],
   "artefactos": [
     {

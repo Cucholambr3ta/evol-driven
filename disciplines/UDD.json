@@ -2,6 +2,7 @@
   "id": "UDD",
   "nombre": "Use-Case-Driven Development",
   "tipo": "extendida",
+  "skill": "udd",
   "fases": ["briefing"],
   "artefactos": [
     {

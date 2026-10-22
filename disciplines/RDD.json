@@ -2,6 +2,7 @@
   "id": "RDD",
   "nombre": "Refactoring-Driven Development",
   "tipo": "extendida",
+  "skill": "rdd",
   "fases": ["build"],
   "artefactos": [
     {

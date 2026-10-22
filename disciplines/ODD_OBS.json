@@ -2,6 +2,7 @@
   "id": "ODD_OBS",
   "nombre": "Observability-Driven Development",
   "tipo": "extendida",
+  "skill": "odd-obs",
   "fases": ["qa"],
   "artefactos": [
     {

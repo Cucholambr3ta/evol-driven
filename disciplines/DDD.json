@@ -2,6 +2,7 @@
   "id": "DDD",
   "nombre": "Domain-Driven Design",
   "tipo": "base",
+  "skill": "ddd",
   "fases": ["spec"],
   "artefactos": [
     {

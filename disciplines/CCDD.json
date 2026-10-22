@@ -2,6 +2,7 @@
   "id": "CCDD",
   "nombre": "Consumer-Driven Contract Testing",
   "tipo": "extendida",
+  "skill": "ccdd",
   "fases": ["qa"],
   "artefactos": [
     {
