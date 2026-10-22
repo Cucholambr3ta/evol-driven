@@ -272,8 +272,38 @@ for (const k of list) {
   if (k.propia) k.enBiblioteca = k.lugares.some((l) => l.fuente === "biblioteca");
   k.nueva = k.enBiblioteca === true && NOW - new Date(k.modificado).getTime() < NEW_DAYS * 86_400_000;
 }
+// Each agent: whether it is installed here, how many skills it sees and how many come from the library.
+const agentes = AGENTS.map((a) => {
+  const mine = list.filter((k) => k.lugares.some((l) => l.agente === a.id));
+  return {
+    ...a, existe: existsSync(join(home, a.dir.slice(2))), total: mine.length,
+    deLaBiblioteca: mine.filter((k) => k.enBiblioteca).length, ajenas: mine.filter((k) => !k.propia).length,
+    conAvisos: mine.filter((k) => k.revision.some((c) => c.nivel !== "ok")).length,
+    enlazadas: mine.filter((k) => k.lugares.some((l) => l.agente === a.id && l.enlace)).length,
+  };
+});
+// The only way into the library: an agent audits the skill first. These are the checks it runs.
+const auditoria = {
+  agente: "evol-skill-auditor",
+  etapas: [
+    ["solicitud", "Solicitud", "Le pasas la ruta, el .zip o el enlace de la skill. La página no la recibe ni la copia."],
+    ["cuarentena", "Cuarentena", "El agente la copia a una carpeta aislada fuera de la biblioteca; nada se ejecuta ni queda visible para otros agentes."],
+    ["auditoria", "Auditoría", "Revisa cada archivo con las comprobaciones de abajo y escribe un informe."],
+    ["veredicto", "Veredicto", "Aprobada, aprobada con avisos o rechazada. Un error bloquea; un aviso exige que lo aceptes por escrito."],
+    ["biblioteca", "Biblioteca", "Solo si hay veredicto, el agente la copia a la biblioteca con su huella y el informe, y queda en el diario."],
+  ],
+  comprobaciones: [
+    ["Secretos", "Claves, tokens, contraseñas y rutas con credenciales en cualquier archivo, incluidos los de ejemplo."],
+    ["Filtraciones", "Instrucciones o scripts que envíen contenido de tus proyectos, variables de entorno o memoria a un tercero."],
+    ["Scripts", "Qué ejecuta cada script, con qué permisos y si escribe fuera de la carpeta de la skill (rm, chmod, sudo, eval, curl | sh)."],
+    ["Red", "Dominios a los que llama; todo dominio fuera de una lista permitida es un aviso."],
+    ["Inyección de instrucciones", "Texto que intente cambiar las reglas del agente: ignorar instrucciones previas, ocultar acciones o pedir permisos amplios."],
+    ["Funcionamiento", "Frontmatter válido, name = carpeta, description útil, referencias a archivos que existen y que no choque con otra skill."],
+    ["Procedencia", "Origen, licencia y versión; la huella SHA-256 queda registrada para detectar cambios posteriores."],
+  ],
+};
 const out = {
-  generado: new Date(NOW).toISOString(), diasNueva: NEW_DAYS, totalDisciplinas: disciplines.size, fuentes: sources, agentes: AGENTS,
+  generado: new Date(NOW).toISOString(), diasNueva: NEW_DAYS, totalDisciplinas: disciplines.size, fuentes: sources, agentes, auditoria,
   grupos: GRUPOS.map(([id, nombre, descripcion]) => ({ id, nombre, descripcion })), skills: list,
 };
 writeFileSync(join(here, "data/skills.json"), `${JSON.stringify(out)}\n`);

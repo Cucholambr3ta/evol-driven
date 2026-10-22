@@ -247,3 +247,12 @@ dialog.dlg::backdrop { background: rgba(0,0,0,.45); }
 .form { display: grid; grid-template-columns: 110px 1fr; gap: 8px 12px; align-items: start; margin: 10px 0; }
 .form label { padding-top: 6px; color: var(--ink-2); }
 .form textarea.search { width: 100%; resize: vertical; }
+
+/* Skills: agents tab and the audit flow */
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; margin: 12px 0; }
+a.agent { display: block; color: inherit; text-decoration: none; }
+a.agent:hover, a.agent:focus-visible { border-color: var(--accent, currentColor); }
+.agent h2 { margin: 0 0 4px; font-size: 16px; }
+.auditor { margin-top: 16px; }
+.steps { margin: 8px 0 12px; padding-left: 20px; }
+.steps li { margin: 6px 0; }

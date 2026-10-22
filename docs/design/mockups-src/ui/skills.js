@@ -12,9 +12,10 @@ const worst = (s) => (s.revision.some((c) => c.nivel === "error") ? "error" : s.
 const agentsOf = (s) => [...new Set(s.lugares.map((l) => l.agente).filter(Boolean))];
 const agentLabel = (id) => (SK.agentes.find((a) => a.id === id) || { label: id }).label;
 
-/* ---------- state (in the URL as #biblioteca/<id> or #agentes/<id>) ---------- */
+/* ---------- state (in the URL as #biblioteca/<id>, #instaladas/<id> or #agentes) ---------- */
 const parts = () => (location.hash || "").slice(1).split("/");
-let tab = parts()[0] === "agentes" ? "agentes" : "biblioteca";
+const TABS_OK = ["biblioteca", "agentes", "instaladas"];
+let tab = TABS_OK.includes(parts()[0]) ? parts()[0] : "biblioteca";
 let selected = parts()[1] ? decodeURIComponent(parts()[1]) : null;
 let query = "", group = "todas", onlyNew = false, onlyIssues = false, detailTab = "revision";
 let actionOpen = null;
@@ -98,9 +99,9 @@ function actions(s) {
     agente: () => el("div", { class: "actionpanel" }, el("p", { class: "note", text: "Enlaza la skill de la biblioteca en la carpeta del agente: se actualiza sola cuando la edites." }),
       SK.agentes.map((a) => el("div", {}, el("b", { text: a.label }), " ", el("span", { class: "note mono", text: a.dir }), cmdBox(`evol skills install ${s.nombre} --agente ${a.id}`)))),
     importar: () => el("div", { class: "actionpanel" },
-      cmdBox(`evol skills import ${s.lugares[0].ruta}${s.grupo ? "" : " --grupo <grupo>"}`,
-        s.grupo ? `La copia a ${FUENTE.biblioteca.dir}/${s.carpeta} y le aplica el grupo «${GRUPO[s.grupo].nombre}». Desde ese momento está disponible en cualquier proyecto o tarea.`
-          : `La copia a ${FUENTE.biblioteca.dir}/${s.carpeta}. Elige su grupo con --grupo (${SK.grupos.map((g) => g.id).slice(0, 4).join(", ")}…); sin él queda en «Sin grupo». Desde ese momento está disponible en cualquier proyecto o tarea.`)),
+      el("p", { class: "note", text: `Esta página no copia skills. Pídele al agente auditor (${AUD.agente}) que la revise: la pasa por cuarentena, la audita y solo si el veredicto es favorable la deja en ${FUENTE.biblioteca.dir}/${s.carpeta}.` }),
+      cmdBox(`evol skills audit ${s.lugares[0].ruta}${s.grupo ? ` --grupo ${s.grupo}` : ""}`, "Lanza al agente auditor. Escribe el informe en la cuarentena y te pide confirmar el veredicto antes de agregarla."),
+      el("button", { class: "chip", type: "button", onclick: () => auditDialogEl.showModal() }, "Ver qué comprueba el agente")),
     quitar: () => el("div", { class: "actionpanel" }, cmdBox(`evol skills remove ${s.nombre}`, "Solo quita la copia de la biblioteca. Pide confirmación y no toca los proyectos que ya la usan.")),
   };
   const btn = (key, label, enabled = true, title) => el("button", { class: "chip", type: "button", disabled: !enabled, title, "aria-pressed": String(actionOpen === key || (actionOpen || "").startsWith(key + ":")), onclick: open(key) }, label);
@@ -108,14 +109,14 @@ function actions(s) {
   return el("div", {},
     el("div", { class: "actions" },
       el("button", { class: "chip primary", type: "button", onclick: () => { s.texto != null ? download(`${s.carpeta}-SKILL.md`, skillMd(s), "text/markdown") : download(`${s.carpeta}.json`, JSON.stringify({ nombre: s.nombre, descripcion: s.descripcion, huella: s.huella, archivos: s.archivos, lugares: s.lugares }, null, 2), "application/json"); } }, "Descargar"),
-      s.propia && !s.enBiblioteca ? btn("importar", "Importar a la biblioteca") : null,
+      s.propia && !s.enBiblioteca ? btn("importar", "Pedir auditoría al agente") : null,
       btn("proyecto", "Usar en un proyecto…", s.propia, s.propia ? "" : "Primero añádela a la biblioteca"),
       btn("agente", "Instalar en un agente…", s.propia, s.propia ? "" : "Primero añádela a la biblioteca"),
-      !s.propia ? btn("importar", "Añadir a la biblioteca evol") : null,
+      !s.propia ? btn("importar", "Pedir auditoría para añadirla") : null,
       el("button", { class: "chip", type: "button", onclick: async () => { try { await navigator.clipboard.writeText(trigger); status.textContent = `«${trigger}» copiado`; } catch { status.textContent = trigger; } } }, "Copiar invocación"),
       s.enBiblioteca ? btn("quitar", "Quitar") : null, status),
     actionOpen ? (panel[actionOpen.split(":")[0]] ? panel[actionOpen.split(":")[0]]() : null) : null,
-    el("p", { class: "note maqueta", text: "Maqueta: las acciones muestran el comando que ejecutaría evol; no escriben nada." }));
+    el("p", { class: "note maqueta", text: "Maqueta: las acciones muestran el comando que ejecutaría evol; no escriben nada. Agregar una skill a la biblioteca solo lo hace el agente auditor." }));
 }
 function tabRevision(s) {
   const flags = [];
@@ -176,36 +177,46 @@ function detail() {
     detailTab === "revision" ? tabRevision(s) : detailTab === "skill" ? tabSkillMd(s) : detailTab === "archivos" ? tabFiles(s) : tabWhere(s));
 }
 
-/* ---------- dialogs: the two ways a skill gets in ---------- */
-function newDialog() {
-  const dlg = el("dialog", { class: "dlg", "aria-labelledby": "dn" });
-  const name = el("input", { class: "search", id: "nn", placeholder: "nombre-en-minusculas", "aria-label": "Nombre", value: "mi-skill" });
-  const desc = el("textarea", { class: "search", rows: 3, "aria-label": "Descripción", placeholder: "Qué hace y cuándo usarla (esto decide si el agente la elige)" }, "");
-  const sel = el("select", { class: "sel", "aria-label": "Grupo" }, SK.grupos.map((g) => el("option", { value: g.id, text: g.nombre })));
-  const out = el("div", {});
-  const update = () => {
-    const n = name.value.trim() || "mi-skill";
-    out.replaceChildren(el("p", { class: "note", text: `Se crea ${FUENTE.biblioteca.dir}/${n}/SKILL.md con esta plantilla y aparece aquí sola:` }),
-      el("pre", { class: "rawtext" }, el("code", { text: `---\nname: ${n}\ndescription: ${JSON.stringify(desc.value.trim() || "Qué hace y cuándo usarla.")}\ncategory: ${sel.value}\ntriggers:\n  - /${n}\n---\n\n# ${n}\n\n## Cuándo usarla\n\n## Pasos\n` })),
-      cmdBox(`evol skills new ${n} --grupo ${sel.value}`));
-  };
-  for (const c of [name, desc, sel]) c.addEventListener("input", update);
-  update();
-  dlg.append(el("h2", { id: "dn", text: "Nueva skill" }),
-    el("div", { class: "form" }, el("label", { for: "nn", text: "Nombre" }), name, el("label", { text: "Descripción" }), desc, el("label", { text: "Grupo" }), sel), out,
+/* ---------- how a skill gets in: only through the auditing agent ---------- */
+const AUD = SK.auditoria;
+let auditDialogEl = null;
+function auditBody() {
+  return el("div", {},
+    el("p", { class: "note", text: "La página es de solo lectura para las skills: no tiene botones para crear, subir ni importar. Una skill son instrucciones y scripts que otros agentes obedecen, así que entra únicamente por un agente que la audite." }),
+    el("h3", { class: "h3", text: "Cómo entra una skill" }),
+    el("ol", { class: "steps" }, AUD.etapas.map(([id, nombre, texto]) => el("li", {}, el("b", { text: nombre + ". " }), texto))),
+    el("h3", { class: "h3", text: "Qué comprueba el agente" }),
+    el("table", {}, el("tbody", {}, AUD.comprobaciones.map(([k, v]) => el("tr", {}, el("td", { style: "width:170px" }, el("b", { text: k })), el("td", { text: v }))))),
+    el("h3", { class: "h3", text: "Pedirlo" }),
+    cmdBox("evol skills audit ./mi-skill   # carpeta, .zip o enlace", "Lanza al agente. También sirve decirle a Claude Code: «audita y agrega la skill ./mi-skill a la biblioteca de evol»."),
+    el("p", { class: "note", text: `Una skill que alguien copie a mano a ${FUENTE.biblioteca.dir} sin pasar por la auditoría aparece marcada «Sin auditar» y no se puede instalar en agentes ni usar en proyectos.` }));
+}
+function auditDialog() {
+  const dlg = el("dialog", { class: "dlg", "aria-labelledby": "da" });
+  dlg.append(el("h2", { id: "da", text: "Agregar una skill" }), auditBody(),
     el("div", { class: "actions" }, el("button", { class: "chip", type: "button", onclick: () => dlg.close() }, "Cerrar")));
   return dlg;
 }
-function importDialog() {
-  const dlg = el("dialog", { class: "dlg", "aria-labelledby": "di" });
-  const pending = library.filter((s) => !s.enBiblioteca).length;
-  dlg.append(el("h2", { id: "di", text: "Importar skills" }),
-    el("p", { class: "note", text: "Hay tres maneras. En todas, la skill aparece en esta pantalla en cuanto está en la biblioteca." }),
-    el("h3", { class: "h3", text: `1. Las ${pending} del legado (evol-system)` }), cmdBox(`evol skills import ~/Projects/evol-system/skills`, "Las copia a la biblioteca, las reparte en grupos y ata las 31 de disciplinas a su disciplina. Las 7 con el frontmatter roto se importan marcadas para corregir."),
-    el("h3", { class: "h3", text: "2. Una carpeta o un archivo .zip" }), cmdBox("evol skills import ./mi-skill   # o  evol skills import mi-skill.zip"),
-    el("h3", { class: "h3", text: "3. Soltarla en la carpeta de la biblioteca" }), cmdBox(`cp -r mi-skill ${FUENTE.biblioteca.dir}/`, "No hace falta ningún comando de evol: el panel la detecta sola y la revisa."),
-    el("div", { class: "actions" }, el("button", { class: "chip", type: "button", onclick: () => dlg.close() }, "Cerrar")));
-  return dlg;
+
+/* ---------- the agents themselves ---------- */
+function agentsView() {
+  const need = SK.agentes.length;
+  return el("div", {},
+    el("p", { class: "note", text: "Los agentes que usan las skills en este equipo. Cada uno lee las suyas de su carpeta; las de la biblioteca evol llegan a ellos solo por enlace, una vez auditadas." }),
+    el("div", { class: "cards" }, SK.agentes.map((a) => el("a", { class: "panel agent", href: href("instaladas"), onclick: () => { group = a.id; } },
+      el("h2", { text: a.label }),
+      el("p", { class: "mono note", text: a.dir }),
+      el("div", { class: "chips" }, a.existe ? chip("good", "✓", "Instalado") : chip("muted", "–", "No encontrado"),
+        a.conAvisos ? chip("warning", "!", `${a.conAvisos} con avisos`) : chip("good", "✓", "Sin avisos")),
+      el("dl", { class: "meta" },
+        [["Skills que ve", a.total], ["De la biblioteca evol", a.deLaBiblioteca], ["Propias del agente", a.ajenas], ["Enlazadas (symlink)", a.enlazadas]].flatMap(([k, v]) => [el("dt", { text: k }), el("dd", { text: String(v) })]))))),
+    el("section", { class: "panel auditor" },
+      el("h2", { text: "Agente auditor" }),
+      el("p", { class: "mono", text: AUD.agente }),
+      el("p", { text: "Es el único que agrega skills a la biblioteca. Trabaja en cuarentena, audita, emite un veredicto y solo entonces copia la skill." }),
+      el("div", { class: "chips" }, chip("info", "★", "Única vía de entrada"), chip("muted", "–", `${AUD.comprobaciones.length} comprobaciones`)),
+      auditBody()),
+    el("p", { class: "note", text: `${need} agentes detectados. Para sumar otro, evol lo reconoce al aparecer su carpeta de skills.` }));
 }
 
 /* ---------- page ---------- */
@@ -215,16 +226,15 @@ function render() {
   const withIssues = library.filter((s) => issues(s).length).length;
   const discOk = new Set(library.filter((s) => s.disciplina).map((s) => s.disciplina.id)).size;
   const base = tab === "biblioteca" ? library : others;
-  const dlgNew = newDialog(), dlgImport = importDialog();
+  auditDialogEl = auditDialog();
   root.replaceChildren(
     el("h1", { text: "Skills" }),
-    el("p", { class: "lede", text: "Las capacidades reutilizables de evol. Todo lo que se agrega a la biblioteca aparece aquí y queda disponible para cualquier proyecto o tarea." }),
+    el("p", { class: "lede", text: "Las capacidades reutilizables de evol y los agentes que las usan. Una skill solo entra a la biblioteca después de que un agente la audite." }),
     el("div", { class: "filters" },
-      el("button", { class: "chip primary", type: "button", onclick: () => dlgNew.showModal() }, "Nueva skill"),
-      el("button", { class: "chip", type: "button", onclick: () => dlgImport.showModal() }, "Importar…"),
-      el("span", { class: "note", text: `Biblioteca: ${FUENTE.biblioteca.dir} · se vigila sola` })),
+      el("button", { class: "chip primary", type: "button", onclick: () => auditDialogEl.showModal() }, "¿Cómo se agrega una skill?"),
+      el("span", { class: "note", text: `Biblioteca: ${FUENTE.biblioteca.dir} · solo la modifica el agente auditor` })),
     el("div", { class: "tabs", role: "tablist" },
-      [["biblioteca", `Biblioteca evol (${library.length})`], ["agentes", `En tus agentes (${others.length})`]].map(([id, label]) =>
+      [["biblioteca", `Biblioteca evol (${library.length})`], ["agentes", `Agentes (${SK.agentes.length})`], ["instaladas", `Skills de tus agentes (${others.length})`]].map(([id, label]) =>
         el("button", { role: "tab", type: "button", "aria-selected": String(tab === id), onclick: () => { tab = id; selected = null; group = "todas"; location.hash = href(id); render(); } }, label))),
     tab === "biblioteca" ? el("div", {},
       el("div", { class: "tiles" },
@@ -234,9 +244,9 @@ function render() {
         el("div", { class: "tile" }, el("b", { text: newCount }), el("span", { text: `Nuevas (${SK.diasNueva} días)` })),
         el("div", { class: "tile" }, el("b", { text: withIssues }), el("span", { text: "Con avisos o errores" }), el("small", { text: "para corregir antes de usarlas" }))),
       pend ? el("div", { class: "empty-state banner" }, el("b", { text: `La biblioteca está ${pend === library.length ? "vacía" : "incompleta"}. ` }),
-        `Las ${pend} skills de evol-system todavía no están importadas, así que ningún proyecto puede usarlas desde evol. `, el("button", { class: "chip", type: "button", onclick: () => dlgImport.showModal() }, `Importar las ${pend}`)) : null)
-      : el("p", { class: "note", text: "Solo lectura: son las instaladas en otros agentes. Añade a la biblioteca las que quieras usar en evol." }),
-    el("div", { class: "filters" },
+        `Las ${pend} skills de evol-system todavía no pasaron por la auditoría, así que ningún proyecto puede usarlas desde evol. `, el("button", { class: "chip", type: "button", onclick: () => auditDialogEl.showModal() }, "Cómo se auditan")) : null)
+      : tab === "instaladas" ? el("p", { class: "note", text: "Solo lectura: son las instaladas en otros agentes. Si alguna te sirve, pide al agente auditor que la revise antes de añadirla a la biblioteca." }) : null,
+    tab === "agentes" ? agentsView() : el("div", { class: "filters" },
       el("input", { class: "search", type: "search", placeholder: "Buscar por nombre, descripción, trigger o disciplina…", "aria-label": "Buscar skills", value: query, oninput: (e) => { query = e.target.value; render(); document.querySelector("input[type=search]").focus(); } }),
       tab === "biblioteca"
         ? el("select", { class: "sel", "aria-label": "Grupo", onchange: (e) => { group = e.target.value; render(); } }, el("option", { value: "todas", text: "Todos los grupos" }), SK.grupos.map((g) => el("option", { value: g.id, selected: group === g.id }, `${g.nombre} (${library.filter((s) => s.grupo === g.id).length})`)))
@@ -244,13 +254,13 @@ function render() {
       el("button", { class: "chip", type: "button", "aria-pressed": String(onlyNew), onclick: () => { onlyNew = !onlyNew; render(); } }, "Solo nuevas"),
       el("button", { class: "chip", type: "button", "aria-pressed": String(onlyIssues), onclick: () => { onlyIssues = !onlyIssues; render(); } }, "Con avisos"),
       el("span", { class: "note", role: "status", text: `${visible(base).length} de ${base.length}` })),
-    el("div", { class: "skills-layout" }, listing(), el("div", { class: "skills-side" }, detail())),
+    tab === "agentes" ? null : el("div", { class: "skills-layout" }, listing(), el("div", { class: "skills-side" }, detail())),
     el("p", { class: "foot", text: "Datos reales de este equipo: la biblioteca de evol-system y las skills instaladas en tus agentes. El texto solo se incluye en las tuyas; el de terceros se lee del disco en evol ui." }),
-    dlgNew, dlgImport);
+    auditDialogEl);
 }
 window.addEventListener("hashchange", () => {
   const [t, id] = parts();
-  tab = t === "agentes" ? "agentes" : "biblioteca";
+  tab = TABS_OK.includes(t) ? t : "biblioteca";
   selected = id ? decodeURIComponent(id) : null;
   actionOpen = null; detailTab = "revision";
   render();

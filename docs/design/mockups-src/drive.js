@@ -34,7 +34,7 @@
       const wait = () => new Promise((r) => setTimeout(r, 0));
       (async () => {
         let abiertas = 0;
-        for (const t of ["Biblioteca evol", "En tus agentes"]) {
+        for (const t of ["Biblioteca evol", "Skills de tus agentes"]) {
           click([...document.querySelectorAll("button[role=tab]")].find((b) => b.textContent.startsWith(t))); await wait();
           const links = [...document.querySelectorAll("a.skill")]; if (links.length < 10) fail(t + ": pocas skills (" + links.length + ")");
           for (const a of links) {
@@ -44,24 +44,30 @@
           }
           const first = document.querySelector("a.skill"); click(first); await wait();
           for (const d of ["SKILL.md", "Archivos", "Dónde está", "Revisión"]) { click([...document.querySelectorAll(".side button[role=tab]")].find((b) => b.textContent.startsWith(d))); await wait(); if (!document.querySelector(".side table, .side ul.check, .side .empty-state")) fail(t + "/" + d + " sin contenido"); }
-          for (const lbl of ["Usar en un proyecto…", "Instalar en un agente…", "Importar a la biblioteca", "Añadir a la biblioteca evol", "Quitar"]) {
+          for (const lbl of ["Usar en un proyecto…", "Instalar en un agente…", "Pedir auditoría al agente", "Pedir auditoría para añadirla", "Quitar"]) {
             const b = btn(lbl); if (!b || b.disabled) continue; click(b); await wait();
             if (!document.querySelector(".actionpanel .cmdbox")) fail(t + ": «" + lbl + "» no muestra el comando");
           }
           click(btn("Descargar"));
         }
         click([...document.querySelectorAll("button[role=tab]")].find((b) => b.textContent.startsWith("Biblioteca evol"))); await wait();
-        click(btn("Nueva skill")); await wait();
-        const dlg = document.querySelector("dialog.dlg[open]"); if (!dlg) fail("«Nueva skill» no abre el diálogo");
-        else { const n = dlg.querySelector("#nn"); n.value = "mi-prueba"; n.dispatchEvent(new Event("input")); if (!dlg.textContent.includes("evol skills new mi-prueba")) fail("el comando no sigue al nombre"); dlg.close(); }
-        click(btn("Importar…")); await wait(); if (!document.querySelector("dialog.dlg[open]")) fail("«Importar…» no abre el diálogo"); document.querySelectorAll("dialog[open]").forEach((d) => d.close());
+        for (const prohibido of ["Nueva skill", "Importar…", "Importar a la biblioteca", "Añadir a la biblioteca evol"]) if (btn(prohibido)) fail("la página no debe permitir agregar skills: «" + prohibido + "»");
+        if (document.querySelector("input[type=file]")) fail("la página no debe tener un selector de archivos");
+        click(btn("¿Cómo se agrega una skill?")); await wait();
+        const dlg = document.querySelector("dialog.dlg[open]"); if (!dlg) fail("«¿Cómo se agrega una skill?» no abre el diálogo");
+        else { if (!dlg.textContent.includes("evol skills audit") || !dlg.querySelector("ol.steps li")) fail("el diálogo no explica la auditoría"); dlg.close(); }
+        click([...document.querySelectorAll("button[role=tab]")].find((b) => b.textContent.startsWith("Agentes"))); await wait();
+        const ags = document.querySelectorAll("a.agent").length; if (ags !== 4) fail("agentes = " + ags + " (esperaba 4)");
+        if (!document.querySelector(".auditor") || !document.querySelector(".auditor").textContent.includes("evol-skill-auditor")) fail("falta el agente auditor");
+        click(document.querySelector("a.agent")); await wait(); if (document.querySelectorAll("a.skill").length < 1) fail("un agente no lleva a sus skills");
+        click([...document.querySelectorAll("button[role=tab]")].find((b) => b.textContent.startsWith("Biblioteca evol"))); await wait();
         const total = () => document.querySelectorAll("a.skill").length;
         const q = document.querySelector("input[type=search]"); q.value = "tdd"; q.dispatchEvent(new Event("input")); await wait();
         if (total() < 1) fail("la búsqueda «tdd» no encuentra nada"); q.value = ""; q.dispatchEvent(new Event("input")); await wait();
         click(btn("Solo nuevas")); await wait(); if (total() !== 0 || !document.querySelector(".empty-state")) fail("«Solo nuevas» debería quedar vacío (la biblioteca está vacía)"); click(btn("Solo nuevas")); await wait();
         click(btn("Con avisos")); await wait(); const avisos = total(); if (avisos < 7) fail("«Con avisos» muestra " + avisos + " (esperaba al menos 7)"); click(btn("Con avisos")); await wait();
         const sel = document.querySelector("select[aria-label=Grupo]"); sel.value = "disciplinas"; sel.dispatchEvent(new Event("change")); await wait(); if (total() !== 31) fail("grupo disciplinas = " + total() + " (esperaba 31)");
-        log.push("skills ok (" + abiertas + " skills abiertas)");
+        log.push("skills ok (" + abiertas + " skills abiertas, " + ags + " agentes)");
         document.title = "RESULTADO: " + log.join(" | ");
       })().catch((e) => { fail("excepción: " + e.message); document.title = "RESULTADO: " + log.join(" | "); });
       return;

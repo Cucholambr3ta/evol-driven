@@ -467,7 +467,17 @@ scripts y referencias. Son las capacidades que se irán sumando a evol.
 **Biblioteca.** Las skills de evol viven en `~/.config/evol/skills/<nombre>/`: una sola fuente para cualquier proyecto o
 tarea. El panel **vigila esa carpeta**: una skill creada, importada o copiada a mano aparece en la pantalla sin hacer
 nada más. Las que ya tienen instaladas otros agentes (Claude Code, Codex, Hermes, Omarchy) se muestran aparte, solo de
-lectura, y se pueden añadir a la biblioteca.
+lectura. La pantalla tiene una pestaña **Agentes** con cada agente detectado (carpeta, cuántas skills ve, cuántas vienen de
+la biblioteca, cuántas tienen avisos) y el **agente auditor**.
+
+**La página no agrega skills.** No hay botones para crear, subir ni importar, ni selector de archivos. Una skill entra a la
+biblioteca solo a través del agente auditor (`evol-skill-auditor`), que sigue cinco etapas: solicitud, cuarentena (carpeta
+aislada, nada se ejecuta), auditoría, veredicto (aprobada, con avisos o rechazada) y biblioteca. Un error bloquea la
+entrada; un aviso exige aceptarlo por escrito. La auditoría comprueba secretos, filtraciones (envío de contenido del
+proyecto, variables de entorno o memoria a terceros), scripts, accesos a red, inyección de instrucciones, funcionamiento
+(frontmatter, `name` = carpeta, referencias, choques con otra skill) y procedencia (origen, licencia, huella). El informe y
+la huella quedan junto a la skill. Una skill copiada a mano a la biblioteca se muestra «Sin auditar» y no se puede instalar
+en agentes ni usar en proyectos.
 
 **Organización.** El legado (`evol-system/skills`, 74 skills) tenía 18 categorías sueltas y 7 skills sin categoría. En la
 biblioteca cada skill pertenece a **un grupo** de 11: Disciplinas, Calidad y revisión, Contexto y memoria, Descubrimiento y
@@ -480,15 +490,15 @@ extendidas): cada disciplina sabe qué skill la aplica y en qué fases. Se conse
 | Acción                | Comando                                      | Qué hace                                                                                        |
 | --------------------- | -------------------------------------------- | ----------------------------------------------------------------------------------------------- |
 | Revisar               | `evol skills check [nombre]`                 | Frontmatter válido, `name` = carpeta, `description` útil, sin claves; avisa de scripts y de red |
-| Importar              | `evol skills import <ruta> [--grupo]`        | La copia a la biblioteca; con el legado reparte los grupos y ata las disciplinas (admite .zip)  |
-| Crear                 | `evol skills new <nombre> [--grupo]`         | Crea la carpeta con una plantilla                                                               |
+| Agregar (auditada)    | `evol skills audit <ruta> [--grupo]`         | Lanza al agente auditor: cuarentena, auditoría y, si el veredicto es favorable, la copia (.zip ok) |
+| Agregar el legado     | `evol skills audit <evol-system/skills>`     | Audita las 74, reparte los grupos y ata las 31 de disciplina; las rotas entran marcadas         |
 | Usar en un proyecto   | `evol skills add <nombre> --proyecto <id>`   | La copia al proyecto, visible para los agentes que use                                          |
 | Instalar en un agente | `evol skills install <nombre> --agente <id>` | La enlaza (symlink) en la carpeta del agente: se actualiza sola                                 |
 | Descargar             | `evol skills export <nombre>`                | Un `.zip` con toda la carpeta (una skill no es un solo archivo)                                 |
 | Quitar                | `evol skills remove <nombre>`                | La quita de la biblioteca; no toca los proyectos que ya la usan                                 |
 
 **Seguridad.** Una skill son instrucciones y, a veces, scripts que un agente ejecuta: por eso se revisa antes de usarla.
-Las acciones que escriben (importar, instalar, usar en un proyecto, quitar) piden confirmación, solo escriben en la
+Las acciones que escriben (instalar, usar en un proyecto, quitar) piden confirmación; agregar una skill solo lo hace el agente auditor, solo escriben en la
 biblioteca, en las carpetas de los agentes o en el proyecto elegido, y el servidor rechaza peticiones que no vengan de la
 propia página (token por sesión y comprobación de origen). La pantalla Documentación sigue siendo de solo lectura.
 
@@ -499,15 +509,19 @@ propia página (token por sesión y comprobación de origen). La pantalla Docume
 | 45  | `evol ui --app` abre una ventana sin barra de direcciones y no arranca un segundo servidor si ya hay uno.                                     |
 | 46  | `evol ui install` crea el `.desktop` con icono y `uninstall` lo borra; el servidor se apaga tras el tiempo de inactividad.                    |
 | 47  | `evol ui` no añade ninguna dependencia a `package.json`.                                                                                      |
-| 48  | La pantalla Skills lista la biblioteca y, aparte, las de los agentes; una skill con `SKILL.md` copiada a la biblioteca aparece sin reiniciar. |
+| 48  | La pantalla Skills lista la biblioteca y, aparte, las de los agentes; una skill con `SKILL.md` copiada a la biblioteca aparece sin reiniciar, marcada «Sin auditar». |
 | 49  | Cada skill se revisa: frontmatter válido, `name` = carpeta, `description`, claves en claro, scripts y acceso a red.                           |
 | 50  | Un frontmatter roto no oculta la skill: se muestra con nombre y descripción recuperados y el error de YAML.                                   |
-| 51  | `evol skills import` del legado reparte las 74 skills en los 11 grupos, ata las 31 a su disciplina y no deja ninguna sin grupo.               |
+| 51  | `evol skills audit` del legado reparte las 74 skills en los 11 grupos, ata las 31 a su disciplina y no deja ninguna sin grupo.               |
 | 52  | Cada una de las 31 disciplinas indica la skill que la aplica; una disciplina sin skill se marca.                                              |
-| 53  | `evol skills export` genera un `.zip` con toda la carpeta de la skill y su huella; `import` lo lee y reproduce la misma huella.               |
+| 53  | `evol skills export` genera un `.zip` con toda la carpeta de la skill y su huella; `audit` lo lee y reproduce la misma huella.               |
 | 54  | `evol skills add` y `install` no sobrescriben una skill distinta con el mismo nombre sin confirmar.                                           |
 | 55  | Las acciones que escriben rechazan peticiones sin el token de sesión o con un origen ajeno.                                                   |
 | 56  | El texto de las skills de terceros no se copia a ningún archivo del repositorio ni del informe.                                               |
+| 57  | La pantalla Skills no tiene ningún control para crear, subir o importar una skill; las acciones de agregar solo muestran el comando `evol skills audit`.                         |
+| 58  | La pestaña Agentes lista cada agente detectado con su carpeta y sus cifras, y el agente auditor con las etapas y comprobaciones.                                                |
+| 59  | `evol skills audit` trabaja en cuarentena, no ejecuta nada de la skill, y rechaza una con claves en claro, envío de datos a terceros o instrucciones que alteren las reglas del agente. |
+| 60  | Una skill agregada deja su informe de auditoría y su huella; si cambia después, la pantalla la marca «Sin auditar».                                                              |
 
 ### Para revisar en los mockups
 
