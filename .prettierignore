@@ -4,3 +4,6 @@ coverage
 package-lock.json
 templates
 tests/fixtures
+
+# Mockups de la interfaz: HTML generado con datos embebidos
+docs/design/mockups
