@@ -53,7 +53,7 @@ applyTheme(storeGet("evol-theme"));
 
 /* ---------- shell ---------- */
 function shell(current) {
-  const links = [["index.html", "Tablero", "tablero"], ["proyecto.html", "Proyecto", "proyecto"], ["documentacion.html", "Documentación", "documentacion"], ["grafos.html", "Grafos", "grafos"]];
+  const links = [["index.html", "Tablero", "tablero"], ["proyecto.html", "Proyecto", "proyecto"], ["documentacion.html", "Documentación", "documentacion"], ["skills.html", "Skills", "skills"], ["grafos.html", "Grafos", "grafos"]];
   const top = el("header", { class: "top" }, el("div", { class: "top-in" },
     el("a", { class: "brand", href: "index.html" }, "evol", el("span", { text: " · panel" })),
     el("nav", { class: "nav", "aria-label": "Principal" }, links.map(([h, t, id]) => el("a", { href: h, "aria-current": id === current ? "page" : false }, t))),
@@ -115,3 +115,78 @@ function heat(t) {
   }
   return "rgb(229,36,29)";
 }
+
+/* ---------- a small, safe Markdown renderer (shared by Documentación and Skills) ---------- */
+function mdInline(text, ctx) {
+  const out = [];
+  const re = /(`[^`\n]+`)|(\*\*[^*\n]+\*\*)|(\[[^\]\n]+\]\([^)\s]+\))|(\*[^*\n]+\*)|(\b_[^_\n]+_\b)/g;
+  let last = 0, m;
+  while ((m = re.exec(text))) {
+    if (m.index > last) out.push(text.slice(last, m.index));
+    const t = m[0];
+    if (m[1]) out.push(el("code", { text: t.slice(1, -1) }));
+    else if (m[2]) out.push(el("strong", {}, ...mdInline(t.slice(2, -2), ctx)));
+    else if (m[3]) {
+      const [, label, href] = /^\[([^\]]+)\]\(([^)]+)\)$/.exec(t);
+      if (/^https?:\/\//.test(href)) out.push(el("a", { href, target: "_blank", rel: "noopener noreferrer" }, label));
+      else {
+        const to = ctx && ctx.linkFor ? ctx.linkFor(href) : null;
+        out.push(to ? el("a", { href: to }, label) : el("span", { class: "deadlink", title: href }, label));
+      }
+    } else out.push(el("em", {}, ...mdInline(t.slice(1, -1), ctx)));
+    last = m.index + t.length;
+  }
+  if (last < text.length) out.push(text.slice(last));
+  return out;
+}
+function mdToDom(src, ctx) {
+  const root = el("div", { class: "md" });
+  const lines = src.replace(/\r/g, "").split("\n");
+  const isBlock = (l) => /^(```|#{1,6}\s|\s*>|\s*([-*+]|\d+\.)\s|\s*\|)/.test(l);
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i];
+    if (!line.trim()) { i++; continue; }
+    if (/^```/.test(line)) {
+      const buf = []; i++;
+      while (i < lines.length && !/^```/.test(lines[i])) buf.push(lines[i++]);
+      i++; root.append(el("pre", {}, el("code", { text: buf.join("\n") }))); continue;
+    }
+    const h = /^(#{1,6})\s+(.*)$/.exec(line);
+    if (h) { root.append(el("h" + Math.min(h[1].length + 2, 6), {}, ...mdInline(h[2], ctx))); i++; continue; }
+    if (/^\s*([-*_])\1{2,}\s*$/.test(line)) { root.append(el("hr")); i++; continue; }
+    if (/^\s*\|/.test(line) && /^\s*\|?\s*:?-{2,}/.test(lines[i + 1] || "")) {
+      const cells = (l) => l.trim().replace(/^\||\|$/g, "").split("|").map((c) => c.trim());
+      const head = cells(line); i += 2;
+      const rows = [];
+      while (i < lines.length && /^\s*\|/.test(lines[i])) rows.push(cells(lines[i++]));
+      root.append(el("div", { class: "tscroll" }, el("table", {}, el("thead", {}, el("tr", {}, head.map((c) => el("th", {}, ...mdInline(c, ctx))))),
+        el("tbody", {}, rows.map((r) => el("tr", {}, r.map((c) => el("td", {}, ...mdInline(c, ctx)))))))));
+      continue;
+    }
+    if (/^\s*>/.test(line)) {
+      const buf = [];
+      while (i < lines.length && /^\s*>/.test(lines[i])) buf.push(lines[i++].replace(/^\s*>\s?/, ""));
+      root.append(el("blockquote", {}, ...mdInline(buf.join(" "), ctx))); continue;
+    }
+    if (/^\s*([-*+]|\d+\.)\s+/.test(line)) {
+      const ordered = /^\s*\d+\./.test(line);
+      const list = el(ordered ? "ol" : "ul", {});
+      while (i < lines.length && /^\s*([-*+]|\d+\.)\s+/.test(lines[i])) {
+        const m = /^(\s*)([-*+]|\d+\.)\s+(.*)$/.exec(lines[i++]);
+        const task = /^\[([ xX])\]\s+(.*)$/.exec(m[3]);
+        const li = el("li", { class: m[1].length >= 2 ? "nested" : false });
+        if (task) li.append(el("input", { type: "checkbox", disabled: true, checked: task[1] !== " " ? true : false, "aria-label": task[1] !== " " ? "hecho" : "pendiente" }), " ", ...mdInline(task[2], ctx));
+        else li.append(...mdInline(m[3], ctx));
+        list.append(li);
+      }
+      root.append(list); continue;
+    }
+    const buf = [];
+    while (i < lines.length && lines[i].trim() && !(buf.length && isBlock(lines[i]))) buf.push(lines[i++]);
+    root.append(el("p", {}, ...mdInline(buf.join(" "), ctx)));
+  }
+  return root;
+}
+const taskCount = (text) => ({ done: (text.match(/^\s*[-*+]\s+\[[xX]\]/gm) || []).length, total: (text.match(/^\s*[-*+]\s+\[[ xX]\]/gm) || []).length });
+

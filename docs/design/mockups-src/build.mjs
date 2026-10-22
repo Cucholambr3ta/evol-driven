@@ -26,4 +26,5 @@ writeFileSync(out + "/index.html", page("Tablero de proyectos", "board.js"));
 writeFileSync(out + "/proyecto.html", page("Proyecto", "project.js"));
 writeFileSync(out + "/grafos.html", page("Grafos de conocimiento", "graphs.js"));
 writeFileSync(out + "/documentacion.html", page("Documentación", "docs.js", `window.EVOL_DOCS=${safe(read("data/docs.json").trim())};`));
-console.log("escritos 4 archivos en", out);
+writeFileSync(out + "/skills.html", page("Skills", "skills.js", `window.EVOL_SKILLS=${safe(read("data/skills.json").trim())};`));
+console.log("escritos 5 archivos en", out);

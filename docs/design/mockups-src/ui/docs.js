@@ -40,7 +40,6 @@ function stateChip(estado) {
   return el("span", { class: "st " + tone }, el("i", { "aria-hidden": "true", text: icon }), text);
 }
 
-/* ---------- a small, safe Markdown renderer ---------- */
 function resolveRelative(dd, from, href) {
   const clean = href.split("#")[0].replace(/^\.\//, "");
   if (!clean) return null;
@@ -48,79 +47,6 @@ function resolveRelative(dd, from, href) {
   const found = allItems(dd).find((i) => i.ruta === clean || i.ruta === base + clean);
   return found ? found.id : null;
 }
-function inline(text, ctx) {
-  const out = [];
-  const re = /(`[^`\n]+`)|(\*\*[^*\n]+\*\*)|(\[[^\]\n]+\]\([^)\s]+\))|(\*[^*\n]+\*)|(\b_[^_\n]+_\b)/g;
-  let last = 0, m;
-  while ((m = re.exec(text))) {
-    if (m.index > last) out.push(text.slice(last, m.index));
-    const t = m[0];
-    if (m[1]) out.push(el("code", { text: t.slice(1, -1) }));
-    else if (m[2]) out.push(el("strong", {}, ...inline(t.slice(2, -2), ctx)));
-    else if (m[3]) {
-      const [, label, href] = /^\[([^\]]+)\]\(([^)]+)\)$/.exec(t);
-      if (/^https?:\/\//.test(href)) out.push(el("a", { href, target: "_blank", rel: "noopener noreferrer" }, label));
-      else {
-        const target = ctx && resolveRelative(ctx.dd, ctx.from, href);
-        out.push(target ? el("a", { href: link(ctx.projectId, target) }, label) : el("span", { class: "deadlink", title: href }, label));
-      }
-    } else out.push(el("em", {}, ...inline(t.slice(1, -1), ctx)));
-    last = m.index + t.length;
-  }
-  if (last < text.length) out.push(text.slice(last));
-  return out;
-}
-function mdToDom(src, ctx) {
-  const root = el("div", { class: "md" });
-  const lines = src.replace(/\r/g, "").split("\n");
-  const isBlock = (l) => /^(```|#{1,6}\s|\s*>|\s*([-*+]|\d+\.)\s|\s*\|)/.test(l);
-  let i = 0;
-  while (i < lines.length) {
-    const line = lines[i];
-    if (!line.trim()) { i++; continue; }
-    if (/^```/.test(line)) {
-      const buf = []; i++;
-      while (i < lines.length && !/^```/.test(lines[i])) buf.push(lines[i++]);
-      i++; root.append(el("pre", {}, el("code", { text: buf.join("\n") }))); continue;
-    }
-    const h = /^(#{1,6})\s+(.*)$/.exec(line);
-    if (h) { root.append(el("h" + Math.min(h[1].length + 2, 6), {}, ...inline(h[2], ctx))); i++; continue; }
-    if (/^\s*([-*_])\1{2,}\s*$/.test(line)) { root.append(el("hr")); i++; continue; }
-    if (/^\s*\|/.test(line) && /^\s*\|?\s*:?-{2,}/.test(lines[i + 1] || "")) {
-      const cells = (l) => l.trim().replace(/^\||\|$/g, "").split("|").map((c) => c.trim());
-      const head = cells(line); i += 2;
-      const rows = [];
-      while (i < lines.length && /^\s*\|/.test(lines[i])) rows.push(cells(lines[i++]));
-      root.append(el("div", { class: "tscroll" }, el("table", {}, el("thead", {}, el("tr", {}, head.map((c) => el("th", {}, ...inline(c, ctx))))),
-        el("tbody", {}, rows.map((r) => el("tr", {}, r.map((c) => el("td", {}, ...inline(c, ctx)))))))));
-      continue;
-    }
-    if (/^\s*>/.test(line)) {
-      const buf = [];
-      while (i < lines.length && /^\s*>/.test(lines[i])) buf.push(lines[i++].replace(/^\s*>\s?/, ""));
-      root.append(el("blockquote", {}, ...inline(buf.join(" "), ctx))); continue;
-    }
-    if (/^\s*([-*+]|\d+\.)\s+/.test(line)) {
-      const ordered = /^\s*\d+\./.test(line);
-      const list = el(ordered ? "ol" : "ul", {});
-      while (i < lines.length && /^\s*([-*+]|\d+\.)\s+/.test(lines[i])) {
-        const m = /^(\s*)([-*+]|\d+\.)\s+(.*)$/.exec(lines[i++]);
-        const task = /^\[([ xX])\]\s+(.*)$/.exec(m[3]);
-        const li = el("li", { class: m[1].length >= 2 ? "nested" : false });
-        if (task) li.append(el("input", { type: "checkbox", disabled: true, checked: task[1] !== " " ? true : false, "aria-label": task[1] !== " " ? "hecho" : "pendiente" }), " ", ...inline(task[2], ctx));
-        else li.append(...inline(m[3], ctx));
-        list.append(li);
-      }
-      root.append(list); continue;
-    }
-    const buf = [];
-    while (i < lines.length && lines[i].trim() && !(buf.length && isBlock(lines[i]))) buf.push(lines[i++]);
-    root.append(el("p", {}, ...inline(buf.join(" "), ctx)));
-  }
-  return root;
-}
-const taskCount = (text) => ({ done: (text.match(/^\s*[-*+]\s+\[[xX]\]/gm) || []).length, total: (text.match(/^\s*[-*+]\s+\[[ xX]\]/gm) || []).length });
-
 /* ---------- search ---------- */
 function matches(item, q) {
   if (!q) return true;
@@ -213,7 +139,7 @@ function bodyText(item, dd) {
       tasks.total ? el("span", { class: "st " + (tasks.done === tasks.total ? "good" : "info") }, el("i", { "aria-hidden": "true", text: tasks.done === tasks.total ? "✓" : "…" }), `${tasks.done} de ${tasks.total} tareas hechas`) : null));
   }
   if (item.recortado) wrap.append(el("p", { class: "note", text: "El archivo es largo: se muestran los primeros 60 000 caracteres." }));
-  wrap.append(isMd && mdView === "vista" ? el("article", { class: "panel" }, mdToDom(item.texto, { dd, projectId: current, from: item.ruta }))
+  wrap.append(isMd && mdView === "vista" ? el("article", { class: "panel" }, mdToDom(item.texto, { linkFor: (href) => { const t = resolveRelative(dd, item.ruta, href); return t ? link(current, t) : null; } }))
     : el("pre", { class: "panel rawtext" }, el("code", { text: item.texto })));
   return wrap;
 }

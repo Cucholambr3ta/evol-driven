@@ -10,6 +10,8 @@ Las pantallas de `../mockups/` (HTML con los datos embebidos) se generan desde a
 | `data/docs.json`            | Documentación de cada proyecto: lo que genera `collect-docs.mjs`        |
 | `build.mjs`                 | Une `ui/` y `data/` en los 4 HTML                                       |
 | `collect-docs.mjs`          | Lee los archivos reales de los proyectos y llama a `evol export/diagrams` |
+| `collect-skills.mjs`        | Lee las skills de esta máquina (biblioteca, legado y agentes) y las organiza en grupos |
+| `data/skills.json`          | Lo que genera `collect-skills.mjs` (el texto solo de las skills propias) |
 | `drive.js`                  | Comprobaciones que se ejecutan dentro de la página (ver abajo)          |
 
 ## Regenerar
@@ -17,6 +19,7 @@ Las pantallas de `../mockups/` (HTML con los datos embebidos) se generan desde a
 ```bash
 node build.mjs                                   # ../mockups/*.html
 node collect-docs.mjs <proyectos> <dist/cli.js> <EVOL_CONFIG_DIR>   # actualiza data/docs.json
+node collect-skills.mjs [<proyectos>]                               # actualiza data/skills.json
 ```
 
 `collect-docs.mjs` no inventa nada: un documento que el pipeline espera y no existe sale como
