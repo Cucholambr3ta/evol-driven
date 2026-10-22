@@ -245,3 +245,36 @@ Lo que la implementación decidió distinto o más concreto que el texto de arri
 - **La clave del gate es por equipo:** para verificar las aprobaciones en otra máquina hay que copiar
   `~/.config/evol/keys/<id>.key`. Con Docker hay que montar un volumen en `/data`.
 - **MemPalace no va dentro de la imagen Docker.**
+
+## Ampliación: adopción de proyectos y capa para agentes
+
+Se añadió después de la v1, a pedido: poder usar el framework en proyectos que ya existen, y que los
+agentes lo sigan.
+
+| Comando                        | Qué hace                                                                                                      |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------- |
+| `evol init [carpeta]`          | Adopta un proyecto existente sin modificar sus archivos; detecta documentos en otra ruta y comando de pruebas |
+| `evol agents`                  | Crea o refresca comandos `/evol-*`, bloque en `CLAUDE.md`, _hook_ y `.mcp.json`                               |
+| `evol hook session-start`      | Texto que Claude Code añade al contexto al empezar: estado del pipeline y memoria relevante                   |
+| `evol mcp [--project carpeta]` | Servidor MCP de solo lectura                                                                                  |
+
+Cada módulo de `evol.config.json` admite `rutas` (reasignar un artefacto a la ruta real del proyecto) y
+`comandos` (cambiar el comando que ejecuta una disciplina).
+
+| #   | Criterio de aceptación                                                                                                                                                                      | Prueba                                                                        |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| 19  | `evol init` sobre un proyecto existente no modifica ningún archivo suyo; solo añade los propios y extiende `.gitignore`, `CLAUDE.md`, `settings.json`, `.mcp.json` sin perder su contenido. | `tests/init.test.ts` — «evol init sobre un proyecto existente»                |
+| 20  | `evol init` detecta documentos en otra ruta y un comando de pruebas distinto, y la verificación los usa.                                                                                    | `tests/init.test.ts` — «la verificación usa las rutas y comandos reasignados» |
+| 21  | Adoptar en una fase distinta de briefing exige una terminal interactiva; sin ella no se crea nada.                                                                                          | `tests/init.test.ts` — «adoptar en una fase avanzada exige a una persona»     |
+| 22  | `evol mcp` ofrece exactamente sus herramientas de lectura; ninguna aprueba, avanza ni inicializa, y usarlas no cambia el estado del pipeline.                                               | `tests/mcp.test.ts` — «solo lectura»                                          |
+| 23  | Los archivos para agentes se generan de forma idempotente y sin pisar los del usuario.                                                                                                      | `tests/agents.test.ts` — «archivos para agentes»                              |
+| 24  | `evol hook session-start` imprime el estado y nunca rompe la sesión (sin proyecto, sin MemPalace o con configuración rota).                                                                 | `tests/agents.test.ts` — «evol hook session-start»                            |
+
+Decisiones de esta ampliación:
+
+- Las fases anteriores a la de adopción quedan marcadas `adopted` en el estado: no hay aprobación
+  registrada para ellas, y `evol status` las muestra con `~`.
+- `evol init` rechaza una carpeta que ya es un proyecto evol o que está dentro de uno.
+- El MCP no incluye `approve`, `next` ni `init` a propósito; las pruebas lo comprueban.
+- Las herramientas `evol_verify` y los comandos de las disciplinas se ejecutan con la misma confianza
+  que `evol next`: corren los comandos que el proyecto declara.
