@@ -1,0 +1,29 @@
+{
+  "id": "DDD",
+  "nombre": "Domain-Driven Design",
+  "tipo": "base",
+  "fases": ["spec"],
+  "artefactos": [
+    {
+      "patron": "docs/specs/DOMAIN.md",
+      "formato": "md",
+      "min": 1
+    }
+  ],
+  "verificaciones": [
+    {
+      "tipo": "contiene",
+      "archivo": "docs/specs/DOMAIN.md",
+      "patron": "^##\\s+Entidades",
+      "flags": "im",
+      "mensaje": "DOMAIN.md debe tener una sección «Entidades»"
+    },
+    {
+      "tipo": "contiene",
+      "archivo": "docs/specs/DOMAIN.md",
+      "patron": "^##\\s+Reglas",
+      "flags": "im",
+      "mensaje": "DOMAIN.md debe tener una sección «Reglas»"
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "id": "CHAOS",
+  "nombre": "Resiliency-Driven Development (Chaos)",
+  "tipo": "extendida",
+  "fases": ["qa"],
+  "artefactos": [
+    {
+      "patron": "chaos/hypothesis/*.md",
+      "formato": "md",
+      "min": 1
+    },
+    {
+      "patron": "chaos/experiments/*/fault_injection.json",
+      "formato": "json",
+      "min": 0
+    }
+  ],
+  "verificaciones": []
+}

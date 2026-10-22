@@ -1,0 +1,19 @@
+{
+  "id": "PIPELINE",
+  "nombre": "Pipeline-Driven Development",
+  "tipo": "extendida",
+  "fases": ["build"],
+  "artefactos": [
+    {
+      "patron": "pipeline/stages.json",
+      "formato": "json",
+      "min": 1
+    },
+    {
+      "patron": "pipeline/rollback_triggers.md",
+      "formato": "md",
+      "min": 0
+    }
+  ],
+  "verificaciones": []
+}

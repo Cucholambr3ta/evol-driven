@@ -1,0 +1,24 @@
+{
+  "id": "PrivacyDD",
+  "nombre": "Privacy by Design",
+  "tipo": "extendida",
+  "fases": ["spec"],
+  "artefactos": [
+    {
+      "patron": "privacy/pii_inventory.json",
+      "formato": "json",
+      "min": 1
+    },
+    {
+      "patron": "privacy/consent_models/*.json",
+      "formato": "json",
+      "min": 0
+    },
+    {
+      "patron": "privacy/deletion_policies/*.sql",
+      "formato": "sql",
+      "min": 0
+    }
+  ],
+  "verificaciones": []
+}

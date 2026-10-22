@@ -1,0 +1,19 @@
+{
+  "id": "ODD_API",
+  "nombre": "OpenAPI-Driven Development",
+  "tipo": "extendida",
+  "fases": ["spec"],
+  "artefactos": [
+    {
+      "patron": "api/openapi.yaml",
+      "formato": "yaml",
+      "min": 1
+    },
+    {
+      "patron": "api/fragments/*.json",
+      "formato": "json",
+      "min": 0
+    }
+  ],
+  "verificaciones": []
+}

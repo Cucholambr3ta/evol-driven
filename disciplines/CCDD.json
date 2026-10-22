@@ -1,0 +1,19 @@
+{
+  "id": "CCDD",
+  "nombre": "Consumer-Driven Contract Testing",
+  "tipo": "extendida",
+  "fases": ["qa"],
+  "artefactos": [
+    {
+      "patron": "contracts/consumer_*.json",
+      "formato": "json",
+      "min": 1
+    },
+    {
+      "patron": "contracts/verification_results.json",
+      "formato": "json",
+      "min": 0
+    }
+  ],
+  "verificaciones": []
+}

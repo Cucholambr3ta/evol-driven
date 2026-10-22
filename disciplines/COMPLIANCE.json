@@ -1,0 +1,19 @@
+{
+  "id": "COMPLIANCE",
+  "nombre": "Compliance-Driven Development",
+  "tipo": "extendida",
+  "fases": ["spec"],
+  "artefactos": [
+    {
+      "patron": "compliance/control_mappings.json",
+      "formato": "json",
+      "min": 1
+    },
+    {
+      "patron": "compliance/audit_logs_spec.json",
+      "formato": "json",
+      "min": 0
+    }
+  ],
+  "verificaciones": []
+}

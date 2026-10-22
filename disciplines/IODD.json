@@ -1,0 +1,19 @@
+{
+  "id": "IODD",
+  "nombre": "Infrastructure-as-Code-Driven Development",
+  "tipo": "extendida",
+  "fases": ["spec"],
+  "artefactos": [
+    {
+      "patron": "infra/main.tf",
+      "formato": "tf",
+      "min": 1
+    },
+    {
+      "patron": "infra/dependencies_graph.json",
+      "formato": "json",
+      "min": 0
+    }
+  ],
+  "verificaciones": []
+}

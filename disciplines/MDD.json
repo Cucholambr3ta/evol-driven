@@ -1,0 +1,29 @@
+{
+  "id": "MDD",
+  "nombre": "Migration-Driven Development",
+  "tipo": "extendida",
+  "fases": ["plan"],
+  "artefactos": [
+    {
+      "patron": "migrations/*/up.sql",
+      "formato": "sql",
+      "min": 1
+    },
+    {
+      "patron": "migrations/*/down.sql",
+      "formato": "sql",
+      "min": 0
+    },
+    {
+      "patron": "migrations/*/data_migration.md",
+      "formato": "md",
+      "min": 0
+    }
+  ],
+  "verificaciones": [
+    {
+      "tipo": "sqlPar",
+      "base": "migrations/*"
+    }
+  ]
+}

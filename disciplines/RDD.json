@@ -1,0 +1,19 @@
+{
+  "id": "RDD",
+  "nombre": "Refactoring-Driven Development",
+  "tipo": "extendida",
+  "fases": ["build"],
+  "artefactos": [
+    {
+      "patron": "refactoring/sessions/*.md",
+      "formato": "md",
+      "min": 1
+    },
+    {
+      "patron": "refactoring/after_metrics.json",
+      "formato": "json",
+      "min": 0
+    }
+  ],
+  "verificaciones": []
+}

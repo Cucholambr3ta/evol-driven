@@ -1,0 +1,19 @@
+{
+  "id": "APIVDD",
+  "nombre": "API Versioning-Driven Development",
+  "tipo": "extendida",
+  "fases": ["plan"],
+  "artefactos": [
+    {
+      "patron": "api_versions/deprecation_schedule.json",
+      "formato": "json",
+      "min": 1
+    },
+    {
+      "patron": "api_versions/breaking_changes/*.md",
+      "formato": "md",
+      "min": 0
+    }
+  ],
+  "verificaciones": []
+}

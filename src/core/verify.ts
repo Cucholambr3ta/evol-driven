@@ -1,0 +1,183 @@
+import { existsSync, globSync, readFileSync, statSync } from "node:fs";
+import { spawnSync } from "node:child_process";
+import { join } from "node:path";
+import YAML from "yaml";
+import type { Artifact, Discipline, Format } from "./disciplines.js";
+import { appliesIn, verificationAppliesIn } from "./disciplines.js";
+import type { Phase } from "./phases.js";
+
+export interface Finding {
+  modulo: string;
+  disciplina: string;
+  mensaje: string;
+}
+
+export type CommandRunner = (command: string, cwd: string) => { ok: boolean; output: string };
+
+export const defaultRunner: CommandRunner = (command, cwd) => {
+  const result = spawnSync(command, {
+    cwd,
+    shell: true,
+    encoding: "utf8",
+    timeout: 600_000,
+    maxBuffer: 64 * 1024 * 1024,
+  });
+  const output = `${result.stdout ?? ""}${result.stderr ?? ""}`
+    .trim()
+    .split("\n")
+    .slice(-15)
+    .join("\n");
+  return { ok: result.status === 0, output };
+};
+
+export interface VerifyContext {
+  moduleName: string;
+  /** Absolute root of the module; artifact paths are relative to it. */
+  moduleRoot: string;
+  phase: Phase;
+  run?: CommandRunner;
+}
+
+/** Files matching `pattern` (relative to `cwd`), never descending into node_modules. */
+export function matchFiles(pattern: string, cwd: string): string[] {
+  if (!existsSync(cwd)) return [];
+  const skip = (entry: string | { name: string }): boolean =>
+    (typeof entry === "string" ? entry.split("/").pop() : entry.name) === "node_modules";
+  return globSync(pattern, { cwd, exclude: skip })
+    .filter((rel) => statSync(join(cwd, rel)).isFile())
+    .sort();
+}
+
+/** Templates mark what the author still has to write; a gate must not pass over it. */
+const PLACEHOLDER = /\[\[COMPLETAR\]\]/;
+const FEATURE_HEADER = /^\s*(Feature|Funcionalidad|Característica|Caracteristica)\s*:/m;
+const FEATURE_SCENARIO =
+  /^\s*(Scenario|Scenario Outline|Scenario Template|Escenario|Esquema del escenario)\s*:/m;
+
+/** Returns an error message if `content` is not valid for `format`, otherwise null. */
+export function validateFormat(format: Format, content: string): string | null {
+  if (content.trim() === "") return "está vacío";
+  if (PLACEHOLDER.test(content)) return "tiene secciones sin completar (marcador [[COMPLETAR]])";
+  switch (format) {
+    case "json":
+    case "avsc":
+      try {
+        JSON.parse(content);
+        return null;
+      } catch (error) {
+        return `no es JSON válido (${(error as Error).message})`;
+      }
+    case "yaml": {
+      const doc = YAML.parseDocument(content);
+      return doc.errors.length > 0
+        ? `no es YAML válido (${doc.errors[0]?.message ?? "error"})`
+        : null;
+    }
+    case "feature":
+      return FEATURE_HEADER.test(content) ? null : "no declara «Feature:»";
+    case "puml":
+      return /@startuml/i.test(content) ? null : "no contiene «@startuml»";
+    default:
+      return null;
+  }
+}
+
+function checkArtifact(artifact: Artifact, ctx: VerifyContext, d: Discipline): Finding[] {
+  const finding = (mensaje: string): Finding => ({
+    modulo: ctx.moduleName,
+    disciplina: d.id,
+    mensaje,
+  });
+  const files = matchFiles(artifact.patron, ctx.moduleRoot);
+  const findings: Finding[] = [];
+  if (files.length < artifact.min) {
+    findings.push(
+      finding(
+        `falta el artefacto «${artifact.patron}» (se esperaba al menos ${artifact.min}, hay ${files.length})`,
+      ),
+    );
+  }
+  for (const rel of files) {
+    const problem = validateFormat(
+      artifact.formato,
+      readFileSync(join(ctx.moduleRoot, rel), "utf8"),
+    );
+    if (problem) findings.push(finding(`«${rel}» ${problem}`));
+  }
+  return findings;
+}
+
+const CRITICAL_OPEN = /^\s*[-*]\s*\[ \]\s*.*\b(CRITICAL|CR[IÍ]TIC[OA])\b/im;
+
+/** Verifies one discipline for one module in one phase. Returns the problems found. */
+export function verifyDiscipline(d: Discipline, ctx: VerifyContext): Finding[] {
+  if (!appliesIn(d, ctx.phase)) return [];
+  const finding = (mensaje: string): Finding => ({
+    modulo: ctx.moduleName,
+    disciplina: d.id,
+    mensaje,
+  });
+  const findings: Finding[] = [];
+  for (const artifact of d.artefactos) findings.push(...checkArtifact(artifact, ctx, d));
+
+  for (const v of d.verificaciones) {
+    if (!verificationAppliesIn(v, ctx.phase)) continue;
+    switch (v.tipo) {
+      case "contiene": {
+        const file = join(ctx.moduleRoot, v.archivo);
+        if (!existsSync(file)) break; // a missing file is already reported as a missing artifact
+        if (!new RegExp(v.patron, v.flags).test(readFileSync(file, "utf8"))) {
+          findings.push(finding(v.mensaje));
+        }
+        break;
+      }
+      case "escenarios": {
+        for (const artifact of d.artefactos.filter((a) => a.formato === "feature")) {
+          for (const rel of matchFiles(artifact.patron, ctx.moduleRoot)) {
+            const content = readFileSync(join(ctx.moduleRoot, rel), "utf8");
+            if (!FEATURE_SCENARIO.test(content))
+              findings.push(finding(`«${rel}» no tiene ningún escenario`));
+          }
+        }
+        break;
+      }
+      case "sqlPar": {
+        for (const dir of globSync(v.base, { cwd: ctx.moduleRoot, exclude: () => false })) {
+          if (!statSync(join(ctx.moduleRoot, dir)).isDirectory()) continue;
+          for (const name of ["up.sql", "down.sql"]) {
+            if (!existsSync(join(ctx.moduleRoot, dir, name))) {
+              findings.push(finding(`la migración «${dir}» no tiene ${name}`));
+            }
+          }
+        }
+        break;
+      }
+      case "sinCriticos": {
+        const file = join(ctx.moduleRoot, v.archivo);
+        if (existsSync(file) && CRITICAL_OPEN.test(readFileSync(file, "utf8"))) {
+          findings.push(finding(`«${v.archivo}» tiene hallazgos críticos abiertos`));
+        }
+        break;
+      }
+      case "comando": {
+        const result = (ctx.run ?? defaultRunner)(v.comando, ctx.moduleRoot);
+        if (!result.ok) {
+          findings.push(
+            finding(`falló «${v.comando}»${result.output ? `:\n${result.output}` : ""}`),
+          );
+        }
+        break;
+      }
+    }
+  }
+  return findings;
+}
+
+/** Every file (relative to `moduleRoot`) that the discipline's artifact patterns match. */
+export function artifactFiles(d: Discipline, moduleRoot: string): string[] {
+  const files = new Set<string>();
+  for (const artifact of d.artefactos) {
+    for (const rel of matchFiles(artifact.patron, moduleRoot)) files.add(rel);
+  }
+  return [...files].sort();
+}

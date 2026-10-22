@@ -1,0 +1,19 @@
+{
+  "id": "PDD",
+  "nombre": "Performance-Driven Development",
+  "tipo": "extendida",
+  "fases": ["qa"],
+  "artefactos": [
+    {
+      "patron": "performance/slos/*.json",
+      "formato": "json",
+      "min": 1
+    },
+    {
+      "patron": "performance/load_test_scenarios/*.md",
+      "formato": "md",
+      "min": 0
+    }
+  ],
+  "verificaciones": []
+}

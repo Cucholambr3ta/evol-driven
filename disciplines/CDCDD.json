@@ -1,0 +1,24 @@
+{
+  "id": "CDCDD",
+  "nombre": "Change Data Capture-Driven Development",
+  "tipo": "extendida",
+  "fases": ["plan"],
+  "artefactos": [
+    {
+      "patron": "cdc/sources/*.json",
+      "formato": "json",
+      "min": 1
+    },
+    {
+      "patron": "cdc/transformations/*.sql",
+      "formato": "sql",
+      "min": 0
+    },
+    {
+      "patron": "cdc/targets/*.json",
+      "formato": "json",
+      "min": 0
+    }
+  ],
+  "verificaciones": []
+}

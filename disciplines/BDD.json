@@ -1,0 +1,18 @@
+{
+  "id": "BDD",
+  "nombre": "Behavior-Driven Development",
+  "tipo": "base",
+  "fases": ["briefing", "qa"],
+  "artefactos": [
+    {
+      "patron": "tests/features/*.feature",
+      "formato": "feature",
+      "min": 1
+    }
+  ],
+  "verificaciones": [
+    {
+      "tipo": "escenarios"
+    }
+  ]
+}

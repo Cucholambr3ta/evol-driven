@@ -1,0 +1,23 @@
+{
+  "id": "A11yDD",
+  "nombre": "Accessibility-Driven Development",
+  "tipo": "extendida",
+  "fases": ["briefing", "qa"],
+  "artefactos": [
+    {
+      "patron": "a11y/wcag_criteria.json",
+      "formato": "json",
+      "min": 1
+    },
+    {
+      "patron": "a11y/screen_reader_tests/*.feature",
+      "formato": "feature",
+      "min": 0
+    }
+  ],
+  "verificaciones": [
+    {
+      "tipo": "escenarios"
+    }
+  ]
+}

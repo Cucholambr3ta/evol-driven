@@ -1,0 +1,24 @@
+{
+  "id": "EDA",
+  "nombre": "Event-Driven Architecture",
+  "tipo": "extendida",
+  "fases": ["spec"],
+  "artefactos": [
+    {
+      "patron": "eda/schemas/*.avsc",
+      "formato": "avsc",
+      "min": 1
+    },
+    {
+      "patron": "eda/topics/*.json",
+      "formato": "json",
+      "min": 0
+    },
+    {
+      "patron": "eda/producers/*.json",
+      "formato": "json",
+      "min": 0
+    }
+  ],
+  "verificaciones": []
+}

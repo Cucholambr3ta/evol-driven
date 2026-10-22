@@ -1,0 +1,24 @@
+{
+  "id": "DebtBudgetDD",
+  "nombre": "Tech Debt Budgeting",
+  "tipo": "extendida",
+  "fases": ["plan"],
+  "artefactos": [
+    {
+      "patron": "debt/budget.json",
+      "formato": "json",
+      "min": 1
+    },
+    {
+      "patron": "debt/ledger.json",
+      "formato": "json",
+      "min": 0
+    },
+    {
+      "patron": "debt/forecast.md",
+      "formato": "md",
+      "min": 0
+    }
+  ],
+  "verificaciones": []
+}

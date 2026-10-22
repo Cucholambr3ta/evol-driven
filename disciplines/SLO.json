@@ -1,0 +1,19 @@
+{
+  "id": "SLO",
+  "nombre": "SLO/SLA-Driven Development",
+  "tipo": "extendida",
+  "fases": ["qa"],
+  "artefactos": [
+    {
+      "patron": "sla/slo_documents/*.json",
+      "formato": "json",
+      "min": 1
+    },
+    {
+      "patron": "sla/error_budget_policy.md",
+      "formato": "md",
+      "min": 0
+    }
+  ],
+  "verificaciones": []
+}

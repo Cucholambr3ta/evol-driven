@@ -1,0 +1,19 @@
+{
+  "id": "ESDD",
+  "nombre": "Event Sourcing-Driven Development",
+  "tipo": "extendida",
+  "fases": ["spec"],
+  "artefactos": [
+    {
+      "patron": "eventsourcing/event_store_schema.json",
+      "formato": "json",
+      "min": 1
+    },
+    {
+      "patron": "eventsourcing/aggregates/*.md",
+      "formato": "md",
+      "min": 0
+    }
+  ],
+  "verificaciones": []
+}

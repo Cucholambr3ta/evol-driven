@@ -1,0 +1,22 @@
+{
+  "id": "FDD",
+  "nombre": "Feature-Driven Development",
+  "tipo": "base",
+  "fases": ["briefing", "plan"],
+  "artefactos": [
+    {
+      "patron": "docs/features/FEATURES.md",
+      "formato": "md",
+      "min": 1
+    }
+  ],
+  "verificaciones": [
+    {
+      "tipo": "contiene",
+      "archivo": "docs/features/FEATURES.md",
+      "patron": "^##\\s+\\S",
+      "flags": "m",
+      "mensaje": "FEATURES.md debe tener al menos una feature (un encabezado de nivel 2)"
+    }
+  ]
+}

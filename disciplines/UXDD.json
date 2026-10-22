@@ -1,0 +1,24 @@
+{
+  "id": "UXDD",
+  "nombre": "UX-Driven Development",
+  "tipo": "extendida",
+  "fases": ["briefing"],
+  "artefactos": [
+    {
+      "patron": "ux/user_journeys/*.json",
+      "formato": "json",
+      "min": 1
+    },
+    {
+      "patron": "ux/ui_messages/*.md",
+      "formato": "md",
+      "min": 0
+    },
+    {
+      "patron": "ux/microinteractions/*.yaml",
+      "formato": "yaml",
+      "min": 0
+    }
+  ],
+  "verificaciones": []
+}

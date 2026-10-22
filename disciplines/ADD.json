@@ -1,0 +1,19 @@
+{
+  "id": "ADD",
+  "nombre": "Architecture-Driven Development",
+  "tipo": "extendida",
+  "fases": ["spec"],
+  "artefactos": [
+    {
+      "patron": "docs/adr/*.md",
+      "formato": "md",
+      "min": 1
+    },
+    {
+      "patron": "docs/adr/*-poc/results.json",
+      "formato": "json",
+      "min": 0
+    }
+  ],
+  "verificaciones": []
+}

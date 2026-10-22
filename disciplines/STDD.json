@@ -1,0 +1,19 @@
+{
+  "id": "STDD",
+  "nombre": "Security-Test-Driven Development",
+  "tipo": "base",
+  "fases": ["build"],
+  "artefactos": [
+    {
+      "patron": "tests/security/**/*.security.test.ts",
+      "formato": "ts",
+      "min": 1
+    }
+  ],
+  "verificaciones": [
+    {
+      "tipo": "comando",
+      "comando": "npx vitest run tests/security"
+    }
+  ]
+}

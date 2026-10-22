@@ -1,0 +1,28 @@
+{
+  "id": "UDD",
+  "nombre": "Use-Case-Driven Development",
+  "tipo": "extendida",
+  "fases": ["briefing"],
+  "artefactos": [
+    {
+      "patron": "usecases/*/usecase.json",
+      "formato": "json",
+      "min": 1
+    },
+    {
+      "patron": "usecases/*/diagram.puml",
+      "formato": "puml",
+      "min": 0
+    },
+    {
+      "patron": "usecases/*/test_scenarios.feature",
+      "formato": "feature",
+      "min": 0
+    }
+  ],
+  "verificaciones": [
+    {
+      "tipo": "escenarios"
+    }
+  ]
+}

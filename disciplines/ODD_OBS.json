@@ -1,0 +1,19 @@
+{
+  "id": "ODD_OBS",
+  "nombre": "Observability-Driven Development",
+  "tipo": "extendida",
+  "fases": ["qa"],
+  "artefactos": [
+    {
+      "patron": "observability/metrics/*.json",
+      "formato": "json",
+      "min": 1
+    },
+    {
+      "patron": "observability/logs/*.schema.json",
+      "formato": "json",
+      "min": 0
+    }
+  ],
+  "verificaciones": []
+}

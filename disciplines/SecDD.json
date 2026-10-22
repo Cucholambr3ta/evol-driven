@@ -1,0 +1,19 @@
+{
+  "id": "SecDD",
+  "nombre": "Security-Driven Development",
+  "tipo": "base",
+  "fases": ["qa"],
+  "artefactos": [
+    {
+      "patron": ".evol/qa/QA_REPORT.md",
+      "formato": "md",
+      "min": 1
+    }
+  ],
+  "verificaciones": [
+    {
+      "tipo": "sinCriticos",
+      "archivo": ".evol/qa/QA_REPORT.md"
+    }
+  ]
+}

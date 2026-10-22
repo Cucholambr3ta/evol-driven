@@ -1,0 +1,19 @@
+{
+  "id": "TDD",
+  "nombre": "Test-Driven Development",
+  "tipo": "base",
+  "fases": ["build"],
+  "artefactos": [
+    {
+      "patron": "tests/unit/*.test.ts",
+      "formato": "ts",
+      "min": 1
+    }
+  ],
+  "verificaciones": [
+    {
+      "tipo": "comando",
+      "comando": "npx vitest run tests/unit"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "id": "ATDD",
+  "nombre": "Acceptance Test-Driven Development",
+  "tipo": "base",
+  "fases": ["briefing", "qa"],
+  "artefactos": [
+    {
+      "patron": "tests/acceptance/*.acceptance.test.ts",
+      "formato": "ts",
+      "min": 1
+    }
+  ],
+  "verificaciones": [
+    {
+      "tipo": "comando",
+      "comando": "npx vitest run tests/acceptance",
+      "fases": ["qa"]
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "id": "SDD",
+  "nombre": "Spec-Driven Development",
+  "tipo": "base",
+  "fases": ["spec", "plan", "build", "qa", "retro"],
+  "transversal": true,
+  "artefactos": [
+    {
+      "patron": "docs/specs/SPEC.md",
+      "formato": "md",
+      "min": 1
+    }
+  ],
+  "verificaciones": [
+    {
+      "tipo": "contiene",
+      "archivo": "docs/specs/SPEC.md",
+      "patron": "criterios de aceptaci[oó]n",
+      "flags": "i",
+      "mensaje": "SPEC.md debe incluir criterios de aceptación"
+    }
+  ]
+}
