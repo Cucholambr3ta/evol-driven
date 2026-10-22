@@ -136,6 +136,23 @@ herramienta para aprobar, avanzar de fase ni inicializar; eso sigue siendo de un
 terminal. Para Hermes: `hermes mcp add evol --command evol --args mcp` (con `EVOL_PROJECT` o
 `--project <carpeta>` si no arranca dentro del proyecto). `evol doctor` comprueba que todo esté.
 
+### Perfiles y disciplinas
+
+```bash
+evol new mi-api --perfil api       # también: evol init --perfil erp
+evol disciplines profiles          # base, api, web, erp, lib y lo que activa cada uno
+evol disciplines list              # las 31 disciplinas y en qué módulos están activas
+evol disciplines suggest           # qué activar según tus dependencias y archivos (no cambia nada)
+evol disciplines enable BDD TDD --modulo ventas
+evol disciplines disable TDD
+```
+
+`enable` y `disable` exigen una terminal interactiva y escribir «confirmar»: desactivar una
+disciplina afloja el gate, así que lo decide una persona, igual que aprobar. El cambio queda en el
+diario. Si la disciplina aplica a una fase que ya estaba aprobada, el pipeline **vuelve a esa fase**
+(la configuración es parte de lo que firma una aprobación, así que la anterior deja de valer). Las
+fases adoptadas no retroceden: nunca tuvieron aprobación. `--perfil` y `--disciplinas` no se combinan.
+
 ### Trazabilidad, riesgo y datos del proyecto
 
 ```bash

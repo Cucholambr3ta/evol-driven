@@ -9,13 +9,13 @@ import { loadDisciplines } from "../core/disciplines.js";
 import { UserError } from "../core/errors.js";
 import { ensureKey } from "../core/gate.js";
 import { journalAppend } from "../core/journal.js";
+import { getProfile } from "../core/profiles.js";
 import { packageRoot } from "../core/paths.js";
 import { initState } from "../core/state.js";
 import { makeRecorder } from "../memory/events.js";
 import { out, warn } from "./shared.js";
 
 const NAME = /^[a-z][a-z0-9-]*$/;
-const BASE_DISCIPLINES = ["SDD", "FDD", "DDD", "THREAT", "BDD", "ATDD", "TDD", "STDD", "SecDD"];
 /** npm drops files called .gitignore from packages, so the template stores it under another name. */
 const RENAMED: Record<string, string> = { _gitignore: ".gitignore" };
 
@@ -48,12 +48,13 @@ export default async function run(argv: string[]): Promise<number> {
       "no-git": { type: "boolean" },
       "no-memory": { type: "boolean" },
       "no-agentes": { type: "boolean" },
+      perfil: { type: "string" },
     },
   });
   const name = positionals[0];
   if (!name)
     throw new UserError(
-      "Uso: evol new <nombre> [--dir <carpeta>] [--no-install] [--no-git] [--no-memory]",
+      "Uso: evol new <nombre> [--dir <carpeta>] [--perfil base|api|web|erp|lib] [--no-install] [--no-git] [--no-memory]",
     );
   if (!NAME.test(name)) {
     throw new UserError(
@@ -65,6 +66,8 @@ export default async function run(argv: string[]): Promise<number> {
     throw new UserError(`La carpeta ${target} ya existe y no está vacía.`);
   }
 
+  const profile = values.perfil ?? "base";
+  const disciplinas = getProfile(profile).disciplinas;
   const wing = wingFor(name);
   copyTemplate(join(packageRoot(), "templates", "project"), target, { name, wing });
 
@@ -74,16 +77,16 @@ export default async function run(argv: string[]): Promise<number> {
     codeIntel: "native",
     memory: { wing, enabled: values["no-memory"] !== true },
     qa: { requireTestsForChangedSymbols: true, requireCriteriaCoverage: false },
-    modules: [{ name: "app", root: ".", disciplinas: BASE_DISCIPLINES }],
+    modules: [{ name: "app", root: ".", disciplinas }],
   };
-  const unknown = BASE_DISCIPLINES.filter((id) => !loadDisciplines().get(id));
+  const unknown = disciplinas.filter((id) => !loadDisciplines().get(id));
   if (unknown.length > 0)
     throw new Error(`Disciplinas base ausentes del registro: ${unknown.join(", ")}`);
   saveConfig(target, config);
 
   const state = initState(target);
   ensureKey(state.projectId);
-  journalAppend(target, "project-created", { name });
+  journalAppend(target, "project-created", { name, perfil: profile });
 
   if (values["no-agentes"] !== true) writeAgentFiles(target);
 

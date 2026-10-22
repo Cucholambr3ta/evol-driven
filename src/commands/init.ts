@@ -16,6 +16,7 @@ import { loadDisciplines } from "../core/disciplines.js";
 import { UserError } from "../core/errors.js";
 import { ensureKey } from "../core/gate.js";
 import { journalAppend } from "../core/journal.js";
+import { getProfile } from "../core/profiles.js";
 import { CONFIG_FILE, EVOL_DIR, findProjectRoot } from "../core/paths.js";
 import { isPhase, PHASES } from "../core/phases.js";
 import type { Phase } from "../core/phases.js";
@@ -28,7 +29,6 @@ import { out, warn } from "./shared.js";
 import { confirmByTyping, hasTerminal } from "./tty.js";
 import { NotInteractiveError } from "../core/errors.js";
 
-const BASE_DISCIPLINES = ["SDD", "FDD", "DDD", "THREAT", "BDD", "ATDD", "TDD", "STDD", "SecDD"];
 const MODULE_SPEC = /^([a-z][a-z0-9-]*)=([^:]+)(?::(.+))?$/;
 const GITIGNORE_LINE = ".evol/codegraph.sqlite*";
 
@@ -103,6 +103,7 @@ export default async function run(argv: string[]): Promise<number> {
       modulo: { type: "string", multiple: true },
       disciplinas: { type: "string" },
       fase: { type: "string" },
+      perfil: { type: "string" },
       "no-memory": { type: "boolean" },
       "no-agentes": { type: "boolean" },
     },
@@ -137,7 +138,11 @@ export default async function run(argv: string[]): Promise<number> {
 
   const registry = loadDisciplines();
   const name = sanitizeName(values.name ?? projectName(root));
-  const shared = parseIds(values.disciplinas, BASE_DISCIPLINES);
+  if (values.perfil !== undefined && values.disciplinas !== undefined) {
+    throw new UserError("Usa --perfil o --disciplinas, no los dos.");
+  }
+  const profile = values.perfil ?? "base";
+  const shared = parseIds(values.disciplinas, getProfile(profile).disciplinas);
 
   const specs = values.modulo ?? [];
   const parsed =
@@ -192,7 +197,7 @@ export default async function run(argv: string[]): Promise<number> {
   saveConfig(root, config);
   const state = initState(root, phase);
   ensureKey(state.projectId);
-  journalAppend(root, "project-adopted", { name, phase });
+  journalAppend(root, "project-adopted", { name, phase, perfil: profile });
 
   const gitignore = join(root, ".gitignore");
   if (!existsSync(gitignore)) writeFileSync(gitignore, `${GITIGNORE_LINE}\n`);
