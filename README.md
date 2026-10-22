@@ -136,6 +136,22 @@ herramienta para aprobar, avanzar de fase ni inicializar; eso sigue siendo de un
 terminal. Para Hermes: `hermes mcp add evol --command evol --args mcp` (con `EVOL_PROJECT` o
 `--project <carpeta>` si no arranca dentro del proyecto). `evol doctor` comprueba que todo esté.
 
+### Trazabilidad, riesgo y datos del proyecto
+
+```bash
+evol coverage            # matriz criterio CA-n → escenario → prueba, con los huecos
+evol coverage --estricto # sale con 1 si algún criterio no tiene escenario o prueba
+evol risk --top 10       # archivos por riesgo = alcance transitivo × falta de pruebas
+evol export --json       # conjunto de datos con esquema versionado (evol-export/1)
+```
+
+Convención de trazabilidad: escribe los criterios del SPEC como `CA-1: …`, etiqueta los escenarios
+con `@CA-1` (una etiqueta sobre `Feature:` vale para todos sus escenarios) y pon `CA-1` en el nombre
+de la prueba. Con `"qa": { "requireCriteriaCoverage": true }` la fase QA exige cobertura total.
+
+`evol risk` usa el indexador nativo. `evol export` solo incluye conteos, huellas y títulos: nunca la
+clave del gate, las firmas ni el contenido de la memoria.
+
 ### Indexador de código
 
 ```bash

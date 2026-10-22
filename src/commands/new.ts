@@ -73,7 +73,7 @@ export default async function run(argv: string[]): Promise<number> {
     version: 1,
     codeIntel: "native",
     memory: { wing, enabled: values["no-memory"] !== true },
-    qa: { requireTestsForChangedSymbols: true },
+    qa: { requireTestsForChangedSymbols: true, requireCriteriaCoverage: false },
     modules: [{ name: "app", root: ".", disciplinas: BASE_DISCIPLINES }],
   };
   const unknown = BASE_DISCIPLINES.filter((id) => !loadDisciplines().get(id));

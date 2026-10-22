@@ -27,8 +27,10 @@ export const ConfigSchema = z.object({
   qa: z
     .object({
       requireTestsForChangedSymbols: z.boolean().default(false),
+      /** Every CA-n criterion needs a scenario and a test that names it. */
+      requireCriteriaCoverage: z.boolean().default(false),
     })
-    .default({ requireTestsForChangedSymbols: false }),
+    .default({ requireTestsForChangedSymbols: false, requireCriteriaCoverage: false }),
   modules: z.array(ModuleSchema).min(1),
 });
 

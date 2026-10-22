@@ -281,7 +281,8 @@ Decisiones de esta ampliación:
 
 ## Ampliación 2: informe profesional, UML y mejoras
 
-> **Estado: BORRADOR, pendiente de aprobación.** No se escribe código hasta que la apruebes.
+> **Estado: APROBADA.** Construcción en curso por hitos; el hito 1 (`export`, `risk`, `coverage`) está en la rama
+> `docs/ampliacion-2`.
 
 Decisiones ya tomadas: el informe incluye **los 14 diagramas UML**; **no** hay firmas por persona (se mantiene la clave
 HMAC actual); la trazabilidad usa la convención `CA-n`; la marca del informe es **neutra** (nombre y color configurables).
@@ -367,7 +368,7 @@ cambia entre proyectos, pero se marca el estado actual). Los de código (1, 3, 4
 
 ### Hitos
 
-1. Conjunto de datos (`export`), `risk` y `coverage`.
+1. Conjunto de datos (`export`), `risk` y `coverage`. **Hecho** (criterios 32, 33 y 36; `tests/analysis.test.ts`).
 2. Perfiles y `evol disciplines`.
 3. `evol lessons check`.
 4. Generador de diagramas: primero los 7 estructurales y luego los 7 de comportamiento.

@@ -99,6 +99,10 @@ export async function verifyPhase(ctx: PipelineContext, phase: Phase): Promise<F
     const { changedSymbolsWithoutTests } = await import("../codeintel/native/changes.js");
     findings.push(...(await changedSymbolsWithoutTests(ctx.root, ctx.config)));
   }
+  if (phase === "qa" && ctx.config.qa.requireCriteriaCoverage) {
+    const { coverageFindings } = await import("./coverage.js");
+    findings.push(...coverageFindings(ctx));
+  }
   return findings;
 }
 

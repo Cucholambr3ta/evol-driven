@@ -62,7 +62,7 @@ export function baseConfig(disciplinas: string[], overrides: Partial<EvolConfig>
     version: 1,
     codeIntel: "native",
     memory: { wing: "demo", enabled: false },
-    qa: { requireTestsForChangedSymbols: false },
+    qa: { requireTestsForChangedSymbols: false, requireCriteriaCoverage: false },
     modules: [{ name: "app", root: ".", disciplinas }],
     ...overrides,
   };

@@ -307,7 +307,9 @@ describe("MODIFIES desde git y la verificación de QA", () => {
 
   it("QA exige tests para los símbolos modificados", async () => {
     const root = repo();
-    const config = baseConfig([], { qa: { requireTestsForChangedSymbols: true } });
+    const config = baseConfig([], {
+      qa: { requireTestsForChangedSymbols: true, requireCriteriaCoverage: false },
+    });
     // `unused` no lo prueba nadie; `main` sí.
     writeFileSync(
       join(root, "src/c.ts"),

@@ -44,6 +44,18 @@ const COMMANDS: Record<string, CommandSpec> = {
     summary: "Cadena de llamadas desde un símbolo",
     load: async () => (await import("./commands/codeintel.js")).runTrace,
   },
+  coverage: {
+    summary: "Matriz criterio CA-n → escenario → prueba, con los huecos",
+    load: async () => (await import("./commands/analysis.js")).runCoverage,
+  },
+  risk: {
+    summary: "Archivos ordenados por riesgo (alcance × falta de pruebas)",
+    load: async () => (await import("./commands/analysis.js")).runRisk,
+  },
+  export: {
+    summary: "Conjunto de datos del proyecto con esquema versionado (--json)",
+    load: async () => (await import("./commands/analysis.js")).runExport,
+  },
   agents: {
     summary: "Crea o refresca la integración con Claude Code y MCP",
     load: async () => (await import("./commands/agents.js")).default,

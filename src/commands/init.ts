@@ -175,7 +175,7 @@ export default async function run(argv: string[]): Promise<number> {
       version: 1,
       codeIntel: "native",
       memory: { wing: name.replace(/-/g, "_"), enabled: values["no-memory"] !== true },
-      qa: { requireTestsForChangedSymbols: false },
+      qa: { requireTestsForChangedSymbols: false, requireCriteriaCoverage: false },
       modules,
     },
     registry,
