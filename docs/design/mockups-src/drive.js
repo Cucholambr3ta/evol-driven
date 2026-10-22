@@ -70,7 +70,8 @@
         if (document.querySelector("input[type=file]")) fail("la página no debe tener un selector de archivos");
         click(btn("¿Cómo se agrega una skill?")); await wait();
         const dlg = document.querySelector("dialog.dlg[open]"); if (!dlg) fail("«¿Cómo se agrega una skill?» no abre el diálogo");
-        else { if (!dlg.textContent.includes("evol skills audit") || !dlg.querySelector("ol.audit-steps li")) fail("el diálogo no explica la auditoría"); dlg.close(); }
+        else { if (!dlg.textContent.includes("evol skills audit") || dlg.querySelectorAll("ol.audit-steps li").length !== 7) fail("el diálogo no explica las 7 etapas de la auditoría");
+          if (!/subproceso/i.test(dlg.textContent) || !/terceros con scripts/i.test(dlg.textContent) || !dlg.textContent.includes("riesgo residual")) fail("el diálogo no explica el subproceso, los scripts de terceros y el riesgo residual"); dlg.close(); }
         // 3. Agentes
         click(tabBtn("Agentes")); await wait();
         const ags = document.querySelectorAll("a.agent").length; if (ags !== 4) fail("agentes = " + ags + " (esperaba 4)");
@@ -81,6 +82,7 @@
         const conEnv = [...document.querySelectorAll(".role")].filter((r) => r.textContent.includes("envoltorio de subagente")).map((r) => r.dataset.rol).sort().join(","); if (conEnv !== "seguridad,verificador") fail("envoltorios de subagente: " + conEnv + " (esperaba seguridad,verificador)");
         const ides = document.querySelectorAll(".ide-row").length; if (ides !== 9) fail("IDE = " + ides + " (esperaba 9)");
         for (const n of ["Claude Code", "Codex", "Antigravity", "Hermes", "Gemini CLI", "OpenCode", "Cursor"]) if (!document.querySelector("main").textContent.includes(n)) fail("falta el IDE " + n);
+        const runners = document.querySelectorAll(".runner").length; if (runners !== 10) fail("asistentes del auditor = " + runners + " (esperaba 10)");
         if (!document.querySelector(".auditor") || !document.querySelector(".auditor").textContent.includes("skill-auditor")) fail("falta el agente auditor");
         if (/\bx-?dd\b|evol-system|evol-dd\b/i.test(document.querySelector("main").textContent)) fail("agentes: la página menciona X-DD o el sistema anterior");
         click(document.querySelector("a.agent")); await wait(); if (document.querySelectorAll("a.skill").length < 1) fail("un agente no lleva a sus skills");

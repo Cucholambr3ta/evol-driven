@@ -6,6 +6,7 @@
 // The body of a skill is kept only when it is the user's own (the evol library): third-party
 // skills contribute metadata, file lists and the review checks, never their text.
 // Nothing from the previous evol system is read: evol-driven starts with an empty library.
+import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync, lstatSync, readdirSync, readFileSync, realpathSync, statSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
@@ -298,20 +299,48 @@ const ides = [
   { id: "windsurf", label: "Windsurf", entrega: "despues", instrucciones: ["verificar", ".windsurf/rules"], skills: ["verificar", "—"], mcp: ["si", "mcp_config.json"], entrada: ["si", "workflow .windsurf/workflows"], subagentes: ["verificar", "—"], bloqueo: ["verificar", "—"] },
   { id: "copilot", label: "GitHub Copilot", entrega: "despues", instrucciones: ["si", "copilot-instructions.md"], skills: ["verificar", "—"], mcp: ["si", "mcp.json de VS Code"], entrada: ["si", "prompt .github/prompts"], subagentes: ["verificar", "agentes personalizados"], bloqueo: ["verificar", "—"] },
 ];
+// Agent CLIs the skill-auditor subprocess could run through. Eligible only if evol can prove it runs read-only, with no shell and
+// no network (isolation test); "instalado" is what this machine has.
+const onPath = (cmd) => { try { execFileSync("which", [cmd], { stdio: "ignore" }); return true; } catch { return false; } };
+const RUNNERS = [
+  ["claude", "Claude Code", "claude"], ["codex", "Codex", "codex"], ["opencode", "OpenCode", "opencode"], ["gemini", "Gemini CLI", "gemini"],
+  ["hermes", "Hermes", "hermes"], ["copilot", "GitHub Copilot CLI", "copilot"], ["cursor-agent", "Cursor Agent", "cursor-agent"],
+  ["grok", "Grok", "grok"], ["pi", "Pi", "pi"], ["api", "API directa", null],
+].map(([id, label, cmd]) => ({ id, label, comando: cmd, instalado: cmd ? onPath(cmd) : null }));
 // The only way into the library: an agent audits the skill first. These are the checks it runs.
 const auditoria = {
   agente: "skill-auditor", // a sub-agent, not a skill: read-only, no shell, so a hostile skill cannot steer it
   etapas: [
-    ["solicitud", "Solicitud", "Le pasas la ruta, el .zip o el enlace con la versión fijada (@sha) de la skill. La página no la recibe ni la copia."],
-    ["cuarentena", "Cuarentena", "El agente la copia a una carpeta aislada fuera de la biblioteca; nada se ejecuta ni queda visible para otros agentes."],
-    ["auditoria", "Auditoría", "Las reglas de evol revisan cada archivo y el agente skill-auditor hace una segunda pasada; el informe queda en la auditoría del proyecto."],
-    ["veredicto", "Veredicto", "PASS (aprobada), WARN (con avisos) o BLOCK (bloqueada). Un error crítico bloquea sin anulación; un aviso exige que lo aceptes por escrito."],
-    ["biblioteca", "Biblioteca", "Solo si hay veredicto, el agente la copia a la biblioteca con su huella y el informe, y queda en el diario."],
+    ["solicitud", "Solicitud", "Le pasas la ruta, el .zip o el enlace fijado con @sha. La página no la recibe ni la copia."],
+    ["cuarentena", "Cuarentena", "evol la copia a una carpeta aislada como instantánea inmutable con su hash; nada se ejecuta ni queda visible para otros agentes."],
+    ["reglas", "Pasada 1: reglas", "Reglas fijas de evol, sin modelo: son las únicas que bloquean. Si falta una herramienta requerida, la skill queda «no auditada»."],
+    ["subproceso", "Pasada 2: subproceso", "evol lanza el subproceso skill-auditor, aislado y de solo lectura. Solo puede añadir hallazgos; nunca baja un BLOCK."],
+    ["veredicto", "Veredicto", "PASS, WARN o BLOCK. Un error crítico bloquea sin anulación; un aviso exige que lo aceptes por escrito."],
+    ["aprobacion", "Aprobación de una persona", "Tú lo apruebas en tu terminal. Con scripts, ves sus capacidades y escribes el nombre de la skill."],
+    ["biblioteca", "Biblioteca", "Se instala la misma instantánea que se auditó, con su hash y el informe, y queda en el diario."],
   ],
+  niveles: [
+    ["Propia (de evol-driven)", "Pasada 1 y subproceso."],
+    ["De terceros, sin scripts", "Pasada 1 y subproceso."],
+    ["De terceros, con scripts", "Todos los controles de scripts, dos lecturas del subproceso con CLI distintos, aprobación reforzada y confirmación al ejecutar."],
+  ],
+  scripts: [
+    ["Inventario y límites", "Solo texto en shell, Python, JavaScript o TypeScript. Se rechazan binarios, comprimidos, código minificado u ofuscado, enlaces que salen de la carpeta y rutas con «..». Se quita el permiso de ejecución."],
+    ["Capacidades declaradas", "Cada script declara qué red usa, qué escribe, qué comandos lanza y qué variables lee. Si el análisis detecta más, o no declara nada, es BLOCK."],
+    ["Análisis estático", "Patrones peligrosos (descarga y ejecución, eval, sudo, credenciales) y semgrep; falla cerrada si falta la herramienta."],
+    ["Dependencias", "Archivo de bloqueo con versiones fijas, sin ganchos de instalación, y análisis de vulnerabilidades."],
+    ["Secretos y red", "gitleaks, y toda salida de red no declarada es BLOCK."],
+    ["Dos lecturas", "El subproceso lee cada script con dos CLI distintos; con uno solo queda un aviso que aceptas por escrito."],
+    ["Análisis dinámico (opcional)", "Con tu permiso, en un sandbox sin red, solo lectura y credenciales trampa; cualquier intento de usarlas es BLOCK."],
+    ["Integridad", "Lo instalado es la instantánea auditada, verificada por hash; si un archivo cambia, vuelve a «sin auditar»."],
+    ["Ejecución con confirmación", "Cada IDE pide confirmación antes de ejecutar un script de una skill de terceros."],
+    ["Aprobación reforzada", "Resumen de capacidades, hallazgos y diferencia de scripts; escribes el nombre de la skill; una versión nueva repite todo."],
+  ],
+  limites: "Ningún análisis garantiza que un script sea inofensivo: el código ofuscado, las bombas lógicas y los modelos engañados existen. Por eso se combinan capas, se rechaza el código opaco y se aplica el mínimo privilegio al ejecutar. Lo que queda es un riesgo residual que aceptas al aprobar.",
   comprobaciones: [
     ["Secretos", "Claves, tokens, contraseñas y rutas con credenciales en cualquier archivo, incluidos los de ejemplo."],
     ["Filtraciones", "Instrucciones o scripts que envíen contenido de tus proyectos, variables de entorno o memoria a un tercero."],
-    ["Scripts", "Qué ejecuta cada script, con qué permisos y si escribe fuera de la carpeta de la skill (rm, chmod, sudo, eval, curl | sh)."],
+    ["Scripts", "Qué hace cada script, con qué permisos y si escribe fuera de la carpeta de la skill (rm, chmod, sudo, eval, curl | sh). Nunca se ejecutan durante la auditoría."],
     ["Red", "Dominios a los que llama; todo dominio fuera de una lista permitida es un aviso."],
     ["Inyección de instrucciones", "Texto que intente cambiar las reglas del agente: ignorar instrucciones previas, ocultar acciones o pedir permisos amplios."],
     ["Funcionamiento", "Frontmatter válido, name = carpeta, description útil, referencias a archivos que existen y que no choque con otra skill."],
@@ -320,7 +349,7 @@ const auditoria = {
   ],
 };
 const out = {
-  generado: new Date(NOW).toISOString(), diasNueva: NEW_DAYS, totalDisciplinas: disciplines.size, fuentes: sources, agentes, orquestador, roles, mapaFases, inicial, ides, auditoria,
+  generado: new Date(NOW).toISOString(), diasNueva: NEW_DAYS, totalDisciplinas: disciplines.size, fuentes: sources, agentes, orquestador, roles, mapaFases, inicial, ides, runners: RUNNERS, auditoria,
   grupos: [], disciplinas: [...disciplines.values()].map((d) => ({ id: d.id, nombre: d.nombre, tipo: d.tipo, fases: d.fases ?? [] })).sort((a, b) => (a.tipo === b.tipo ? a.id.localeCompare(b.id) : a.tipo === "base" ? -1 : 1)), skills: list,
 };
 writeFileSync(join(here, "data/skills.json"), `${JSON.stringify(out)}\n`);

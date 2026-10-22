@@ -182,14 +182,20 @@ function detail() {
 const AUD = SK.auditoria;
 let auditDialogEl = null;
 function auditBody() {
+  const dl = (rows) => el("table", {}, el("tbody", {}, rows.map(([k, v]) => el("tr", {}, el("td", { style: "width:190px" }, el("b", { text: k })), el("td", { text: v })))));
   return el("div", {},
-    el("p", { class: "note", text: "La página es de solo lectura para las skills: no tiene botones para crear, subir ni importar. Una skill son instrucciones y scripts que otros agentes obedecen, así que entra únicamente por un agente que la audite." }),
+    el("p", { class: "note", text: "La página es de solo lectura para las skills: no tiene botones para crear, subir ni importar. Una skill son instrucciones y, a veces, scripts que otros agentes obedecen o ejecutan, así que entra únicamente por la auditoría de evol." }),
     el("h3", { class: "h3", text: "Cómo entra una skill" }),
     el("ol", { class: "audit-steps" }, AUD.etapas.map(([id, nombre, texto]) => el("li", {}, el("b", { text: nombre + ". " }), texto))),
-    el("h3", { class: "h3", text: "Qué comprueba el agente" }),
-    el("table", {}, el("tbody", {}, AUD.comprobaciones.map(([k, v]) => el("tr", {}, el("td", { style: "width:170px" }, el("b", { text: k })), el("td", { text: v }))))),
+    el("h3", { class: "h3", text: "Qué comprueba" }),
+    dl(AUD.comprobaciones),
+    el("h3", { class: "h3", text: "Cuánto escrutinio recibe cada origen" }),
+    dl(AUD.niveles),
+    el("h3", { class: "h3", text: "Controles para skills de terceros con scripts" }),
+    dl(AUD.scripts),
+    el("p", { class: "note", style: "margin-top:8px", text: AUD.limites }),
     el("h3", { class: "h3", text: "Pedirlo" }),
-    cmdBox("evol skills audit ./mi-skill   # carpeta, .zip o enlace", "Lanza al agente. También sirve decirle a Claude Code: «audita y agrega la skill ./mi-skill a la biblioteca de evol»."),
+    cmdBox("evol skills audit ./mi-skill   # carpeta, .zip o enlace@sha", "Lanza la auditoría. También puedes decirle a tu agente: «audita y agrega la skill ./mi-skill a la biblioteca de evol»; él ejecuta ese comando, no copia nada por su cuenta."),
     el("p", { class: "note", text: `Una skill que alguien copie a mano a ${FUENTE.biblioteca.dir} sin pasar por la auditoría aparece marcada «Sin auditar» y no se puede instalar en agentes ni usar en proyectos.` }));
 }
 function auditDialog() {
@@ -251,6 +257,7 @@ function idesView() {
 function agentsView() {
   const need = SK.agentes.length;
   return el("div", {},
+    el("p", { class: "note", text: "evol-driven define un solo agente propio: /evol. Los seis roles son skills (dos con envoltorio de subagente) y el auditor es un subproceso que lanza evol. No hay más agentes; añadir uno exige una decisión explícita." }),
     orchestratorView(), rolesView(), idesView(),
     el("h2", { class: "h3", style: "margin-top:24px", text: `Dónde se instalan las skills (${need})` }),
     el("p", { class: "note", text: "Las herramientas que usan las skills en este equipo. Cada una lee las suyas de su carpeta; las de la biblioteca evol llegan a ellas solo por enlace, una vez auditadas." }),
@@ -264,8 +271,11 @@ function agentsView() {
     el("section", { class: "panel auditor" },
       el("h2", { text: "Agente auditor" }),
       el("p", {}, el("span", { class: "mono", text: AUD.agente }), " · por crear"),
-      el("p", { text: "Será el único que propone agregar skills a la biblioteca. Es efímero: vive durante la auditoría y se retira dejando sus lecciones. Trabaja en cuarentena, audita y emite un veredicto; solo una persona la agrega." }),
-      el("div", { class: "chips" }, chip("info", "★", "Única vía de entrada"), chip("muted", "–", `${AUD.comprobaciones.length} comprobaciones`)),
+      el("p", { text: "No es un agente de ningún IDE: es un subproceso que lanza evol y que vive lo que dura la auditoría. Corre aislado, en solo lectura, sin shell ni red y con configuración limpia; recibe la skill como datos, nunca como instrucciones. Solo puede añadir hallazgos: nunca baja un BLOCK de las reglas. Si no está o falla, la skill queda «no auditada»." }),
+      el("div", { class: "chips" }, chip("info", "★", "Única vía de entrada"), chip("muted", "–", `${AUD.comprobaciones.length} comprobaciones`), chip("warning", "!", "Subproceso aislado")),
+      el("h3", { class: "h3", text: `Con qué asistentes puede revisar (${SK.runners.length})` }),
+      el("p", { class: "note", text: "Cualquiera de estos sirve, siempre que pase la prueba de aislamiento: si evol no puede comprobar que corre en solo lectura, sin shell y sin red, no se usa. Para skills con scripts se piden dos lecturas con asistentes distintos." }),
+      el("div", { class: "chips runners" }, SK.runners.map((r) => el("span", { class: "runner" }, r.instalado === null ? chip("muted", "–", r.label + " · con clave") : r.instalado ? chip("good", "✓", r.label + " · instalado") : chip("muted", "–", r.label + " · no instalado")))),
       auditBody()),
     el("p", { class: "note", text: `${need} agentes detectados. Para sumar otro, evol lo reconoce al aparecer su carpeta de skills.` }));
 }
