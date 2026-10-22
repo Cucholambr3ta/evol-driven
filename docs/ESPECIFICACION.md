@@ -459,31 +459,58 @@ Reglas de diseño:
 - Al cerrar la ventana, el servidor se apaga solo tras unos minutos de inactividad.
 - No usa Electron ni Tauri: cero dependencias nuevas.
 
+### Constelaciones (grafo de código y documentación)
+
+El grafo de código y la documentación se ven como un **cielo nocturno**: cada archivo o documento es una estrella que
+flota con un movimiento suave y parpadea. Su tamaño es el alcance (código) o el peso del documento; el color es el alcance
+(azul poco, rojo mucho) o la carpeta (código), o el grupo (documentación). Las estrellas huecas son archivos de prueba o
+documentos que no existen; las tenues, documentos por completar. Las líneas son imports (código) o enlaces entre
+documentos y archivos que cubren una disciplina (documentación).
+
+Al hacer clic en una estrella la cámara **se acerca a ella** y a su lado **se despliega su ficha**: en el código, símbolos,
+a quién importa, quién lo importa y sus pruebas (cada nombre lleva a otra estrella); en la documentación, el mismo lector
+de la vista Lista (Markdown, diagramas, aprobaciones, cobertura…). «Volver», Escape o un clic en el vacío vuelven
+a la vista completa. La página Documentación abre por defecto en **Constelación** (hay una vista **Lista**) y, en
+evol-driven, permite cambiar entre **Documentos** y **Código**.
+
+**Se pueden mover**, como en el grafo de Obsidian: arrastrar una estrella la lleva con el puntero y las que están
+enlazadas a ella la siguen como si las líneas fueran muelles; al soltarla, el grafo se asienta solo y conserva su nueva
+forma. Arrastrar el espacio vacío desplaza la vista y la rueda acerca o aleja. El fondo es liso: no hay estrellas
+decorativas, solo las que son archivos o documentos.
+
+Es un canvas 2D sin librerías. Respeta `prefers-reduced-motion` (sin movimiento ni parpadeo; la cámara salta), se maneja con
+teclado (flechas, + y −, Escape) y trae una lista con todas las estrellas para teclado y lectores de pantalla.
+
+### Wireframes
+
+No se reutilizan los wireframes del sistema anterior. Los mockups de `docs/design/mockups/` **son** los wireframes de
+evol-driven: se adaptan en lugar de empezar de cero. Hoy cubren las cinco pantallas (Tablero, Proyecto, Documentación,
+Grafos y Skills con su pestaña de Agentes); cuando evol-driven defina agentes propios se añade su pantalla.
+
 ### Skills de evol
 
 Una **skill** es una carpeta con un `SKILL.md` (frontmatter con `name` y `description`, más instrucciones) y, a veces,
 scripts y referencias. Son las capacidades que se irán sumando a evol.
 
 **Biblioteca.** Las skills de evol viven en `~/.config/evol/skills/<nombre>/`: una sola fuente para cualquier proyecto o
-tarea. El panel **vigila esa carpeta**: una skill creada, importada o copiada a mano aparece en la pantalla sin hacer
-nada más. Las que ya tienen instaladas otros agentes (Claude Code, Codex, Hermes, Omarchy) se muestran aparte, solo de
-lectura. La pantalla tiene una pestaña **Agentes** con cada agente detectado (carpeta, cuántas skills ve, cuántas vienen de
-la biblioteca, cuántas tienen avisos) y el **agente auditor**.
+tarea. El panel **vigila esa carpeta**: una skill que aparezca allí se muestra sin hacer nada más. Las que ya tienen
+instaladas otros agentes (Claude Code, Codex, Hermes, Omarchy) se muestran aparte, solo de lectura. La biblioteca arranca
+**vacía**; mientras lo esté, la pantalla muestra las 31 disciplinas de evol-driven, cada una marcada «Sin skill».
+
+**Nada del sistema anterior.** Las skills y los agentes de evol-driven se crean nuevos: no heredan nombres, rutas, comandos ni
+metodologías del sistema evol previo, y la pantalla no los lista. La auditoría lo comprueba (criterio 65).
+
+**Agentes.** La pestaña **Agentes** muestra dónde se instalan las skills (carpeta, cuántas skills ve cada uno, cuántas vienen
+de la biblioteca, cuántas tienen avisos) y el agente `skill-auditor`. evol-driven todavía no define agentes propios.
 
 **La página no agrega skills.** No hay botones para crear, subir ni importar, ni selector de archivos. Una skill entra a la
-biblioteca solo a través del agente auditor (`evol-skill-auditor`), que sigue cinco etapas: solicitud, cuarentena (carpeta
-aislada, nada se ejecuta), auditoría, veredicto (aprobada, con avisos o rechazada) y biblioteca. Un error bloquea la
-entrada; un aviso exige aceptarlo por escrito. La auditoría comprueba secretos, filtraciones (envío de contenido del
-proyecto, variables de entorno o memoria a terceros), scripts, accesos a red, inyección de instrucciones, funcionamiento
-(frontmatter, `name` = carpeta, referencias, choques con otra skill) y procedencia (origen, licencia, huella). El informe y
-la huella quedan junto a la skill. Una skill copiada a mano a la biblioteca se muestra «Sin auditar» y no se puede instalar
-en agentes ni usar en proyectos.
-
-**Organización.** El legado (`evol-system/skills`, 74 skills) tenía 18 categorías sueltas y 7 skills sin categoría. En la
-biblioteca cada skill pertenece a **un grupo** de 11: Disciplinas, Calidad y revisión, Contexto y memoria, Descubrimiento y
-producto, Equipo y gobierno, Código y plataforma, Dominio, Documentación y comunicación, Operación del sistema, Creación y
-ciclo de vida, y Diseño y medios. Las **31 skills de disciplina** se enlazan con las 31 disciplinas de evol (9 base y 22
-extendidas): cada disciplina sabe qué skill la aplica y en qué fases. Se conserva la categoría anterior para trazar el cambio.
+biblioteca solo a través del agente auditor (`skill-auditor`), que sigue cinco etapas: solicitud, cuarentena (carpeta
+aislada, nada se ejecuta), auditoría, veredicto (PASS, WARN o BLOCK) y biblioteca. Un error crítico bloquea sin anulación;
+un aviso exige aceptarlo por escrito. La auditoría comprueba secretos, filtraciones (envío de contenido del proyecto,
+variables de entorno o memoria a terceros), scripts, accesos a red, inyección de instrucciones, funcionamiento (frontmatter,
+`name` = carpeta, referencias, choques con otra skill), procedencia (origen, licencia, huella) y herencia del sistema
+anterior. El informe y la huella quedan junto a la skill. Una skill copiada a mano a la biblioteca se muestra «Sin auditar»
+y no se puede instalar en agentes ni usar en proyectos.
 
 **Qué se puede hacer con una skill**
 
@@ -491,7 +518,6 @@ extendidas): cada disciplina sabe qué skill la aplica y en qué fases. Se conse
 | --------------------- | -------------------------------------------- | ----------------------------------------------------------------------------------------------- |
 | Revisar               | `evol skills check [nombre]`                 | Frontmatter válido, `name` = carpeta, `description` útil, sin claves; avisa de scripts y de red |
 | Agregar (auditada)    | `evol skills audit <ruta> [--grupo]`         | Lanza al agente auditor: cuarentena, auditoría y, si el veredicto es favorable, la copia (.zip ok) |
-| Agregar el legado     | `evol skills audit <evol-system/skills>`     | Audita las 74, reparte los grupos y ata las 31 de disciplina; las rotas entran marcadas         |
 | Usar en un proyecto   | `evol skills add <nombre> --proyecto <id>`   | La copia al proyecto, visible para los agentes que use                                          |
 | Instalar en un agente | `evol skills install <nombre> --agente <id>` | La enlaza (symlink) en la carpeta del agente: se actualiza sola                                 |
 | Descargar             | `evol skills export <nombre>`                | Un `.zip` con toda la carpeta (una skill no es un solo archivo)                                 |
@@ -512,7 +538,7 @@ propia página (token por sesión y comprobación de origen). La pantalla Docume
 | 48  | La pantalla Skills lista la biblioteca y, aparte, las de los agentes; una skill con `SKILL.md` copiada a la biblioteca aparece sin reiniciar, marcada «Sin auditar». |
 | 49  | Cada skill se revisa: frontmatter válido, `name` = carpeta, `description`, claves en claro, scripts y acceso a red.                           |
 | 50  | Un frontmatter roto no oculta la skill: se muestra con nombre y descripción recuperados y el error de YAML.                                   |
-| 51  | `evol skills audit` del legado reparte las 74 skills en los 11 grupos, ata las 31 a su disciplina y no deja ninguna sin grupo.               |
+| 51  | La biblioteca de evol-driven arranca vacía y la pantalla Skills no lista ninguna skill ni agente del sistema evol anterior.                                                       |
 | 52  | Cada una de las 31 disciplinas indica la skill que la aplica; una disciplina sin skill se marca.                                              |
 | 53  | `evol skills export` genera un `.zip` con toda la carpeta de la skill y su huella; `audit` lo lee y reproduce la misma huella.               |
 | 54  | `evol skills add` y `install` no sobrescriben una skill distinta con el mismo nombre sin confirmar.                                           |
@@ -522,10 +548,61 @@ propia página (token por sesión y comprobación de origen). La pantalla Docume
 | 58  | La pestaña Agentes lista cada agente detectado con su carpeta y sus cifras, y el agente auditor con las etapas y comprobaciones.                                                |
 | 59  | `evol skills audit` trabaja en cuarentena, no ejecuta nada de la skill, y rechaza una con claves en claro, envío de datos a terceros o instrucciones que alteren las reglas del agente. |
 | 60  | Una skill agregada deja su informe de auditoría y su huella; si cambia después, la pantalla la marca «Sin auditar».                                                              |
+| 61  | El grafo de código es una constelación: cada archivo es una estrella y un clic acerca la cámara y despliega su ficha, con a quién importa y quién lo importa.                        |
+| 62  | La página Documentación abre en la vista Constelación con una estrella por documento (las que no existen, huecas) y la ficha es el mismo lector que la vista Lista.                  |
+| 63  | Con `prefers-reduced-motion` no hay movimiento ni parpadeo; toda estrella se abre también desde la lista de teclado; Escape vuelve a la vista completa.                              |
+| 64  | Arrastrar una estrella la mueve y arrastra a las enlazadas; al soltarla no se abre su ficha y el grafo conserva la forma que le diste.                                              |
+| 65  | Ninguna skill ni agente de evol-driven contiene referencias al sistema evol anterior (nombre, marco de metodologías, rutas o comandos); `evol skills audit` lo rechaza con BLOCK.      |
+
+### Hito: skills de evol y agente auditor (propuesta)
+
+> **Estado: PROPUESTA.** Nada de esto existe todavía en `src/`: la pantalla Skills es una maqueta. evol-driven es un proyecto
+> **nuevo**: sus skills y sus agentes se crean desde cero. Las notas de lo que enseñó el sistema anterior están en
+> `docs/design/referencia-evol-system.md` y no forman parte del producto.
+
+**Regla.** Ninguna skill ni agente de evol-driven puede contener referencias al sistema evol anterior: ni su nombre, ni su
+marco de metodologías, ni sus rutas, comandos o claves. La biblioteca arranca **vacía** y la maqueta lo muestra así.
+
+**Decisiones**
+
+1. **Fuente de verdad: este repositorio.** Las skills de evol-driven viven en `skills/`, versionadas; la biblioteca del
+   usuario (`~/.config/evol/skills`) es el destino de instalación. Cada skill declara su alcance: `paquete` o `personal`.
+2. **Una skill por disciplina.** Cada una de las 31 disciplinas (`disciplines/*.json`) declara la skill que la aplica;
+   `evol disciplines` marca la que no tenga. Se empieza por las 9 base.
+3. **Las reglas bloquean; el agente complementa.** Pasada 1, determinista y nativa (TypeScript): secretos, filtraciones,
+   scripts, accesos a red, inyección de instrucciones, frontmatter, descripción que dice *cuándo* activarse y no *cómo*
+   trabaja, y herencia del sistema anterior. Emite PASS / WARN / BLOCK y **falla cerrada**: si una herramienta que debía
+   correr (gitleaks, semgrep) no está, la skill queda «no auditada», nunca aprobada. Pasada 2, el agente `skill-auditor`,
+   para lo que una regla no ve. Un agente puede equivocarse o ser engañado por la propia skill, por eso no es la única barrera.
+4. **El agente nunca escribe en la biblioteca.** Solo propone el veredicto; entrar exige una persona en una terminal
+   (`evol skills approve <id>`), como `evol approve`. Un `BLOCK` crítico no se puede anular; un `WARN` se acepta con
+   confirmación explícita y queda registrado.
+5. **`skill-auditor` es efímero** y hereda tres límites: no toca la gobernanza, no crea otros agentes y registra sus
+   decisiones antes de terminar. Su informe y su huella quedan junto a la skill.
+6. **Una sola cifra.** El catálogo se genera del disco, nunca a mano; un registro de agentes se valida contra las skills que nombra.
+
+**Hitos**
+
+| #   | Qué se construye                                                                                                                                              | Se comprueba con     |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- |
+| S1  | Modelo y biblioteca: `src/skills/`, manifiesto con disciplina, alcance, huella y auditoría; `evol skills list`, `check`, `export`; campo `skill` en las 31 disciplinas | criterios 49 a 53    |
+| S2  | Auditor determinista: `evol skills audit <ruta>` en cuarentena, que falla cerrada, con las reglas de la decisión 3 e informe con huella                         | criterios 59 y 65    |
+| S3  | Agente `skill-auditor` y `evol skills approve` (solo persona en terminal)                                                                                      | criterios 59 y 60    |
+| S4  | Las primeras skills: las 9 de disciplinas base, escritas para evol-driven y auditadas; después las 22 extendidas                                                | criterios 51 y 52    |
+| S5  | Usar e instalar: `add --proyecto` e `install --agente` (enlace simbólico), que rechazan una skill sin auditar o cuya huella cambió y no sobrescriben sin confirmar | criterios 54 y 60    |
+| S6  | `evol ui` lee la biblioteca real y la pantalla Skills deja de ser maqueta                                                                                       | criterios 48, 57, 58 |
+
+**Riesgo a decidir.** Si S4 se hace antes que S2 y S3, las primeras skills entran **sin** auditoría independiente.
+
+**Preguntas abiertas**
+
+- ¿El agente `skill-auditor` corre dentro de Claude Code o lo lanza evol como subproceso? Lo segundo exige un CLI o una clave y no sirve en CI.
+- ¿Una skill de terceros puede traer scripts, o se rechazan siempre? (propongo: aviso y aprobación explícita)
+- ¿Se definen ya los primeros agentes propios de evol-driven? Hoy no hay ninguno y la orquestación está fuera de la v1.
 
 ### Para revisar en los mockups
 
 - ¿Falta algún grupo o algún documento que quieras ver por proyecto?
 - Las **mejoras** salen de `MEJORAS*.md`, `docs/mejoras/` y `proposals/`: ¿es esa la convención que quieres fijar?
-- ¿Los 11 grupos de skills te parecen bien, o mueves alguna skill de grupo? (la lista está en `docs/design/mockups-src/collect-skills.mjs`)
+- ¿Las 31 disciplinas deben tener cada una su propia skill, o algunas se cubren con una skill compartida?
 - La fecha de modificación de cada archivo se mostrará en `evol ui` (los mockups usan copias, sin fecha real).

@@ -16,15 +16,15 @@ const data = {
   catalogo: JSON.parse(read("data/catalogo.json")),
 };
 const safe = (s) => s.replace(/<\/script/gi, "<\\/script");
-const page = (title, script, extra = "") => `<!doctype html>
+const page = (title, script, extra = "", lib = "") => `<!doctype html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${title}</title><style>${read("ui/style.css")}</style></head>
 <body><script>window.EVOL=${safe(JSON.stringify(data))};${extra}</script>
-<script>${read("ui/common.js")}</script><script>${read("ui/" + script)}</script></body></html>
+<script>${read("ui/common.js")}</script>${lib ? `<script>${read("ui/" + lib)}</script>` : ""}<script>${read("ui/" + script)}</script></body></html>
 `;
 writeFileSync(out + "/index.html", page("Tablero de proyectos", "board.js"));
 writeFileSync(out + "/proyecto.html", page("Proyecto", "project.js"));
-writeFileSync(out + "/grafos.html", page("Grafos de conocimiento", "graphs.js"));
-writeFileSync(out + "/documentacion.html", page("Documentación", "docs.js", `window.EVOL_DOCS=${safe(read("data/docs.json").trim())};`));
+writeFileSync(out + "/grafos.html", page("Grafos de conocimiento", "graphs.js", "", "stars.js"));
+writeFileSync(out + "/documentacion.html", page("Documentación", "docs.js", `window.EVOL_DOCS=${safe(read("data/docs.json").trim())};`, "stars.js"));
 writeFileSync(out + "/skills.html", page("Skills", "skills.js", `window.EVOL_SKILLS=${safe(read("data/skills.json").trim())};`));
 console.log("escritos 5 archivos en", out);

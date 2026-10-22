@@ -3,8 +3,9 @@
 //   node collect-skills.mjs [carpeta-con-proyectos-de-muestra]
 //
 // Read-only. A skill that several agents share through symlinks is one skill with several places.
-// The body of a skill is kept only when it is the user's own (the evol-system library): third-party
+// The body of a skill is kept only when it is the user's own (the evol library): third-party
 // skills contribute metadata, file lists and the review checks, never their text.
+// Nothing from the previous evol system is read: evol-driven starts with an empty library.
 import { createHash } from "node:crypto";
 import { existsSync, lstatSync, readdirSync, readFileSync, realpathSync, statSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
@@ -22,7 +23,6 @@ const tilde = (p) => (p.startsWith(home) ? `~${p.slice(home.length)}` : p);
 /** Where skills live. `own` = the user's library, whose text can go into the mockup. */
 const SOURCES = [
   { id: "biblioteca", label: "Biblioteca evol", dir: join(home, ".config/evol/skills"), agent: null, own: true, editable: true },
-  { id: "legado", label: "evol-system (legado)", dir: join(home, "Projects/evol-system/skills"), agent: null, own: true, editable: false },
   { id: "claude", label: "Claude Code", dir: join(home, ".claude/skills"), agent: "claude" },
   { id: "codex", label: "Codex", dir: join(home, ".codex/skills"), agent: "codex" },
   { id: "agents", label: "Agentes (.agents)", dir: join(home, ".agents/skills"), agent: "agents" },
@@ -136,60 +136,11 @@ function review(skillDir, files, front, parseError, folderName) {
   return checks;
 }
 
-/**
- * How the evol library is organised. The legacy catalog had 18 inconsistent categories (and 7 skills
- * without one); here every skill belongs to exactly one group, and the 31 skills that implement a
- * discipline are linked to it, so a discipline can say which skill carries it out.
- */
-const GRUPOS = [
-  ["disciplinas", "Disciplinas", "Una skill por disciplina Driven Development: cómo se aplica cada una"],
-  ["calidad", "Calidad y revisión", "Revisar, evaluar y evitar el exceso de ingeniería"],
-  ["contexto", "Contexto y memoria", "Mantener el contexto a mano sin gastarlo"],
-  ["descubrimiento", "Descubrimiento y producto", "Entender el problema antes de construir"],
-  ["equipo", "Equipo y gobierno", "Cambios, costes, equipo y reglas"],
-  ["codigo", "Código y plataforma", "Analizar código, observar y automatizar herramientas"],
-  ["dominio", "Dominio", "Conocimiento de un área de negocio"],
-  ["documentacion", "Documentación y comunicación", "Escribir, narrar y pedir bien"],
-  ["operacion", "Operación del sistema", "Ritmo y reparto de carga del propio sistema"],
-  ["ciclo", "Creación y ciclo de vida", "Crear, mejorar y gestionar skills y agentes"],
-  ["diseno", "Diseño y medios", "Interfaces, gráficos y vídeo"],
-];
-const GRUPO_DE = {
-  calidad: ["agent-eval", "evol-ai-review", "evol-minimal", "evol-fact-check"],
-  contexto: ["evol-compact", "evol-talk-compact", "evol-fs-context", "evol-context7", "update-context", "update-memory"],
-  descubrimiento: ["evol-discovery", "evol-idea-refine", "evol-grill-me", "evol-ethnography", "evol-growth-experiment", "evol-workflow-design", "evol-systems-design", "evol-cognitive-ux"],
-  equipo: ["evol-change-mgmt", "evol-governance", "evol-team-dynamics", "evol-cost-analysis", "evol-dx-advocate"],
-  codigo: ["code-indexer", "evol-code-archaeology", "evol-observability", "evol-mcp-builder", "evol-sandbox", "evol-seo-technical"],
-  dominio: ["evol-domain-finance", "evol-domain-marketing", "evol-domain-sales"],
-  documentacion: ["readme-master", "evol-narrative-docs", "evol-prompt-master"],
-  operacion: ["evol-balance", "evol-pacing"],
-  ciclo: ["crear-skill", "crear-agente", "evol-skill-manager"],
-  diseno: ["evol-frontend-design", "evol-remotion", "lightweight-charts"],
-};
-/** Skill folder -> discipline id (the 31 disciplines of evol-driven). */
-const DISCIPLINA_DE = {
-  "evol-sdd-spec": "SDD", "evol-fdd-feature": "FDD", "evol-ddd-domain": "DDD", "evol-threat-model": "THREAT", "evol-bdd-behavior": "BDD",
-  "evol-atdd-acceptance": "ATDD", "evol-tdd-unit": "TDD", "evol-stdd-security-test": "STDD", "evol-secdd-security": "SecDD",
-  "evol-a11ydd": "A11yDD", "evol-add-arch": "ADD", "evol-apivdd": "APIVDD", "evol-ccdd-contract": "CCDD", "evol-cdcdd": "CDCDD",
-  "evol-chaos-resilience": "CHAOS", "evol-compliance-drivers": "COMPLIANCE", "evol-debt-budget": "DebtBudgetDD", "evol-deprecation": "DeprecationDD",
-  "evol-eda": "EDA", "evol-esdd-events": "ESDD", "evol-iodd-iac": "IODD", "evol-mdd-migrate": "MDD", "evol-odd-api": "ODD_API", "evol-odd-obs": "ODD_OBS",
-  "evol-pdd-perf": "PDD", "evol-pipeline-ci": "PIPELINE", "evol-privacy-drivers": "PrivacyDD", "evol-rdd-refactor": "RDD", "evol-slo-sla": "SLO",
-  "evol-udd-usecase": "UDD", "evol-uxdd-ux": "UXDD",
-};
+/** The 31 disciplines of evol-driven (disciplines/*.json). Each one will need a skill that applies it. */
 const disciplines = new Map(
   readdirSync(join(here, "../../../disciplines")).filter((f) => f.endsWith(".json"))
     .map((f) => JSON.parse(readFileSync(join(here, "../../../disciplines", f), "utf8"))).map((d) => [d.id, d]),
 );
-function organise(skill) {
-  const id = DISCIPLINA_DE[skill.carpeta];
-  if (id) {
-    const d = disciplines.get(id);
-    return { grupo: "disciplinas", disciplina: { id, nombre: d?.nombre ?? id, tipo: d?.tipo ?? null, fases: d?.fases ?? [] } };
-  }
-  const grupo = Object.entries(GRUPO_DE).find(([, names]) => names.includes(skill.carpeta))?.[0] ?? null;
-  return { grupo, disciplina: null };
-}
-
 const skills = new Map(); // realpath -> skill
 for (const src of SOURCES) {
   for (const dir of findSkillDirs(src.dir)) {
@@ -237,13 +188,7 @@ for (const src of SOURCES) {
       skills.set(real, skill);
     }
     skill.lugares.push({ fuente: src.id, agente: src.agent, ruta: tilde(dir), enlace: viaLink });
-    if (skill.propia && skill.grupo === undefined) {
-      const { grupo, disciplina } = organise(skill);
-      skill.categoriaOriginal = skill.categoria;
-      skill.grupo = grupo;
-      skill.disciplina = disciplina;
-      if (!grupo) skill.revision.push({ nivel: "aviso", texto: "No tiene grupo en la biblioteca: asígnale uno al importarla." });
-    }
+    if (skill.propia && skill.grupo === undefined) { skill.grupo = null; skill.disciplina = null; }
     // The first source that finds it names it, but a skill the user owns stays "own".
     if (src.own && !skill.propia) skill.propia = true;
   }
@@ -284,12 +229,12 @@ const agentes = AGENTS.map((a) => {
 });
 // The only way into the library: an agent audits the skill first. These are the checks it runs.
 const auditoria = {
-  agente: "evol-skill-auditor",
+  agente: "skill-auditor",
   etapas: [
-    ["solicitud", "Solicitud", "Le pasas la ruta, el .zip o el enlace de la skill. La página no la recibe ni la copia."],
+    ["solicitud", "Solicitud", "Le pasas la ruta, el .zip o el enlace con la versión fijada (@sha) de la skill. La página no la recibe ni la copia."],
     ["cuarentena", "Cuarentena", "El agente la copia a una carpeta aislada fuera de la biblioteca; nada se ejecuta ni queda visible para otros agentes."],
-    ["auditoria", "Auditoría", "Revisa cada archivo con las comprobaciones de abajo y escribe un informe."],
-    ["veredicto", "Veredicto", "Aprobada, aprobada con avisos o rechazada. Un error bloquea; un aviso exige que lo aceptes por escrito."],
+    ["auditoria", "Auditoría", "Las reglas de evol revisan cada archivo y el agente skill-auditor hace una segunda pasada; el informe queda en la auditoría del proyecto."],
+    ["veredicto", "Veredicto", "PASS (aprobada), WARN (con avisos) o BLOCK (bloqueada). Un error crítico bloquea sin anulación; un aviso exige que lo aceptes por escrito."],
     ["biblioteca", "Biblioteca", "Solo si hay veredicto, el agente la copia a la biblioteca con su huella y el informe, y queda en el diario."],
   ],
   comprobaciones: [
@@ -300,11 +245,12 @@ const auditoria = {
     ["Inyección de instrucciones", "Texto que intente cambiar las reglas del agente: ignorar instrucciones previas, ocultar acciones o pedir permisos amplios."],
     ["Funcionamiento", "Frontmatter válido, name = carpeta, description útil, referencias a archivos que existen y que no choque con otra skill."],
     ["Procedencia", "Origen, licencia y versión; la huella SHA-256 queda registrada para detectar cambios posteriores."],
+    ["Herencia del sistema anterior", "Ninguna referencia al sistema evol previo: ni su nombre, ni su marco de metodologías, ni sus rutas y comandos que no existan en evol-driven."],
   ],
 };
 const out = {
   generado: new Date(NOW).toISOString(), diasNueva: NEW_DAYS, totalDisciplinas: disciplines.size, fuentes: sources, agentes, auditoria,
-  grupos: GRUPOS.map(([id, nombre, descripcion]) => ({ id, nombre, descripcion })), skills: list,
+  grupos: [], disciplinas: [...disciplines.values()].map((d) => ({ id: d.id, nombre: d.nombre, tipo: d.tipo, fases: d.fases ?? [] })).sort((a, b) => (a.tipo === b.tipo ? a.id.localeCompare(b.id) : a.tipo === "base" ? -1 : 1)), skills: list,
 };
 writeFileSync(join(here, "data/skills.json"), `${JSON.stringify(out)}\n`);
 const own = list.filter((s) => s.propia).length;

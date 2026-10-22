@@ -242,7 +242,11 @@ a.skill[aria-current="true"] { box-shadow: inset 0 0 0 2px var(--ink); }
 .banner { margin-bottom: 14px; }
 .side-empty { color: var(--ink-2); }
 h3.h3 { font-size: 14px; margin: 16px 0 6px; }
-dialog.dlg { border: 1px solid var(--border); border-radius: 14px; background: var(--surface); color: var(--ink); max-width: 640px; width: calc(100% - 32px); padding: 18px 20px; }
+dialog.dlg { border: 1px solid var(--border); border-radius: 14px; background: var(--surface); color: var(--ink); width: min(720px, calc(100% - 32px)); max-height: min(86vh, 780px); overflow: auto; padding: 0 22px 18px; }
+.dlg-head { position: sticky; top: 0; z-index: 1; display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 0 10px; margin-bottom: 4px; background: var(--surface); border-bottom: 1px solid var(--grid); }
+.dlg-head h2 { margin: 0; font-size: 17px; }
+dialog.dlg .cmdbox { flex-wrap: wrap; }
+dialog.dlg table td { vertical-align: top; }
 dialog.dlg::backdrop { background: rgba(0,0,0,.45); }
 .form { display: grid; grid-template-columns: 110px 1fr; gap: 8px 12px; align-items: start; margin: 10px 0; }
 .form label { padding-top: 6px; color: var(--ink-2); }
@@ -254,5 +258,30 @@ a.agent { display: block; color: inherit; text-decoration: none; }
 a.agent:hover, a.agent:focus-visible { border-color: var(--accent, currentColor); }
 .agent h2 { margin: 0 0 4px; font-size: 16px; }
 .auditor { margin-top: 16px; }
-.steps { margin: 8px 0 12px; padding-left: 20px; }
-.steps li { margin: 6px 0; }
+.audit-steps { margin: 8px 0 12px; padding-left: 20px; }
+.audit-steps li { margin: 6px 0; }
+
+/* Constellation (night sky) */
+.sky { position: relative; height: clamp(460px, 72vh, 720px); border-radius: 14px; overflow: hidden; background: #04050c; border: 1px solid var(--border); margin-top: 8px; }
+.sky-canvas { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; }
+.sky-ctl { position: absolute; top: 10px; left: 10px; display: flex; gap: 6px; }
+.sky-ctl .chip { background: rgba(20, 24, 44, .8); color: #dfe6ff; border-color: rgba(160, 180, 255, .3); }
+.sky-hint { position: absolute; left: 12px; bottom: 8px; margin: 0; font-size: 12px; color: rgba(210, 220, 255, .6); pointer-events: none; }
+.sky.has-card .sky-hint { display: none; }
+.sky-card { position: absolute; top: 12px; bottom: 12px; right: 12px; width: min(54%, 600px); overflow: auto; padding: 16px 18px; border-radius: 12px; background: var(--surface); color: var(--ink); border: 1px solid var(--border); box-shadow: 0 10px 40px rgba(0, 0, 0, .5); transform-origin: left center; animation: unfold .5s cubic-bezier(.2, .8, .2, 1) both; }
+.sky-card:focus { outline: none; }
+.sky-close { margin-bottom: 10px; }
+.sky-card .reader { margin: 0; }
+.starcard .h3 { margin: 14px 0 6px; font-size: 13px; }
+.linkpill { cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--ink); }
+.linkpill:hover { background: var(--wash); }
+.starlist { list-style: none; display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 0; margin: 0; }
+@keyframes unfold { from { opacity: 0; transform: perspective(900px) rotateY(-40deg) scale(.6); } to { opacity: 1; transform: none; } }
+@media (max-width: 720px) { .sky-card { top: auto; left: 8px; right: 8px; width: auto; height: 62%; transform-origin: top center; } }
+@media (prefers-reduced-motion: reduce) { .sky-card { animation: none; } }
+.cards.wide { grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); }
+.evol-agent h2 { font-size: 15px; }
+.pill.gap { color: var(--serious); border-color: var(--serious); }
+.disc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 8px; padding: 8px 0 12px; }
+.disc-cell { display: flex; flex-direction: column; gap: 3px; padding: 10px 12px; border: 1px dashed var(--border); border-radius: 10px; background: var(--surface); }
+.disc-cell small { color: var(--ink-2); }

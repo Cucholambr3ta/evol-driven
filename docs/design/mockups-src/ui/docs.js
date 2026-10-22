@@ -27,6 +27,9 @@ let query = "";
 let onlyGaps = false;
 let mdView = "vista";
 let zoom = 1;
+let view = storeGet("evol-docs-view") === "lista" ? "lista" : "cielo";   // the sky is the default view
+let source = "documentos";                                                // "documentos" | "codigo" (only where the project has a code graph)
+let sky = null;
 
 const root = el("main", {});
 document.body.append(root);
@@ -135,7 +138,7 @@ function bodyText(item, dd) {
   const wrap = el("div", {});
   if (isMd) {
     wrap.append(el("div", { class: "filters" },
-      ["vista", "texto"].map((v) => el("button", { class: "chip", type: "button", "aria-pressed": String(mdView === v), onclick: () => { mdView = v; render(true); } }, v === "vista" ? "Vista" : "Texto original")),
+      ["vista", "texto"].map((v) => el("button", { class: "chip", type: "button", "aria-pressed": String(mdView === v), onclick: () => { mdView = v; refresh(); } }, v === "vista" ? "Vista" : "Texto original")),
       tasks.total ? el("span", { class: "st " + (tasks.done === tasks.total ? "good" : "info") }, el("i", { "aria-hidden": "true", text: tasks.done === tasks.total ? "✓" : "…" }), `${tasks.done} de ${tasks.total} tareas hechas`) : null));
   }
   if (item.recortado) wrap.append(el("p", { class: "note", text: "El archivo es largo: se muestran los primeros 60 000 caracteres." }));
@@ -301,22 +304,80 @@ function results(dd) {
         snippet(i.texto, q).map((s) => el("div", { class: "snip", text: s })))))) : el("p", { class: "note", text: "Nada coincide. La búsqueda mira títulos, rutas y el texto de cada documento." }));
 }
 
+/* ---------- the sky: every document of the project as a star ---------- */
+const GROUP_COLOR = { especificaciones: "#6da7ec", evidencias: "#4fd1a1", mejoras: "#f5a623", decisiones: "#c792ea", diagramas: "#ff7a59", informe: "#ffd866", general: "#9aa3b2" };
+function docSky(dd) {
+  const rand = seeded(current);
+  const nodes = [], edges = [], clusters = [];
+  const active = GROUPS.filter(([g]) => dd.items[g].length);
+  active.forEach(([g, label], gi) => {
+    const a = (gi / active.length) * Math.PI * 2 - Math.PI / 2, cx = 0.5 + 0.31 * Math.cos(a), cy = 0.5 + 0.34 * Math.sin(a);
+    const cl = { id: g, label, x: cx, y: cy, color: GROUP_COLOR[g], dy: -0.09 };
+    clusters.push(cl);
+    let prev = null;
+    dd.items[g].forEach((i, k) => {
+      const ang = k * 2.39996 + rand() * 0.6, rad = 0.045 * Math.sqrt(k + 0.6) * (0.8 + rand() * 0.5);
+      const missing = i.estado === "falta";
+      nodes.push({
+        id: i.id, label: i.titulo, grupo: g, hollow: missing, dim: i.estado === "pendiente",
+        x: Math.min(0.96, Math.max(0.04, cx + Math.cos(ang) * rad * 1.3)), y: Math.min(0.94, Math.max(0.06, cy + Math.sin(ang) * rad)),
+        r: missing ? 4 : 4.5 + 6 * Math.min(1, Math.log10(2 + (i.bytes || 4000)) / 5), color: GROUP_COLOR[g], labelAlways: false,
+      });
+      cl.dy = Math.min(cl.dy, -(Math.abs(nodes[nodes.length - 1].y - cy) + 0.06));
+      if (prev) edges.push({ a: prev, b: i.id, kind: "grupo" });
+      prev = i.id;
+    });
+  });
+  const ids = new Set(nodes.map((n) => n.id));
+  for (const i of allItems(dd)) {
+    if (i.texto && /\.md$/i.test(i.ruta)) for (const m of i.texto.matchAll(/\]\(([^)\s]+)\)/g)) { const t = resolveRelative(dd, i.ruta, m[1]); if (t && t !== i.id && ids.has(t)) edges.push({ a: i.id, b: t }); }
+    if (i.fases) for (const f of i.fases) for (const d of f.disciplines) for (const a of d.artefactos) for (const r of a.archivos) { const t = allItems(dd).find((x) => x.ruta === r); if (t && ids.has(t.id)) edges.push({ a: i.id, b: t.id }); }
+  }
+  return Constellation({
+    nodes, edges, clusters, ariaLabel: `Constelación de la documentación de ${projectById(current).nombre}`,
+    onSelect: (id) => { selected = id; if (location.hash !== "#" + link(current, id).slice(1)) history.replaceState(null, "", link(current, id)); },
+    tooltip: (n) => { const i = itemById(dd, n.id); return [el("b", { text: n.label }), el("div", { class: "mono", text: i.ruta }), el("div", { text: GROUP_LABEL[i.grupo] + " · " + STATE[i.estado][2] })]; },
+    renderCard: (n) => reader(itemById(dd, n.id), dd),
+  });
+}
+function skyView(p, dd) {
+  const hasCode = p.id === "evol-driven" && EVOL.code;
+  if (sky) sky.destroy();
+  sky = source === "codigo" && hasCode ? codeSky(EVOL.code, { mode: "calor", onSelect: (id) => { selected = null; } }) : docSky(dd);
+  const legend = source === "codigo" ? el("p", { class: "note", text: "Cada estrella es un archivo de código; su tamaño y su color (azul poco, rojo mucho) son su alcance." })
+    : el("div", { class: "legend", role: "group", "aria-label": "Leyenda: grupos de documentos" }, GROUPS.filter(([g]) => dd.items[g].length).map(([g, label]) =>
+      el("span", { style: "display:inline-flex;gap:6px;align-items:center" }, el("span", { class: "sw", style: `background:${GROUP_COLOR[g]}` }), label)),
+      el("span", { class: "note", text: "· estrella hueca = no existe · tenue = por completar" }));
+  return el("div", {},
+    hasCode ? el("div", { class: "filters" }, el("span", { class: "note", text: "Qué mostrar" }),
+      [["documentos", "Documentos"], ["codigo", "Código (54 archivos)"]].map(([k, label]) => el("button", { class: "chip", type: "button", "aria-pressed": String(source === k), onclick: () => { source = k; selected = null; render(); } }, label))) : null,
+    legend, sky.el);
+}
+function refresh() { if (view === "cielo" && sky) sky.refreshCard(); else render(true); }
+
 /* ---------- render ---------- */
 function render(keepFocus) {
   const p = projectById(current), dd = D[current];
   const item = selected && itemById(dd, selected);
   const q = query.trim();
+  if (sky && view !== "cielo") { sky.destroy(); sky = null; }
   root.replaceChildren(header(p, dd), kpis(dd),
-    el("div", { class: "docs-layout" }, nav(dd), el("div", { class: "docs-main" }, item ? reader(item, dd) : q ? results(dd) : overview(p, dd))),
+    el("div", { class: "filters" }, el("span", { class: "note", text: "Vista" }),
+      [["cielo", "Constelación"], ["lista", "Lista"]].map(([k, label]) => el("button", { class: "chip", type: "button", "aria-pressed": String(view === k), onclick: () => { view = k; storeSet("evol-docs-view", k); render(); } }, label))),
+    view === "cielo" ? skyView(p, dd)
+      : el("div", { class: "docs-layout" }, nav(dd), el("div", { class: "docs-main" }, item ? reader(item, dd) : q ? results(dd) : overview(p, dd))),
     el("p", { class: "foot", text: "Documentación leída de los archivos reales de cada proyecto; las trazabilidades, el riesgo y los diagramas los calcula evol. Un documento que no existe se marca como tal: no se inventa." }));
+  if (view === "cielo" && source === "documentos" && item) queueMicrotask(() => sky.select(item.id, true));
   if (keepFocus) { const s = root.querySelector("input[type=search]"); if (s) { s.focus(); s.setSelectionRange(s.value.length, s.value.length); } }
 }
 window.addEventListener("hashchange", () => {
   const [pid, ...rest] = hashParts();
   const id = decodeURIComponent(pid || "");
+  const sameProject = id === current;
   if (projectById(id)) current = id;
   selected = rest.length ? decodeURIComponent(rest.join("/")) : null;
   zoom = 1;
+  if (view === "cielo" && sky && sameProject && source === "documentos") { selected ? sky.select(selected, true) : sky.reset(true); return; }
   render();
   if (selected) window.scrollTo({ top: 0 });
 });

@@ -21,6 +21,7 @@ let query = "", group = "todas", onlyNew = false, onlyIssues = false, detailTab 
 let actionOpen = null;
 
 const root = el("main", {});
+const replaceKids = (node, ...kids) => node.replaceChildren(...kids.filter((k) => k != null && k !== false));
 document.body.append(root);
 const href = (t, id) => `#${t}${id ? "/" + encodeURIComponent(id) : ""}`;
 
@@ -65,7 +66,7 @@ function card(s) {
       s.disciplina ? el("span", { class: "pill", title: s.disciplina.nombre }, `${s.disciplina.id} · ${s.disciplina.fases.length ? s.disciplina.fases[0] + (s.disciplina.fases.length > 1 ? "…" : "") : "—"}`) : null,
       s.triggers.slice(0, 2).map((t) => el("span", { class: "pill mono", text: t })),
       tab === "biblioteca"
-        ? el("span", { class: "note", text: s.enBiblioteca ? "En la biblioteca" : `Pendiente de importar${agentsOf(s).length ? " · ya en " + agentsOf(s).map(agentLabel).join(", ") : ""}` })
+        ? el("span", { class: "note", text: s.enBiblioteca ? "En la biblioteca" : `Pendiente de auditar${agentsOf(s).length ? " · ya en " + agentsOf(s).map(agentLabel).join(", ") : ""}` })
         : el("span", { class: "note", text: s.lugares.map((l) => FUENTE[l.fuente].label).filter((v, i, a) => a.indexOf(v) === i).join(", ") }))));
 }
 function listing() {
@@ -168,7 +169,7 @@ function detail() {
   return el("section", { class: "panel side", "aria-label": s.nombre },
     el("h2", { class: "mono dtitle", text: s.nombre }),
     el("div", { class: "chips" }, s.grupo ? el("span", { class: "pill", text: GRUPO[s.grupo].nombre }) : el("span", { class: "pill", text: FUENTE[s.fuente].label }),
-      s.enBiblioteca ? chip("good", "✓", "En la biblioteca") : s.propia ? chip("info", "↓", "Pendiente de importar") : chip("muted", "–", "Solo en tus agentes"), healthChip(s), s.nueva ? chip("info", "★", "Nueva") : null),
+      s.enBiblioteca ? chip("good", "✓", "En la biblioteca") : s.propia ? chip("info", "↓", "Pendiente de auditar") : chip("muted", "–", "Solo en tus agentes"), healthChip(s), s.nueva ? chip("info", "★", "Nueva") : null),
     el("p", { text: s.descripcion || "Sin descripción." }),
     s.disciplina ? el("div", { class: "disc" }, el("b", { text: "Implementa la disciplina " }), el("span", { class: "mono", text: s.disciplina.id }), ` (${s.disciplina.nombre}, ${s.disciplina.tipo}) · fases: ${s.disciplina.fases.join(", ")}`) : null,
     s.triggers.length ? el("p", { class: "note" }, "Se invoca con: ", s.triggers.slice(0, 5).map((t) => el("span", { class: "pill mono", text: t }))) : null,
@@ -184,7 +185,7 @@ function auditBody() {
   return el("div", {},
     el("p", { class: "note", text: "La página es de solo lectura para las skills: no tiene botones para crear, subir ni importar. Una skill son instrucciones y scripts que otros agentes obedecen, así que entra únicamente por un agente que la audite." }),
     el("h3", { class: "h3", text: "Cómo entra una skill" }),
-    el("ol", { class: "steps" }, AUD.etapas.map(([id, nombre, texto]) => el("li", {}, el("b", { text: nombre + ". " }), texto))),
+    el("ol", { class: "audit-steps" }, AUD.etapas.map(([id, nombre, texto]) => el("li", {}, el("b", { text: nombre + ". " }), texto))),
     el("h3", { class: "h3", text: "Qué comprueba el agente" }),
     el("table", {}, el("tbody", {}, AUD.comprobaciones.map(([k, v]) => el("tr", {}, el("td", { style: "width:170px" }, el("b", { text: k })), el("td", { text: v }))))),
     el("h3", { class: "h3", text: "Pedirlo" }),
@@ -193,7 +194,7 @@ function auditBody() {
 }
 function auditDialog() {
   const dlg = el("dialog", { class: "dlg", "aria-labelledby": "da" });
-  dlg.append(el("h2", { id: "da", text: "Agregar una skill" }), auditBody(),
+  dlg.append(el("div", { class: "dlg-head" }, el("h2", { id: "da", text: "Agregar una skill" }), el("button", { class: "chip", type: "button", onclick: () => dlg.close() }, "Cerrar")), auditBody(),
     el("div", { class: "actions" }, el("button", { class: "chip", type: "button", onclick: () => dlg.close() }, "Cerrar")));
   return dlg;
 }
@@ -202,7 +203,9 @@ function auditDialog() {
 function agentsView() {
   const need = SK.agentes.length;
   return el("div", {},
-    el("p", { class: "note", text: "Los agentes que usan las skills en este equipo. Cada uno lee las suyas de su carpeta; las de la biblioteca evol llegan a ellos solo por enlace, una vez auditadas." }),
+    el("div", { class: "empty-state banner" }, el("b", { text: "evol-driven todavía no define agentes propios. " }), "El primero será el agente auditor de skills, que aparece abajo. Mientras tanto, aquí se ve dónde se instalarán las skills."),
+    el("h2", { class: "h3", style: "margin-top:24px", text: `Dónde se instalan las skills (${need})` }),
+    el("p", { class: "note", text: "Las herramientas que usan las skills en este equipo. Cada una lee las suyas de su carpeta; las de la biblioteca evol llegan a ellas solo por enlace, una vez auditadas." }),
     el("div", { class: "cards" }, SK.agentes.map((a) => el("a", { class: "panel agent", href: href("instaladas"), onclick: () => { group = a.id; } },
       el("h2", { text: a.label }),
       el("p", { class: "mono note", text: a.dir }),
@@ -212,14 +215,30 @@ function agentsView() {
         [["Skills que ve", a.total], ["De la biblioteca evol", a.deLaBiblioteca], ["Propias del agente", a.ajenas], ["Enlazadas (symlink)", a.enlazadas]].flatMap(([k, v]) => [el("dt", { text: k }), el("dd", { text: String(v) })]))))),
     el("section", { class: "panel auditor" },
       el("h2", { text: "Agente auditor" }),
-      el("p", { class: "mono", text: AUD.agente }),
-      el("p", { text: "Es el único que agrega skills a la biblioteca. Trabaja en cuarentena, audita, emite un veredicto y solo entonces copia la skill." }),
+      el("p", {}, el("span", { class: "mono", text: AUD.agente }), " · por crear"),
+      el("p", { text: "Será el único que propone agregar skills a la biblioteca. Es efímero: vive durante la auditoría y se retira dejando sus lecciones. Trabaja en cuarentena, audita y emite un veredicto; solo una persona la agrega." }),
       el("div", { class: "chips" }, chip("info", "★", "Única vía de entrada"), chip("muted", "–", `${AUD.comprobaciones.length} comprobaciones`)),
       auditBody()),
     el("p", { class: "note", text: `${need} agentes detectados. Para sumar otro, evol lo reconoce al aparecer su carpeta de skills.` }));
 }
 
 /* ---------- page ---------- */
+function libraryEmpty() {
+  const ds = SK.disciplinas, bases = ds.filter((d) => d.tipo === "base"), ext = ds.filter((d) => d.tipo !== "base");
+  const star = (d) => el("div", { class: "disc-cell", title: `${d.nombre} · fases: ${d.fases.join(", ")}` }, el("b", { class: "mono", text: d.id }), el("small", { text: d.nombre }), el("span", { class: "st muted" }, el("i", { "aria-hidden": "true", text: "–" }), "Sin skill"));
+  return el("div", {},
+    el("div", { class: "tiles" },
+      el("div", { class: "tile" }, el("b", { text: "0" }), el("span", { text: "Skills de evol" }), el("small", { text: "la biblioteca está vacía" })),
+      el("div", { class: "tile" }, el("b", { text: `0/${ds.length}` }), el("span", { text: "Disciplinas con su skill" }), el("small", { text: "todas por crear" })),
+      el("div", { class: "tile" }, el("b", { text: others.length }), el("span", { text: "Skills en tus agentes" }), el("small", { text: "no son de evol" }))),
+    el("div", { class: "empty-state banner" }, el("b", { text: "Todavía no hay skills de evol-driven. " }),
+      "Las skills y los agentes de evol se crean nuevos, sin nada del sistema anterior, y cada una entra a la biblioteca solo después de que un agente la audite. ",
+      el("button", { class: "chip", type: "button", onclick: () => auditDialogEl.showModal() }, "Cómo se agrega una skill")),
+    el("h2", { class: "h3", style: "margin-top:16px", text: `Lo que hay que construir: una skill por disciplina (${ds.length})` }),
+    el("p", { class: "note", text: "Las 31 disciplinas son las de evol-driven (disciplines/*.json). Cada una necesita la skill que la aplica; una disciplina sin skill se marca." }),
+    el("details", { open: true, class: "skill-group" }, el("summary", {}, el("b", { text: "Base" }), el("span", { class: "count", text: bases.length })), el("div", { class: "disc-grid" }, bases.map(star))),
+    el("details", { open: true, class: "skill-group" }, el("summary", {}, el("b", { text: "Extendidas" }), el("span", { class: "count", text: ext.length })), el("div", { class: "disc-grid" }, ext.map(star))));
+}
 function render() {
   const pend = library.filter((s) => !s.enBiblioteca).length;
   const newCount = library.filter((s) => s.nueva).length;
@@ -227,7 +246,7 @@ function render() {
   const discOk = new Set(library.filter((s) => s.disciplina).map((s) => s.disciplina.id)).size;
   const base = tab === "biblioteca" ? library : others;
   auditDialogEl = auditDialog();
-  root.replaceChildren(
+  replaceKids(root,
     el("h1", { text: "Skills" }),
     el("p", { class: "lede", text: "Las capacidades reutilizables de evol y los agentes que las usan. Una skill solo entra a la biblioteca después de que un agente la audite." }),
     el("div", { class: "filters" },
@@ -236,26 +255,25 @@ function render() {
     el("div", { class: "tabs", role: "tablist" },
       [["biblioteca", `Biblioteca evol (${library.length})`], ["agentes", `Agentes (${SK.agentes.length})`], ["instaladas", `Skills de tus agentes (${others.length})`]].map(([id, label]) =>
         el("button", { role: "tab", type: "button", "aria-selected": String(tab === id), onclick: () => { tab = id; selected = null; group = "todas"; location.hash = href(id); render(); } }, label))),
-    tab === "biblioteca" ? el("div", {},
+    tab === "biblioteca" && !library.length ? libraryEmpty() : tab === "biblioteca" ? el("div", {},
       el("div", { class: "tiles" },
         el("div", { class: "tile" }, el("b", { text: library.length }), el("span", { text: "Skills de evol" }), el("small", { text: `${library.length - pend} en la biblioteca · ${pend} por importar` })),
-        el("div", { class: "tile" }, el("b", { text: `${discOk}/${SK.totalDisciplinas}` }), el("span", { text: "Disciplinas con su skill" }), el("small", { text: "cada una tiene quien la aplique" })),
-        el("div", { class: "tile" }, el("b", { text: SK.grupos.length }), el("span", { text: "Grupos" }), el("small", { text: "antes 18 categorías sueltas" })),
+        el("div", { class: "tile" }, el("b", { text: `${discOk}/${SK.disciplinas.length}` }), el("span", { text: "Disciplinas con su skill" }), el("small", { text: "cada una tiene quien la aplique" })),
         el("div", { class: "tile" }, el("b", { text: newCount }), el("span", { text: `Nuevas (${SK.diasNueva} días)` })),
         el("div", { class: "tile" }, el("b", { text: withIssues }), el("span", { text: "Con avisos o errores" }), el("small", { text: "para corregir antes de usarlas" }))),
       pend ? el("div", { class: "empty-state banner" }, el("b", { text: `La biblioteca está ${pend === library.length ? "vacía" : "incompleta"}. ` }),
-        `Las ${pend} skills de evol-system todavía no pasaron por la auditoría, así que ningún proyecto puede usarlas desde evol. `, el("button", { class: "chip", type: "button", onclick: () => auditDialogEl.showModal() }, "Cómo se auditan")) : null)
+        `Hay ${pend} skills sin auditar, así que ningún proyecto puede usarlas desde evol. `, el("button", { class: "chip", type: "button", onclick: () => auditDialogEl.showModal() }, "Cómo se auditan")) : null)
       : tab === "instaladas" ? el("p", { class: "note", text: "Solo lectura: son las instaladas en otros agentes. Si alguna te sirve, pide al agente auditor que la revise antes de añadirla a la biblioteca." }) : null,
-    tab === "agentes" ? agentsView() : el("div", { class: "filters" },
+    tab === "agentes" ? agentsView() : tab === "biblioteca" && !library.length ? null : el("div", { class: "filters" },
       el("input", { class: "search", type: "search", placeholder: "Buscar por nombre, descripción, trigger o disciplina…", "aria-label": "Buscar skills", value: query, oninput: (e) => { query = e.target.value; render(); document.querySelector("input[type=search]").focus(); } }),
       tab === "biblioteca"
-        ? el("select", { class: "sel", "aria-label": "Grupo", onchange: (e) => { group = e.target.value; render(); } }, el("option", { value: "todas", text: "Todos los grupos" }), SK.grupos.map((g) => el("option", { value: g.id, selected: group === g.id }, `${g.nombre} (${library.filter((s) => s.grupo === g.id).length})`)))
+        ? (SK.grupos.length ? el("select", { class: "sel", "aria-label": "Grupo", onchange: (e) => { group = e.target.value; render(); } }, el("option", { value: "todas", text: "Todos los grupos" }), SK.grupos.map((g) => el("option", { value: g.id, selected: group === g.id }, `${g.nombre} (${library.filter((s) => s.grupo === g.id).length})`))) : null)
         : el("select", { class: "sel", "aria-label": "Fuente", onchange: (e) => { group = e.target.value; render(); } }, el("option", { value: "todas", text: "Todos los agentes" }), SK.fuentes.filter((f) => others.some((o) => o.fuente === f.id)).map((f) => el("option", { value: f.id, selected: group === f.id }, `${f.label} (${others.filter((o) => o.fuente === f.id).length})`))),
       el("button", { class: "chip", type: "button", "aria-pressed": String(onlyNew), onclick: () => { onlyNew = !onlyNew; render(); } }, "Solo nuevas"),
       el("button", { class: "chip", type: "button", "aria-pressed": String(onlyIssues), onclick: () => { onlyIssues = !onlyIssues; render(); } }, "Con avisos"),
       el("span", { class: "note", role: "status", text: `${visible(base).length} de ${base.length}` })),
     tab === "agentes" ? null : el("div", { class: "skills-layout" }, listing(), el("div", { class: "skills-side" }, detail())),
-    el("p", { class: "foot", text: "Datos reales de este equipo: la biblioteca de evol-system y las skills instaladas en tus agentes. El texto solo se incluye en las tuyas; el de terceros se lee del disco en evol ui." }),
+    el("p", { class: "foot", text: "Datos reales de este equipo: la biblioteca de evol (vacía) y las skills instaladas en tus agentes. El texto de las de terceros no se incluye; en evol ui se lee del disco." }),
     auditDialogEl);
 }
 window.addEventListener("hashchange", () => {
