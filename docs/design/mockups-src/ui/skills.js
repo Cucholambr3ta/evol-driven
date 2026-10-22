@@ -200,10 +200,45 @@ function auditDialog() {
 }
 
 /* ---------- the agents themselves ---------- */
+const IDE_CELL = { si: ["good", "✓"], verificar: ["warning", "?"] };
+const PHASE_NAMES = { briefing: "Briefing", spec: "Especificación", plan: "Plan", build: "Construcción", qa: "Calidad", retro: "Retrospectiva" };
+function orchestratorView() {
+  const o = SK.orquestador;
+  return el("section", { class: "panel orchestrator" },
+    el("h2", {}, el("span", { class: "mono", text: o.id }), " ", el("span", { class: "note", text: "el orquestador" })),
+    el("div", { class: "chips" }, chip("info", "★", "Primer agente de evol-driven"), chip("muted", "–", o.estado), chip("good", "✓", "Funciona en cualquier IDE")),
+    el("p", { text: o.resumen }),
+    el("h3", { class: "h3", text: "Cómo trabaja" }),
+    el("ol", { class: "audit-steps" }, o.pasos.map(([k, v]) => el("li", {}, el("b", { text: k + ". " }), v))),
+    el("div", { class: "grid2" },
+      el("div", {}, el("h3", { class: "h3", text: "Cómo reparte" }), el("ul", { class: "check" }, o.patrones.map(([k, v]) => el("li", {}, el("span", { class: "mark ok", "aria-hidden": "true", text: "•" }), el("span", {}, el("b", { text: k + ". " }), v))))),
+      el("div", {}, el("h3", { class: "h3", text: "Skills de razonamiento en puntos fijos" }), el("ul", { class: "check" }, o.razonamiento.map(([k, v]) => el("li", {}, el("span", { class: "mark ok", "aria-hidden": "true", text: "•" }), el("span", {}, el("b", { text: k + ". " }), v)))))),
+    el("div", { class: "grid2", style: "margin-top:12px" },
+      el("div", {}, el("h3", { class: "h3", text: "Qué hace" }), el("ul", { class: "check" }, o.hace.map((t) => el("li", {}, el("span", { class: "mark ok", "aria-hidden": "true", text: "✓" }), el("span", { text: t }))))),
+      el("div", {}, el("h3", { class: "h3", text: "Qué no hace" }), el("ul", { class: "check" }, o.noHace.map((t) => el("li", {}, el("span", { class: "mark no", "aria-hidden": "true", text: "✗" }), el("span", { text: t })))))));
+}
+function rolesView() {
+  return el("section", {},
+    el("h2", { class: "h3", style: "margin-top:24px", text: `Subagentes: un rol por fase (${SK.roles.length})` }),
+    el("p", { class: "note", text: "Cada rol aplica las skills de las disciplinas de su fase. Es una propuesta: los roles y sus nombres se pueden cambiar." }),
+    el("div", { class: "cards wide" }, SK.roles.map((r) => el("article", { class: "panel agent role", "data-fase": r.fase },
+      el("h2", {}, el("span", { class: "mono", text: r.rol }), " ", el("span", { class: "note", text: PHASE_NAMES[r.fase] })),
+      el("div", { class: "chips" }, chip("muted", "–", "por crear"), chip("info", "•", `${r.disciplinas.length} ${r.disciplinas.length === 1 ? "disciplina" : "disciplinas"}`)),
+      el("p", {}, r.disciplinas.map((d) => el("span", { class: "pill mono" + (d.tipo === "base" ? "" : " dim"), title: d.tipo, text: d.id })))))));
+}
+function idesView() {
+  const cols = [["instrucciones", "Instrucciones"], ["skills", "Skills"], ["mcp", "MCP"], ["entrada", "Entrada /evol"], ["subagentes", "Subagentes"]];
+  const cell = (v) => el("td", {}, el("span", { class: "st " + IDE_CELL[v[0]][0], title: v[0] === "si" ? "Confirmado" : "Por verificar en la documentación oficial" }, el("i", { "aria-hidden": "true", text: IDE_CELL[v[0]][1] }), el("small", { text: v[1] })));
+  return el("section", {},
+    el("h2", { class: "h3", style: "margin-top:24px", text: `Compatibilidad con IDE (${SK.ides.length})` }),
+    el("p", { class: "note", text: "La primera entrega cubre los cinco que usas: Claude Code (en terminal y en VS Code, con la misma configuración), Codex, Antigravity, OpenCode y Hermes. Los demás esperan, pero el diseño no cambia. evol-driven no depende de un IDE: se apoya en tres capas que todos comparten (AGENTS.md, carpetas SKILL.md y el MCP de evol) y en un adaptador fino por IDE que expone /evol. Donde un IDE no tiene subagentes, /evol ejecuta los roles uno tras otro en la misma sesión. «?» = por confirmar en la documentación oficial antes de construirlo." }),
+    el("div", { class: "panel", style: "overflow:auto" }, el("table", {}, el("thead", {}, el("tr", {}, el("th", { text: "IDE" }), cols.map(([, l]) => el("th", { text: l })))),
+      el("tbody", {}, SK.ides.map((i) => el("tr", { class: "ide-row" + (i.entrega === "primera" ? " first" : "") }, el("td", {}, el("b", { text: i.label }), i.entrega === "primera" ? el("div", {}, chip("info", "★", "Primera entrega")) : el("div", { class: "note", text: "después" })), cols.map(([k]) => cell(i[k]))))))));
+}
 function agentsView() {
   const need = SK.agentes.length;
   return el("div", {},
-    el("div", { class: "empty-state banner" }, el("b", { text: "evol-driven todavía no define agentes propios. " }), "El primero será el agente auditor de skills, que aparece abajo. Mientras tanto, aquí se ve dónde se instalarán las skills."),
+    orchestratorView(), rolesView(), idesView(),
     el("h2", { class: "h3", style: "margin-top:24px", text: `Dónde se instalan las skills (${need})` }),
     el("p", { class: "note", text: "Las herramientas que usan las skills en este equipo. Cada una lee las suyas de su carpeta; las de la biblioteca evol llegan a ellas solo por enlace, una vez auditadas." }),
     el("div", { class: "cards" }, SK.agentes.map((a) => el("a", { class: "panel agent", href: href("instaladas"), onclick: () => { group = a.id; } },

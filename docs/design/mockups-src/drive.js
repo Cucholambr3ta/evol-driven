@@ -74,6 +74,11 @@
         click(tabBtn("Agentes")); await wait();
         const ags = document.querySelectorAll("a.agent").length; if (ags !== 4) fail("agentes = " + ags + " (esperaba 4)");
         if (document.querySelector(".evol-agent")) fail("no deben aparecer los agentes del sistema anterior");
+        const orq = document.querySelector(".orchestrator"); if (!orq || !orq.textContent.includes("/evol") || orq.querySelectorAll("ol li").length !== 7) fail("falta el orquestador /evol con sus 7 pasos");
+        const primeros = document.querySelectorAll(".ide-row.first").length; if (primeros !== 5) fail("IDE de la primera entrega = " + primeros + " (esperaba 5)");
+        const roles = document.querySelectorAll(".role").length; if (roles !== 6) fail("roles por fase = " + roles + " (esperaba 6)");
+        const ides = document.querySelectorAll(".ide-row").length; if (ides !== 9) fail("IDE = " + ides + " (esperaba 9)");
+        for (const n of ["Claude Code", "Codex", "Antigravity", "Hermes", "Gemini CLI", "OpenCode", "Cursor"]) if (!document.querySelector("main").textContent.includes(n)) fail("falta el IDE " + n);
         if (!document.querySelector(".auditor") || !document.querySelector(".auditor").textContent.includes("skill-auditor")) fail("falta el agente auditor");
         if (/\bx-?dd\b|evol-system|evol-dd\b/i.test(document.querySelector("main").textContent)) fail("agentes: la página menciona X-DD o el sistema anterior");
         click(document.querySelector("a.agent")); await wait(); if (document.querySelectorAll("a.skill").length < 1) fail("un agente no lleva a sus skills");

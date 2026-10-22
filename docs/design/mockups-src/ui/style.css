@@ -285,3 +285,7 @@ a.agent:hover, a.agent:focus-visible { border-color: var(--accent, currentColor)
 .disc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 8px; padding: 8px 0 12px; }
 .disc-cell { display: flex; flex-direction: column; gap: 3px; padding: 10px 12px; border: 1px dashed var(--border); border-radius: 10px; background: var(--surface); }
 .disc-cell small { color: var(--ink-2); }
+.orchestrator { margin-top: 8px; }
+.orchestrator .grid2 { margin-top: 8px; }
+.pill.dim { opacity: .6; }
+.ide-row td small { font-size: 12px; }

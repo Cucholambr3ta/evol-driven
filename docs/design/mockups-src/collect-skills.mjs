@@ -227,6 +227,51 @@ const agentes = AGENTS.map((a) => {
     enlazadas: mine.filter((k) => k.lugares.some((l) => l.agente === a.id && l.enlace)).length,
   };
 });
+// The first agent of evol-driven: /evol, the orchestrator. It is the single entry point in any IDE; it splits the work
+// among sub-agents (one role per pipeline phase) that apply the skill of each discipline. Proposal, not built yet.
+const PHASES = ["briefing", "spec", "plan", "build", "qa", "retro"];
+const ROL = { briefing: "analista", spec: "especificador", plan: "arquitecto", build: "constructor", qa: "verificador", retro: "facilitador" };
+const roles = PHASES.map((fase) => ({
+  fase, rol: ROL[fase],
+  disciplinas: [...disciplines.values()].filter((d) => (d.fases ?? []).includes(fase)).map((d) => ({ id: d.id, tipo: d.tipo })).sort((x, y) => (x.tipo === y.tipo ? x.id.localeCompare(y.id) : x.tipo === "base" ? -1 : 1)),
+}));
+const orquestador = {
+  id: "/evol", estado: "por crear",
+  resumen: "El único punto de entrada en cualquier IDE: lee el estado del proyecto, parte el trabajo en encargos y reparte cada uno al subagente del rol de la fase, con la skill de la disciplina que toque.",
+  pasos: [
+    ["Arrancar", "Lee el estado por el MCP de evol (fase, qué falta, disciplinas activas), la memoria relevante y las lecciones antes de proponer nada."],
+    ["Clasificar", "Decide qué pide la persona: una idea vaga (va a briefing), implementar algo (según la fase), cerrar el ciclo (retrospectiva) o el comando de una fase."],
+    ["Comprobar", "Mira que existan los artefactos de la fase anterior; si falta alguno se detiene y dice cuál, en vez de seguir."],
+    ["Dividir", "Parte el trabajo en encargos pequeños, cada uno con su artefacto y su criterio de «terminado», y activa las disciplinas de la fase respetando sus dependencias."],
+    ["Repartir", "Entrega cada encargo al subagente del rol de la fase con la skill de la disciplina; en paralelo si el IDE lo permite, uno tras otro si no."],
+    ["Verificar", "Reúne los resultados y los pasa por la verificación de evol, que responde PASS, WARN o BLOCK. Un BLOCK detiene el avance."],
+    ["Parar", "Se detiene ante cada aprobación: aprobar y avanzar de fase lo hace una persona, en su terminal."],
+  ],
+  patrones: [
+    ["Secuencial", "Un rol tras otro en la misma sesión. Funciona en cualquier IDE."],
+    ["Paralelo", "Varios roles a la vez con subagentes nativos, con un tope de concurrencia."],
+    ["Paralelo con sincronización", "Varios roles a la vez y un punto de encuentro formal (p. ej. antes de aprobar la especificación)."],
+  ],
+  razonamiento: [
+    ["Antes del briefing", "Afinar la idea: convertir un pedido vago en una propuesta de una página."],
+    ["Antes de aprobar el plan", "Interrogar el plan: un plan que nadie cuestionó no se aprueba; la verificación lo exige."],
+    ["En especificación y calidad", "Verificar afirmaciones externas (benchmarks, avisos de seguridad) antes de darlas por ciertas."],
+  ],
+  hace: ["Elegir la fase, las disciplinas y los roles que tocan", "Dividir el trabajo y repartirlo", "Pedir verificaciones y reunir resultados", "Proponer, nunca imponer, el siguiente paso"],
+  noHace: ["Aprobar ni avanzar de fase", "Instalar skills ni crear agentes", "Tocar la gobernanza ni la configuración de evol", "Escribir el código él mismo: lo delega en el rol constructor"],
+};
+// How each tool is reached. "si" = known and used; "verificar" = reported by secondary sources, check the vendor docs first.
+const ides = [
+  { id: "claude-code", label: "Claude Code (terminal y VS Code)", entrega: "primera", instrucciones: ["si", "CLAUDE.md, que importa AGENTS.md"], skills: ["si", ".claude/skills"], mcp: ["si", ".mcp.json"], entrada: ["si", "comando /evol o skill"], subagentes: ["si", ".claude/agents"] },
+  { id: "codex", label: "Codex", entrega: "primera", instrucciones: ["si", "AGENTS.md"], skills: ["verificar", ".agents/skills o ~/.codex/skills"], mcp: ["si", "config.toml"], entrada: ["verificar", "skill o prompt"], subagentes: ["verificar", ".codex/agents (TOML)"] },
+  { id: "antigravity", label: "Antigravity", entrega: "primera", instrucciones: ["verificar", "AGENTS.md o GEMINI.md; reglas en .agents/rules"], skills: ["verificar", ".agents/skills"], mcp: ["verificar", "—"], entrada: ["verificar", "workflow .agents/workflows"], subagentes: ["verificar", "agentes personalizados"] },
+  { id: "opencode", label: "OpenCode", entrega: "primera", instrucciones: ["si", "AGENTS.md"], skills: ["verificar", ".opencode/skills"], mcp: ["si", "opencode.json"], entrada: ["si", "comando .opencode/command"], subagentes: ["si", "agentes en modo subagente"] },
+  { id: "hermes", label: "Hermes", entrega: "primera", instrucciones: ["si", "AGENTS.md y SOUL.md (visto en su código)"], skills: ["si", "~/.hermes/skills (SKILL.md)"], mcp: ["si", "config.yaml: mcp_servers"], entrada: ["verificar", "comando de barra o skill"], subagentes: ["si", "delegate_task, con tope de concurrencia"] },
+  { id: "gemini-cli", label: "Gemini CLI", entrega: "despues", instrucciones: ["si", "GEMINI.md (o AGENTS.md con context.fileName)"], skills: ["verificar", "—"], mcp: ["si", "settings.json"], entrada: ["si", "comando personalizado .gemini/commands"], subagentes: ["verificar", "—"] },
+  { id: "cursor", label: "Cursor", entrega: "despues", instrucciones: ["si", "AGENTS.md y .cursor/rules"], skills: ["verificar", "parcial"], mcp: ["si", ".cursor/mcp.json"], entrada: ["verificar", "comando o regla"], subagentes: ["verificar", "—"] },
+  { id: "windsurf", label: "Windsurf", entrega: "despues", instrucciones: ["verificar", ".windsurf/rules"], skills: ["verificar", "—"], mcp: ["si", "mcp_config.json"], entrada: ["si", "workflow .windsurf/workflows"], subagentes: ["verificar", "—"] },
+  { id: "copilot", label: "GitHub Copilot", entrega: "despues", instrucciones: ["si", "copilot-instructions.md"], skills: ["verificar", "—"], mcp: ["si", "mcp.json de VS Code"], entrada: ["si", "prompt .github/prompts"], subagentes: ["verificar", "agentes personalizados"] },
+];
 // The only way into the library: an agent audits the skill first. These are the checks it runs.
 const auditoria = {
   agente: "skill-auditor",
@@ -249,7 +294,7 @@ const auditoria = {
   ],
 };
 const out = {
-  generado: new Date(NOW).toISOString(), diasNueva: NEW_DAYS, totalDisciplinas: disciplines.size, fuentes: sources, agentes, auditoria,
+  generado: new Date(NOW).toISOString(), diasNueva: NEW_DAYS, totalDisciplinas: disciplines.size, fuentes: sources, agentes, orquestador, roles, ides, auditoria,
   grupos: [], disciplinas: [...disciplines.values()].map((d) => ({ id: d.id, nombre: d.nombre, tipo: d.tipo, fases: d.fases ?? [] })).sort((a, b) => (a.tipo === b.tipo ? a.id.localeCompare(b.id) : a.tipo === "base" ? -1 : 1)), skills: list,
 };
 writeFileSync(join(here, "data/skills.json"), `${JSON.stringify(out)}\n`);

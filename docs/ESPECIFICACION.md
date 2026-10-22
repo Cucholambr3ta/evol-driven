@@ -606,3 +606,92 @@ marco de metodologías, ni sus rutas, comandos o claves. La biblioteca arranca *
 - Las **mejoras** salen de `MEJORAS*.md`, `docs/mejoras/` y `proposals/`: ¿es esa la convención que quieres fijar?
 - ¿Las 31 disciplinas deben tener cada una su propia skill, o algunas se cubren con una skill compartida?
 - La fecha de modificación de cada archivo se mostrará en `evol ui` (los mockups usan copias, sin fecha real).
+
+## Ampliación 4: el orquestador `/evol` y la compatibilidad con cualquier IDE
+
+> **Estado: PROPUESTA.** Pantalla hecha en la maqueta (pestaña Agentes de Skills); nada construido todavía. La orquestación
+> multi-agente estaba fuera de la v1 y esta ampliación la incorpora.
+
+**Objetivo.** Que evol-driven funcione igual en cualquier IDE o CLI de agentes (Claude Code, Codex, Gemini CLI, OpenCode,
+Antigravity, Cursor, Windsurf, GitHub Copilot y los que vengan). En todos, la persona escribe `/evol` y el **orquestador** reparte el
+trabajo entre subagentes y skills. La **primera entrega** cubre los IDE que usa la persona que lo construye: **Claude Code (en terminal y en VS Code, con la misma configuración), Codex, Antigravity, OpenCode y Hermes**. Los demás esperan, pero el diseño no cambia.
+
+### El flujo del orquestador
+
+| #   | Paso       | Qué hace                                                                                                                              |
+| --- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Arrancar   | Lee el estado por el MCP de evol (fase, qué falta, disciplinas activas), la memoria relevante y las lecciones, antes de proponer nada |
+| 2   | Clasificar | Idea vaga (va a briefing), implementar algo (según la fase), cerrar el ciclo (retrospectiva) o el comando de una fase                  |
+| 3   | Comprobar  | Si falta un artefacto de la fase anterior, se detiene y nombra cuál                                                                    |
+| 4   | Dividir    | Encargos pequeños, cada uno con su artefacto y su criterio de «terminado»; activa las disciplinas de la fase respetando sus dependencias |
+| 5   | Repartir   | Cada encargo al subagente del rol de la fase, con la skill de la disciplina                                                            |
+| 6   | Verificar  | Reúne resultados y los pasa por la verificación de evol: **PASS, WARN o BLOCK**; un BLOCK detiene el avance                            |
+| 7   | Parar      | Se detiene ante cada aprobación: aprobar y avanzar de fase lo hace una persona, en su terminal                                         |
+
+**No hace:** aprobar ni avanzar de fase, instalar skills, crear agentes, tocar la gobernanza ni escribir el código él mismo
+(lo delega en el rol constructor). **Sí hace:** elegir fase, disciplinas y roles; dividir y repartir; pedir verificaciones;
+proponer, nunca imponer, el siguiente paso.
+
+**Skills de razonamiento en puntos fijos.** Antes del briefing, afinar la idea (de un pedido vago a una propuesta de una
+página); antes de aprobar el plan, interrogarlo (un plan que nadie cuestionó no se aprueba: `evol approve plan` falla sin la
+marca con el hash del plan, con una anulación explícita que queda registrada); y en especificación y calidad, verificar las
+afirmaciones externas antes de darlas por ciertas. Sus nombres definitivos los fija el hito O3.
+
+### Subagentes: un rol por fase (propuesta)
+
+`analista` (briefing), `especificador` (spec), `arquitecto` (plan), `constructor` (build), `verificador` (qa) y `facilitador`
+(retro). Cada rol aplica las skills de las disciplinas cuya ficha declara esa fase. Los nombres se pueden cambiar. `skill-auditor`
+es aparte: solo propone veredictos sobre skills nuevas (ver el hito de skills).
+
+### Cómo reparte según el IDE
+
+| Nivel | Cuándo                                       | Qué hace `/evol`                                                                 |
+| ----- | -------------------------------------------- | -------------------------------------------------------------------------------- |
+| A     | El IDE tiene subagentes nativos              | Delega de verdad, en paralelo, con un tope de concurrencia y un punto de sincronización antes de las aprobaciones |
+| B     | Hay comando de entrada pero no subagentes    | Ejecuta los roles uno tras otro en la misma sesión, cargando una skill cada vez; mismos artefactos |
+| C     | Solo instrucciones y MCP                     | Sin comando `/evol`: el archivo de instrucciones explica el flujo y el MCP da el estado |
+
+`evol doctor` detecta qué IDE hay en el equipo y a qué nivel funciona cada uno.
+
+### Capas portables y un adaptador fino por IDE
+
+1. **Instrucciones:** `AGENTS.md` como fuente; Claude Code lo importa desde `CLAUDE.md` y Gemini CLI se configura para leerlo.
+2. **Skills:** carpetas `SKILL.md` (formato abierto de amplia adopción) enlazadas a la carpeta de cada herramienta.
+3. **Herramientas:** el servidor MCP de evol, que todos soportan.
+4. **Entrada `/evol`:** la expone un adaptador por IDE, generado desde una sola fuente: comando (Claude Code, OpenCode, Gemini CLI),
+   workflow (Windsurf), prompt (Copilot), regla o comando (Cursor) o skill (Codex). `evol agents --ide <id>|all` los crea, hoy solo
+   para Claude Code. Es idempotente y no pisa archivos del usuario (criterio 23).
+
+La pantalla Skills muestra la matriz con lo que cada IDE ofrece. Las celdas marcadas «?» vienen de fuentes secundarias y **hay
+que confirmarlas en la documentación oficial antes de construir el adaptador**, sobre todo subagentes, skills en Cursor y Copilot,
+y la entrada de Codex. Hermes se confirmó en su propio código instalado (subagentes con `delegate_task`, MCP, skills y `AGENTS.md`). Para Antigravity, las fuentes discrepan en si la carpeta es `.agent` o `.agents`.
+
+### Hitos
+
+| #   | Qué se construye                                                                                                                                         | Se comprueba con      |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------- |
+| O1  | Contrato del orquestador: una sola fuente para `/evol` con los 7 pasos, y las herramientas de lectura que le faltan al MCP (prerrequisitos, disciplinas activas por fase, lecciones) | criterios 66, 69, 70  |
+| O2  | Adaptadores: `evol agents --ide <id>\|all`, primero para Claude Code, Codex, Antigravity, OpenCode y Hermes y después para los demás de la matriz; `evol doctor` detecta IDE y nivel | criterios 67 y 72     |
+| O3  | Los 6 roles y las skills de razonamiento; subagentes nativos donde existan y modo secuencial donde no                                                    | criterio 68           |
+| O4  | Verificación PASS/WARN/BLOCK al iniciar y terminar cada fase; marca de «plan interrogado» antes de aprobarlo                                              | criterios 71          |
+| O5  | Pruebas de portabilidad: archivos generados por adaptador, idempotencia y un simulador de IDE sin subagentes                                             | criterios 67 y 68     |
+
+### Criterios de aceptación (preliminares)
+
+| #   | Criterio                                                                                                                                       |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| 66  | `/evol` sin argumentos muestra el estado y propone el siguiente paso sin modificar nada.                                                        |
+| 67  | `evol agents --ide <id>` instala `/evol` en cada IDE de la matriz de forma idempotente y sin pisar archivos del usuario.                        |
+| 68  | En un IDE sin subagentes, `/evol` ejecuta los roles en secuencia y produce los mismos artefactos que con subagentes.                            |
+| 69  | `/evol` nunca ejecuta `evol approve` ni `evol next`; aprobar y avanzar exige una persona en una terminal.                                       |
+| 70  | Si falta un artefacto de la fase anterior, `/evol` se detiene y nombra el artefacto.                                                            |
+| 71  | `evol approve plan` falla si el plan no se interrogó (marca con su hash); la anulación explícita queda registrada.                              |
+| 72  | `evol doctor` informa de los IDE detectados y del nivel (A, B o C) de cada uno.                                                                 |
+
+### Preguntas abiertas
+
+- ¿Los seis roles por fase te parecen bien, o prefieres otros (por ejemplo seguridad como rol propio)?
+- ¿El tope de concurrencia y el punto de sincronización los fija evol o cada proyecto en `evol.config.json`? (Hermes ya trae su propio tope de subagentes simultáneos; el de evol no puede superarlo.)
+- Hermes crea y refina skills por su cuenta en `~/.hermes/skills`: para evol son skills de terceros, sin auditar, y no entran a la biblioteca salvo por el auditor.
+- ¿Las skills de razonamiento (afinar la idea, interrogar el plan, verificar afirmaciones) entran en la biblioteca inicial junto a las 9 de disciplinas base?
+
