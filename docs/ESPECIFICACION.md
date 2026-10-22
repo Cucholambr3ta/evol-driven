@@ -376,7 +376,11 @@ cambia entre proyectos, pero se marca el estado actual). Los de código (1, 3, 4
    composición (el índice solo guarda herencia y miembros, no tipos de campos); el de secuencia sigue las llamadas por
    niveles porque el índice no guarda el orden de ejecución; y la fuente es «Source Sans 3», que trae VectorCraft: el SVG
    la nombra, no la incrusta, y el diseño se calcula con anchos estimados para no depender de las fuentes instaladas.
-5. `evol report` (DOCX y PDF con ArtCraft, y Markdown como alternativa).
+5. `evol report` (DOCX y PDF con ArtCraft, y Markdown como alternativa). **Hecho** (criterios 25, 26, 28, 29, 30 y 31;
+   `tests/report.test.ts`). Ajustes respecto al borrador: las «9 secciones» son la portada y las 8 numeradas (el índice
+   es aparte); sin WordCraft el informe falla y ofrece `--formato md`, que solo necesita Graphviz (los diagramas son
+   obligatorios en cualquier formato); el índice llega a primer nivel y los diagramas se indexan en la sección 5;
+   la marca se configura en `evol.config.json` (`report.brand.name` y `report.brand.color`).
 6. Documentación y CI.
 
 ### Fuera de esta ampliación

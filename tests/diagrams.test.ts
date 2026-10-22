@@ -1,7 +1,7 @@
 import { spawnSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
-import { beforeAll, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { journalAppend } from "../src/core/journal.js";
 import { loadContext } from "../src/core/pipeline.js";
 import { formatDuration, parseFeatureActors, timingSegments } from "../src/diagrams/behavior.js";
@@ -10,13 +10,12 @@ import type { Diagram } from "../src/diagrams/index.js";
 import { graphvizVersion } from "../src/diagrams/layout.js";
 import { rasterize } from "../src/diagrams/raster.js";
 import { esc, n, textWidth } from "../src/diagrams/svg.js";
-import { cli, isolateUserConfig, makeProject, tempDir, write } from "./helpers.js";
+import { cli, makeProject, tempDir, write } from "./helpers.js";
 
-let userConfig: string;
-beforeAll(() => {
-  userConfig = isolateUserConfig();
+// tests/setup-env.ts points EVOL_CONFIG_DIR at a temp folder before this file is collected.
+const env = (): Record<string, string> => ({
+  EVOL_CONFIG_DIR: process.env["EVOL_CONFIG_DIR"] ?? "",
 });
-const env = (): Record<string, string> => ({ EVOL_CONFIG_DIR: userConfig });
 
 const hasDot = graphvizVersion() !== null;
 const hasVectorCraft =

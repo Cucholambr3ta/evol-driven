@@ -32,6 +32,20 @@ export const ConfigSchema = z.object({
     })
     .default({ requireTestsForChangedSymbols: false, requireCriteriaCoverage: false }),
   modules: z.array(ModuleSchema).min(1),
+  /** How `evol report` looks. Without a brand the report is neutral. */
+  report: z
+    .object({
+      brand: z
+        .object({
+          name: z.string().min(1).optional(),
+          color: z
+            .string()
+            .regex(/^#?[0-9a-fA-F]{6}$/, "debe ser un color #RRGGBB")
+            .optional(),
+        })
+        .optional(),
+    })
+    .optional(),
 });
 
 export type EvolConfig = z.infer<typeof ConfigSchema>;

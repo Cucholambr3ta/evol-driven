@@ -9,7 +9,8 @@
 | [MemPalace](https://github.com/MemPalace/mempalace)     | probado con 3.11.0            | MIT                              | Memoria persistente. Se usa por MCP (`mempalace-mcp`, stdio); no se reimplementa. Instalar con `uv tool install mempalace` | Para `evol memory` y para registrar eventos del pipeline |
 | [GitNexus](https://github.com/abhigyanpatwari/GitNexus) | cualquiera con `gitnexus mcp` | **PolyForm Noncommercial 1.0.0** | Proveedor **opcional** de inteligencia de código (`"codeIntel": "gitnexus"`)                                               | **No**                                                   |
 | [Graphviz](https://graphviz.org)                        | probado con 16.1.0            | EPL                              | Calcula las posiciones de los diagramas UML (`dot -Tplain`); no dibuja nada                                                | Solo para `evol diagrams`                                |
-| VectorCraft (`vectorcraft-cli`, de ArtCraft)            | 0.14.0 (alfa)                 | MIT / Apache-2.0                 | Convierte los SVG a PNG (`evol diagrams --png`)                                                                            | **No**                                                   |
+| WordCraft (`wordcraft-cli`, de ArtCraft)                | 0.9.0 (alfa)                  | MIT / Apache-2.0                 | Construye el DOCX y el PDF de `evol report` con sus comandos                                                               | **No** (`--formato md` no lo usa)                        |
+| VectorCraft (`vectorcraft-cli`, de ArtCraft)            | 0.14.0 (alfa)                 | MIT / Apache-2.0                 | Convierte los SVG a PNG (`evol diagrams --png` y las imágenes del informe)                                                 | **No**                                                   |
 
 ### Sobre GitNexus
 

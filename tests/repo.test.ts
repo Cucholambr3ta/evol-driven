@@ -2,7 +2,8 @@ import { spawnSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
-import { packageVersion } from "../src/core/paths.js";
+import { homedir, tmpdir } from "node:os";
+import { packageVersion, userConfigDir } from "../src/core/paths.js";
 import { REPO } from "./helpers.js";
 
 const pkg = JSON.parse(readFileSync(join(REPO, "package.json"), "utf8")) as {
@@ -103,4 +104,9 @@ describe("imagen Docker (criterio 18)", () => {
     },
     900_000,
   );
+
+  it("las pruebas no escriben en la configuración real del usuario (claves del gate)", () => {
+    expect(userConfigDir()).not.toBe(join(homedir(), ".config", "evol"));
+    expect(userConfigDir().startsWith(tmpdir())).toBe(true);
+  });
 });

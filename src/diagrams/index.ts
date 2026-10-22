@@ -40,21 +40,25 @@ const GENERATORS: Record<number, (input: DiagramInput) => Diagram> = {
 
 export const DIAGRAM_COUNT = DIAGRAM_ORDER.length;
 
-/** Generates the diagrams (all, or the numbers in `only`) from the project's real data. */
-export function generateDiagrams(
-  ctx: PipelineContext,
-  options: DiagramOptions & { only?: number[] } = {},
-): Diagram[] {
-  const input = collectInput(ctx, options);
-  const wanted = options.only ?? DIAGRAM_ORDER.map((_, i) => i + 1);
+/** Generates the diagrams (all, or the numbers in `only`) from data already collected. */
+export function generateFromInput(input: DiagramInput, only?: number[]): Diagram[] {
+  const wanted = only ?? DIAGRAM_ORDER.map((_, i) => i + 1);
   return wanted.flatMap((n) => {
     const generate = GENERATORS[n];
     return generate ? [generate(input)] : [];
   });
 }
 
+/** Generates the diagrams (all, or the numbers in `only`) from the project's real data. */
+export function generateDiagrams(
+  ctx: PipelineContext,
+  options: DiagramOptions & { only?: number[] } = {},
+): Diagram[] {
+  return generateFromInput(collectInput(ctx, options), options.only);
+}
+
 export function diagramFileName(d: Diagram): string {
   return `${String(d.numero).padStart(2, "0")}-${d.clave}.svg`;
 }
 
-export type { Diagram, DiagramOptions } from "./model.js";
+export type { Diagram, DiagramInput, DiagramOptions } from "./model.js";

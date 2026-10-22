@@ -118,6 +118,32 @@ evol memory search "base de datos"
 Los eventos del pipeline quedan siempre en `.evol/journal.jsonl`; además van a MemPalace, pero si
 MemPalace falla solo se avisa. Los comandos `evol memory` sí fallan si no está disponible.
 
+### Informe del proyecto
+
+```bash
+evol report                       # informe/informe.docx e informe/informe.pdf
+evol report --formato md          # Markdown con los diagramas como SVG (sin ArtCraft)
+evol report --formato pdf --salida entrega
+```
+
+Un dossier en español: portada, índice, 1 resumen ejecutivo (fase, bloqueos, riesgos), 2 pipeline y
+aprobaciones, 3 disciplinas por módulo y fase, 4 trazabilidad de criterios, 5 modelo UML (los 14
+diagramas), 6 arquitectura y mapa de riesgo, 7 decisiones y lecciones, 8 anexos con los hashes.
+Sus cifras salen de los mismos datos que `evol export`. **No incluye** la clave del gate, firmas ni
+el contenido de la memoria de MemPalace (solo conteos), y no ejecuta pruebas.
+
+DOCX y PDF los construye WordCraft y las imágenes las rasteriza VectorCraft (ArtCraft); ambos y
+Graphviz son externos. Si falta alguno, `evol report` falla con un mensaje claro y **no cambia de
+formato por su cuenta**: `--formato md` solo necesita Graphviz. La marca es neutra por defecto; para
+ponerle nombre y color:
+
+```json
+"report": { "brand": { "name": "Acme Labs", "color": "#1F6F5B" } }
+```
+
+El nombre sale en la portada y en el encabezado, y el color en el título y en las cabeceras de las
+tablas.
+
 ### Diagramas UML
 
 ```bash

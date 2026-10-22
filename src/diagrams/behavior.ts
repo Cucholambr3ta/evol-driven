@@ -241,98 +241,121 @@ export function useCaseDiagram(input: DiagramInput): Diagram {
 }
 
 // 9 ── Actividad ─────────────────────────────────────────────────────────────────────────────────
+const PER_ROW = 3;
+const UNIT = 326;
+const ROW_PITCH = 170;
+
 export function activityDiagram(input: DiagramInput): Diagram {
   const title = "Diagrama de actividad";
   const source = "Reglas del pipeline y estado de evol";
   const states = phaseStates(input);
   const parts: string[] = [];
-  const cx = 150;
-  let y = 0;
-  const stateText: Record<PhaseState, string> = {
-    completada: "completada",
-    adoptada: "adoptada",
-    actual: "actual",
-    pendiente: "pendiente",
-  };
-  parts.push(circle(cx, y + 9, 9, { fill: THEME.ink, stroke: THEME.ink }));
-  y += 18;
+  const ox = 52;
+  const cyOf = (row: number): number => 34 + row * ROW_PITCH;
+  const line = (points: [number, number][], style: Parameters<typeof edge>[1] = {}): string =>
+    edge(points, { end: "open", stroke: THEME.ink, straight: true, ...style });
+  const label = (x: number, y: number, t: string, anchor: "start" | "middle" = "middle"): string =>
+    text(x, y, t, { size: 11, anchor, fill: THEME.muted, halo: true });
+
+  const first = cyOf(0);
+  parts.push(circle(ox - 34, first, 9, { fill: THEME.ink, stroke: THEME.ink }));
+  parts.push(
+    line([
+      [ox - 25, first],
+      [ox, first],
+    ]),
+  );
+
   PHASES.forEach((phase, i) => {
+    const [row, col] = [Math.floor(i / PER_ROW), i % PER_ROW];
+    const x = ox + col * UNIT;
+    const cy = cyOf(row);
     const state = states.get(phase) ?? "pendiente";
     const n = activeDisciplines(input.ctx, phase).length;
+    parts.push(rect(x, cy - 24, 160, 48, { ...styleOf(state), rx: 14 }));
+    parts.push(text(x + 80, cy - 4, `Fase ${phase}`, { anchor: "middle", weight: "bold" }));
     parts.push(
-      edge(
-        [
-          [cx, y],
-          [cx, y + 24],
-        ],
-        { end: "open" },
-      ),
-    );
-    y += 24;
-    parts.push(rect(cx - 95, y, 190, 44, { ...styleOf(state), rx: 14 }));
-    parts.push(text(cx, y + 19, `Fase ${phase}`, { anchor: "middle", weight: "bold" }));
-    parts.push(
-      text(cx, y + 35, `${n} disciplina(s) · ${stateText[state]}`, {
+      text(x + 80, cy + 13, `${n} disciplina(s) · ${state}`, {
         size: 11,
         anchor: "middle",
         fill: THEME.muted,
       }),
     );
-    const boxBottom = y + 44;
     parts.push(
-      edge(
-        [
-          [cx, boxBottom],
-          [cx, boxBottom + 24],
-        ],
-        { end: "open" },
-      ),
+      line([
+        [x + 160, cy],
+        [x + 190, cy],
+      ]),
     );
-    y = boxBottom + 24;
+    const dx = x + 240;
     parts.push(
       polygon(
         [
-          [cx, y],
-          [cx + 70, y + 24],
-          [cx, y + 48],
-          [cx - 70, y + 24],
+          [x + 190, cy],
+          [dx, cy - 28],
+          [x + 290, cy],
+          [dx, cy + 28],
         ],
         { ...styleOf(state), fill: THEME.paper },
       ),
     );
-    parts.push(text(cx, y + 22, "¿verificada", { size: 11, anchor: "middle" }));
-    parts.push(text(cx, y + 34, "y aprobada?", { size: 11, anchor: "middle" }));
+    parts.push(text(dx, cy - 2, "¿verificada", { size: 11, anchor: "middle" }));
+    parts.push(text(dx, cy + 10, "y aprobada?", { size: 11, anchor: "middle" }));
     // [no] loops back to the phase: the author fixes what is missing and tries again.
-    const top = boxBottom - 22;
     parts.push(
-      edge(
+      line(
         [
-          [cx + 70, y + 24],
-          [cx + 125, y + 24],
-          [cx + 125, top],
-          [cx + 95, top],
+          [dx, cy + 28],
+          [dx, cy + 52],
+          [x + 80, cy + 52],
+          [x + 80, cy + 24],
         ],
-        { end: "open", dash: true, straight: true },
+        { dash: true },
       ),
     );
-    parts.push(text(cx + 78, y + 18, "[no]", { size: 11, fill: THEME.muted }));
-    const next = i < PHASES.length - 1 ? `evol next → ${PHASES[i + 1]}` : "evol next → fin";
-    parts.push(text(cx + 6, y + 62, `[sí] ${next}`, { size: 11, fill: THEME.muted }));
-    y += 48 + 16;
+    parts.push(label(dx + 6, cy + 46, "[no]", "start"));
+    const last = i === PHASES.length - 1;
+    if (!last && col < PER_ROW - 1) {
+      parts.push(
+        line([
+          [x + 290, cy],
+          [x + UNIT, cy],
+        ]),
+      );
+      parts.push(label(x + 308, cy - 6, "[sí]"));
+    } else if (!last) {
+      // End of the row: the flow goes back to the left edge to start the next one.
+      const [right, mid, left] = [x + 290 + 24, cy + 52 + 28, ox - 26];
+      const next = cyOf(row + 1);
+      parts.push(
+        line([
+          [x + 290, cy],
+          [right, cy],
+          [right, mid],
+          [left, mid],
+          [left, next],
+          [ox, next],
+        ]),
+      );
+      parts.push(label(x + 308, cy - 6, "[sí]"));
+    } else {
+      parts.push(
+        line([
+          [x + 290, cy],
+          [x + UNIT, cy],
+        ]),
+      );
+      parts.push(label(x + 308, cy - 6, "[sí]"));
+      parts.push(circle(x + UNIT + 9, cy, 9, { fill: THEME.paper, stroke: THEME.ink, width: 1.6 }));
+      parts.push(circle(x + UNIT + 9, cy, 5, { fill: THEME.ink, stroke: THEME.ink }));
+    }
   });
-  parts.push(
-    edge(
-      [
-        [cx, y - 8],
-        [cx, y + 12],
-      ],
-      { end: "open" },
-    ),
-  );
-  y += 12;
-  parts.push(circle(cx, y + 9, 9, { fill: THEME.paper, stroke: THEME.ink, width: 1.6 }));
-  parts.push(circle(cx, y + 9, 5, { fill: THEME.ink, stroke: THEME.ink }));
-  const canvas: Canvas = { parts, width: cx + 140, height: y + 18 };
+  const rows = Math.ceil(PHASES.length / PER_ROW);
+  const canvas: Canvas = {
+    parts,
+    width: ox + PER_ROW * UNIT + 24,
+    height: cyOf(rows - 1) + 70,
+  };
   return ok(
     9,
     title,
