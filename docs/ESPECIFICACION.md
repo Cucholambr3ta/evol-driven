@@ -278,3 +278,111 @@ Decisiones de esta ampliación:
 - El MCP no incluye `approve`, `next` ni `init` a propósito; las pruebas lo comprueban.
 - Las herramientas `evol_verify` y los comandos de las disciplinas se ejecutan con la misma confianza
   que `evol next`: corren los comandos que el proyecto declara.
+
+## Ampliación 2: informe profesional, UML y mejoras
+
+> **Estado: BORRADOR, pendiente de aprobación.** No se escribe código hasta que la apruebes.
+
+Decisiones ya tomadas: el informe incluye **los 14 diagramas UML**; **no** hay firmas por persona (se mantiene la clave
+HMAC actual); la trazabilidad usa la convención `CA-n`; la marca del informe es **neutra** (nombre y color configurables).
+
+### Informe de proyecto (`evol report`)
+
+Genera un dossier **DOCX y PDF**, en español, con esta estructura:
+
+1. Portada (nombre, fase, fecha, estado).
+2. Resumen ejecutivo: fase, bloqueos, riesgos principales y aprobaciones.
+3. Pipeline y aprobaciones: quién, cuándo y huella de cada aprobación.
+4. Disciplinas por módulo y fase.
+5. Trazabilidad de criterios de aceptación a pruebas.
+6. Modelo UML (los 14 diagramas, ver abajo).
+7. Arquitectura del código y mapa de riesgo.
+8. Decisiones y lecciones.
+9. Anexos: inventario de artefactos con sus hashes.
+
+**Cómo se construye** (probado con los CLIs, que se usan sin abrir ninguna ventana):
+
+- **Diagramas:** `evol` genera cada uno como SVG a partir de datos reales. Para los que son grafos usa **Graphviz** (`dot`)
+  solo como motor de disposición; los de secuencia, tiempos y casos de uso los dibuja un generador propio. **VectorCraft**
+  convierte el SVG a imagen para incrustarla.
+- **Documento:** lo arma **WordCraft** con sus comandos (portada, estilos de título, tablas con sombreado, imágenes,
+  encabezado, pie y numeración). No se usa la conversión desde HTML: descarta el CSS y los SVG en línea.
+- **PdfCraft** valida el PDF (`info`, `check`) y puede unir anexos.
+- ArtCraft y Graphviz son dependencias externas **opcionales** (ArtCraft está en alfa). Si falta alguna, `evol report`
+  falla con un mensaje claro y ofrece `--formato md` (Markdown con SVG); nunca cambia de formato en silencio. No van
+  dentro de la imagen Docker.
+
+### Los 14 diagramas UML
+
+Cada diagrama dice de dónde salen sus datos. **Si el proyecto no tiene los datos, aparece como «no aplica» con el motivo;
+nunca se inventa contenido.**
+
+| #   | Diagrama              | Qué muestra                                                              | Fuente                                  |
+| --- | --------------------- | ------------------------------------------------------------------------ | --------------------------------------- |
+| 1   | Clases                | Clases, interfaces y tipos con herencia y composición                    | Índice de código (EXTENDS, CONTAINS)    |
+| 2   | Objetos               | Instantánea del proyecto: proyecto, fases y aprobaciones con sus valores | Estado de `evol`                        |
+| 3   | Componentes           | Módulos y dependencias entre ellos                                       | Índice de código (IMPORTS)              |
+| 4   | Estructura compuesta  | Interior de un componente elegido: archivos y puertos (exportaciones)    | Índice de código (CONTAINS, EXPORTS)    |
+| 5   | Paquetes              | Directorios y sus dependencias                                           | Índice de código                        |
+| 6   | Despliegue            | Contenedores, servicios y pipeline de CI                                 | `Dockerfile`, compose, workflows        |
+| 7   | Perfiles              | Estereotipos que aplican las disciplinas activas (`«SDD»`, `«TDD»`…)     | `evol.config.json` y `disciplines/`     |
+| 8   | Casos de uso          | Actores y casos de uso                                                   | `.feature` («Como <actor>»), SPEC       |
+| 9   | Actividad             | Flujo del pipeline con sus puertas de aprobación                         | Modelo del pipeline y estado            |
+| 10  | Máquina de estados    | Estados de una fase: pendiente, actual, aprobada, invalidada             | Reglas del pipeline                     |
+| 11  | Secuencia             | Aprobación de una fase y llamadas de un punto de entrada elegido         | Reglas del pipeline y CALLS             |
+| 12  | Comunicación          | Mismos mensajes de un punto de entrada, numerados sobre los objetos      | Índice de código (CALLS)                |
+| 13  | Tiempos               | Duración de cada fase y de cada espera de aprobación                     | Diario (`.evol/journal`) con sus fechas |
+| 14  | Visión de interacción | Flujo del pipeline donde cada nodo remite a su diagrama de secuencia     | Modelo del pipeline                     |
+
+Los diagramas 2, 6 y 13 reflejan el estado real del momento; los 9, 10 y 14 describen cómo funciona `evol` (el modelo no
+cambia entre proyectos, pero se marca el estado actual). Los de código (1, 3, 4, 5, 11, 12) solo cubren TypeScript.
+
+### Mejoras
+
+| Mejora                                            | Qué hace                                                                                                                                                                                         |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `evol risk`                                       | Ordena los archivos por riesgo = alcance transitivo × falta de pruebas.                                                                                                                          |
+| `evol coverage`                                   | Matriz criterio de aceptación → escenario → prueba, con los huecos. Convención: criterios `CA-1`, `CA-2`… en el SPEC; el `.feature` los etiqueta (`@CA-1`) y el nombre de la prueba los incluye. |
+| `evol disciplines list\|enable\|disable\|suggest` | Activa y desactiva disciplinas por módulo. Perfiles por tipo de proyecto (`erp`, `api`, `web`, `lib`…) con `--perfil` en `new` e `init`.                                                         |
+| `evol lessons check`                              | Busca lecciones parecidas en otros wings de MemPalace y avisa de las repetidas.                                                                                                                  |
+| `evol export --json`                              | Un solo conjunto de datos, con esquema versionado, que usan el informe y, después, `evol ui`.                                                                                                    |
+
+### Criterios de aceptación
+
+| #   | Criterio                                                                                                                                                                               |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 25  | `evol report` genera un `.docx` y un `.pdf` con las 9 secciones; `wordcraft-cli info` y `pdfcraft-cli info/check` los validan.                                                         |
+| 26  | El informe contiene los **14 tipos de diagrama UML**, cada uno con título, tipo y fuente de datos. Si faltan datos aparece como «no aplica» con el motivo.                             |
+| 27  | Cada diagrama es un SVG válido que VectorCraft rasteriza sin error, y es determinista: los mismos datos dan el mismo SVG. Hay una prueba de instantánea sobre el propio `evol-driven`. |
+| 28  | Las cifras, fases y aprobaciones del PDF (texto extraído) coinciden con `evol export --json`.                                                                                          |
+| 29  | Sin ArtCraft o sin Graphviz, `evol report` falla con un mensaje claro y `--formato md` produce Markdown con SVG.                                                                       |
+| 30  | El informe no contiene secretos, claves ni el contenido de los recuerdos de MemPalace: solo conteos y títulos.                                                                         |
+| 31  | La marca es neutra por defecto; el nombre y el color de `evol.config.json` aparecen en portada y encabezado.                                                                           |
+| 32  | `evol risk` ordena correctamente un proyecto de ejemplo y admite `--json`.                                                                                                             |
+| 33  | `evol coverage` detecta un criterio sin escenario y uno sin prueba; en QA puede exigir cobertura total.                                                                                |
+| 34  | `evol disciplines enable/disable` valida el id, registra el cambio en el diario e invalida las aprobaciones de las fases afectadas; `--perfil` aplica el conjunto del perfil.          |
+| 35  | `evol lessons check` detecta una lección repetida entre dos proyectos; sin MemPalace falla con un mensaje claro.                                                                       |
+| 36  | `evol export --json` cumple un esquema versionado y lo consumen el informe y las pruebas.                                                                                              |
+| 37  | CI en verde; las pruebas que necesitan ArtCraft o Graphviz se saltan de forma visible cuando no están instalados.                                                                      |
+
+### Hitos
+
+1. Conjunto de datos (`export`), `risk` y `coverage`.
+2. Perfiles y `evol disciplines`.
+3. `evol lessons check`.
+4. Generador de diagramas: primero los 7 estructurales y luego los 7 de comportamiento.
+5. `evol report` (DOCX y PDF con ArtCraft, y Markdown como alternativa).
+6. Documentación y CI.
+
+### Fuera de esta ampliación
+
+`evol ui` (el panel de los mockups), que consumirá `evol export --json` después. Agentes revisores. Firmas por persona
+(descartadas por ahora).
+
+### Límites que conviene conocer
+
+- Los CLIs de ArtCraft están en **alfa**. En la prueba, la fuente Helvetica se sustituyó por Source Sans 3; los
+  diagramas usarán una fuente incluida para que se vean igual en cualquier equipo.
+- El informe no se puede generar en CI ni en Docker (ArtCraft y Graphviz no están instalados allí).
+- Graphviz no es parte de ArtCraft: solo calcula las posiciones; la imagen final la produce VectorCraft.
+- Los diagramas de código dependen de lo que el indexador entiende (TypeScript); en otros lenguajes serán «no aplica».
