@@ -1,0 +1,104 @@
+#!/usr/bin/env -S node --disable-warning=ExperimentalWarning
+import { UserError } from "./core/errors.js";
+import { packageVersion } from "./core/paths.js";
+
+interface CommandSpec {
+  summary: string;
+  load: () => Promise<(argv: string[]) => Promise<number>>;
+}
+
+const COMMANDS: Record<string, CommandSpec> = {
+  new: {
+    summary: "Crea un proyecto TypeScript con pipeline y memoria",
+    load: async () => (await import("./commands/new.js")).default,
+  },
+  status: {
+    summary: "Fase actual, disciplinas activas y artefactos pendientes",
+    load: async () => (await import("./commands/status.js")).default,
+  },
+  next: {
+    summary: "Avanza de fase si está verificada y aprobada",
+    load: async () => (await import("./commands/next.js")).default,
+  },
+  approve: {
+    summary: "Registra la aprobación humana de una fase",
+    load: async () => (await import("./commands/approve.js")).default,
+  },
+  memory: {
+    summary: "Guarda y consulta memoria en MemPalace (add | search)",
+    load: async () => (await import("./commands/memory.js")).default,
+  },
+  index: {
+    summary: "Construye o actualiza el grafo de código",
+    load: async () => (await import("./commands/codeintel.js")).runIndex,
+  },
+  impact: {
+    summary: "Qué depende de un símbolo, directa y transitivamente",
+    load: async () => (await import("./commands/codeintel.js")).runImpact,
+  },
+  trace: {
+    summary: "Cadena de llamadas desde un símbolo",
+    load: async () => (await import("./commands/codeintel.js")).runTrace,
+  },
+  doctor: {
+    summary: "Comprueba Node, Git, MemPalace y el proyecto",
+    load: async () => (await import("./commands/doctor.js")).default,
+  },
+};
+
+function help(): string {
+  const width = Math.max(...Object.keys(COMMANDS).map((n) => n.length));
+  const lines = Object.entries(COMMANDS).map(
+    ([name, spec]) => `  ${name.padEnd(width)}  ${spec.summary}`,
+  );
+  return [
+    "evol — framework de desarrollo con pipeline de disciplinas y memoria persistente",
+    "",
+    "Uso: evol <comando> [opciones]",
+    "",
+    ...lines,
+    "",
+    "  --version  Muestra la versión",
+    "  --help     Muestra esta ayuda",
+  ].join("\n");
+}
+
+const KNOWN_ERRORS = new Set([
+  "UserError",
+  "NotInteractiveError",
+  "MemoryUnavailableError",
+  "SymbolNotFoundError",
+  "AmbiguousSymbolError",
+  "ProviderUnavailableError",
+]);
+
+async function main(argv: string[]): Promise<number> {
+  const [name, ...rest] = argv;
+  if (!name || name === "--help" || name === "-h" || name === "help") {
+    process.stdout.write(`${help()}\n`);
+    return name ? 0 : 1;
+  }
+  if (name === "--version" || name === "-v") {
+    process.stdout.write(`${packageVersion()}\n`);
+    return 0;
+  }
+  const spec = COMMANDS[name];
+  if (!spec) {
+    process.stderr.write(`Comando desconocido: ${name}\n\n${help()}\n`);
+    return 2;
+  }
+  return (await spec.load())(rest);
+}
+
+main(process.argv.slice(2)).then(
+  (code) => process.exit(code),
+  (error: unknown) => {
+    const err = error as Error;
+    if (err instanceof UserError || KNOWN_ERRORS.has(err.name)) {
+      process.stderr.write(`${err.message}\n`);
+      process.exit(1);
+    }
+    process.stderr.write(`Error inesperado: ${err.stack ?? err.message}\n`);
+    process.exit(2);
+  },
+);

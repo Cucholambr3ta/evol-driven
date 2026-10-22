@@ -1,0 +1,7 @@
+node_modules/
+dist/
+coverage/
+.env
+.env.*
+# Derived data: rebuild it with `evol index`
+.evol/codegraph.sqlite*
