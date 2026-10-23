@@ -1135,6 +1135,16 @@ siempre igual, con las mismas opciones fijadas.
 > - **Falta del S3:** el análisis dinámico (S3b) y la regla de confirmación por IDE (control 9). Los lectores de Codex, OpenCode, Gemini CLI y los
 >   demás de la lista se suman con su propio adaptador y su prueba de aislamiento. La instalación en la biblioteca es del S5.
 
+> **O5 implementado (2026-10-23): pruebas de portabilidad** (`tests/portability.test.ts`).
+>
+> - Por adaptador: todo archivo generado lleva la marca de evol y ningún estado del proyecto; todo lo que un envoltorio manda cargar existe como skill; los
+>   tres IDE con subagentes reciben los mismos roles y el mismo cuerpo del orquestador.
+> - **Simulador de un IDE sin subagentes (criterio 68):** el orquestador solo lee el proyecto por la interfaz de evol. Con subagentes lo hace un rol de
+>   solo lectura por MCP; sin ellos, en línea por la línea de órdenes. La prueba comprueba que ambas vías ven lo mismo (estado, requisitos,
+>   disciplinas, veredicto) y que esas lecturas no cambian ningún archivo del proyecto.
+> - **Límite:** no ejecuta un modelo; garantiza que los dos caminos reciben los mismos datos y que las skills describen la vía en línea, no que un agente
+>   real produzca los mismos artefactos. Eso solo se comprueba probando cada IDE a mano.
+
 > **O2 implementado (2026-10-23): adaptadores para Codex, Antigravity, OpenCode y Hermes, y `evol doctor` por IDE.**
 >
 > - `evol agents --ide <claude-code|codex|antigravity|opencode|hermes|all>` (sin `--ide`, Claude Code, como antes). Un adaptador solo coloca el
