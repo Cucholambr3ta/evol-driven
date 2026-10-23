@@ -23,7 +23,15 @@ import type { Ecosystem } from "./analyze.js";
  * «no auditada»: an audit that could not run must never read as an approval. Tests point each tool
  * to a stub with EVOL_TOOL_<NAME> (an empty value means «not installed»).
  */
-export type ToolName = "gitleaks" | "semgrep" | "npm" | "pip-audit" | "osv-scanner";
+export type ToolName =
+  | "gitleaks"
+  | "semgrep"
+  | "npm"
+  | "pip-audit"
+  | "osv-scanner"
+  | "bandit"
+  | "shellcheck"
+  | "guarddog";
 
 export const INSTALL_HINT: Record<ToolName, string> = {
   gitleaks: "gitleaks (https://github.com/gitleaks/gitleaks)",
@@ -31,6 +39,9 @@ export const INSTALL_HINT: Record<ToolName, string> = {
   npm: "npm (viene con Node.js)",
   "pip-audit": "pip-audit (uv tool install pip-audit)",
   "osv-scanner": "osv-scanner (https://google.github.io/osv-scanner)",
+  bandit: "bandit (uv tool install bandit)",
+  shellcheck: "shellcheck (https://www.shellcheck.net)",
+  guarddog: "guarddog (uv tool install guarddog)",
 };
 
 export function toolPath(name: ToolName): string | null {
@@ -52,17 +63,17 @@ export function toolPath(name: ToolName): string | null {
   return null;
 }
 
-const missing = (name: ToolName): ToolReport => ({
+export const missing = (name: ToolName): ToolReport => ({
   estado: "falta",
   detalle: `${INSTALL_HINT[name]} no está instalado`,
 });
-const failed = (detalle: string, version?: string): ToolReport => ({
+export const failed = (detalle: string, version?: string): ToolReport => ({
   estado: "fallo",
   detalle,
   ...(version ? { version } : {}),
 });
 
-function versionOf(bin: string, args: string[]): string | undefined {
+export function versionOf(bin: string, args: string[]): string | undefined {
   const r = spawnSync(bin, args, { encoding: "utf8", timeout: 20_000 });
   return r.status === 0 ? (r.stdout.trim().split("\n")[0] ?? undefined) : undefined;
 }

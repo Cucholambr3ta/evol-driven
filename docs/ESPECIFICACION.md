@@ -1074,6 +1074,22 @@ siempre igual, con las mismas opciones fijadas.
 | T4b | SecDD ejecuta el escaneo como verificación; `evol doctor` informa de cada herramienta de seguridad                     | criterio 93 y 105   |
 | T4c | Las cuatro skills y las tres que ya estaban, escritas, con sus evals y auditadas                                       | criterios 106 a 108 |
 
+> **T4a implementado.** `evol security scan [--solo <área>] [--ci] [--json]` ejecuta gitleaks (obligatoria), semgrep con las reglas de evol y
+> las del proyecto en `.evol/semgrep/` (obligatoria), bandit y shellcheck (obligatorias solo si hay Python o shell), osv-scanner (obligatoria si
+> hay archivos de bloqueo) y guarddog (opcional). Guarda `.evol/qa/security/ultimo.json` y reescribe solo su sección de `.evol/qa/QA_REPORT.md`
+> (los CRITICAL con casilla `- [ ] CRITICAL:`, el resto como viñetas sin casilla). Lo que se decidió:
+>
+> - **Sin textos del código analizado:** el mensaje de cada hallazgo sale solo de campos de la herramienta (regla, paquete, título del aviso),
+>   porque los mensajes de bandit y semgrep pueden citar la contraseña o el código que encontraron.
+> - **El proyecto no elige qué se oculta:** se ignoran `.gitleaks.toml`, `.gitleaksignore`, `gitleaks:allow`, `.semgrepignore`, `# nosec` y
+>   `.shellcheckrc`. Solo vale `.evol/security-ignore.json`, y el ignorado de una línea `# shellcheck disable=` en el propio script sigue
+>   funcionando (shellcheck no tiene opción para desactivarlo).
+> - **Severidades:** gitleaks siempre CRITICAL; semgrep ERROR→HIGH, WARNING→MEDIUM, INFO→LOW, y una regla puede subir a CRITICAL con
+>   `metadata.evol_severity`; bandit y shellcheck nunca llegan a CRITICAL por sí solos; osv-scanner por puntaje CVSS (≥9 CRITICAL, ≥7 HIGH, ≥4 MEDIUM).
+> - **Un escaneo que no corrió no es un visto bueno:** con `--ci`, una herramienta obligatoria que falta o falla (por ejemplo osv-scanner sin red)
+>   hace fallar el comando.
+> - **Pendiente:** guarddog tarda (descarga cada paquete); `evol doctor` aún no informa de estas herramientas (T4b).
+
 **Criterios de aceptación (preliminares)**
 
 | #   | Criterio                                                                                                                                                        |

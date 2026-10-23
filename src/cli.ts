@@ -78,6 +78,10 @@ const COMMANDS: Record<string, CommandSpec> = {
       "Biblioteca de skills: lista, revisa, exporta y audita (list | check | export | audit)",
     load: async () => (await import("./commands/skills.js")).default,
   },
+  security: {
+    summary: "Escaneo de seguridad: secretos, código y dependencias (scan [--solo] [--ci])",
+    load: async () => (await import("./commands/security.js")).default,
+  },
   agents: {
     summary: "Crea o refresca la integración con Claude Code y MCP",
     load: async () => (await import("./commands/agents.js")).default,
