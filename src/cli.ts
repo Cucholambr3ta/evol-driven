@@ -75,7 +75,7 @@ const COMMANDS: Record<string, CommandSpec> = {
   },
   skills: {
     summary:
-      "Biblioteca de skills: lista, revisa, exporta y audita (list | check | export | audit)",
+      "Biblioteca de skills: lista, revisa, exporta, audita y aprueba (list | check | export | audit | approve)",
     load: async () => (await import("./commands/skills.js")).default,
   },
   security: {

@@ -10,10 +10,20 @@ import { checkSkill } from "../skills/check.js";
 import type { CheckResult, Level } from "../skills/check.js";
 import { disciplineSkills, findSkill, listSkills, resolveSkillsDir } from "../skills/library.js";
 import { AUDIT_LABEL, auditState, readManifest } from "../skills/manifest.js";
+import { userInfo } from "node:os";
+import { NotInteractiveError } from "../core/errors.js";
+import { requireReaders } from "../skills/auditor/config.js";
+import { secondPass } from "../skills/auditor/pass2.js";
+import { selfTest } from "../skills/auditor/selftest.js";
+import type { SelfTestResult } from "../skills/auditor/selftest.js";
+import { approveSkill } from "../skills/approve.js";
+import type { ApproveConfirm } from "../skills/approve.js";
+import { hasTerminal, typingSession } from "./tty.js";
+import type { TypingSession } from "./tty.js";
 import { out } from "./shared.js";
 
 const USAGE =
-  "Uso: evol skills <list|check|export|audit> [nombre|origen] [--dir <carpeta>] [--json] [--disciplinas] [--salida <archivo.zip>] [--propia] [--capacidades <archivo.json>]";
+  "Uso: evol skills <list|check|export|audit|approve> [nombre|origen] [--dir <carpeta>] [--json] [--disciplinas] [--salida <archivo.zip>] [--propia] [--capacidades <archivo.json>] [--subproceso] [--autoprueba]";
 
 const MARK: Record<Level, string> = { ok: "✓", aviso: "!", error: "×" };
 
@@ -122,12 +132,13 @@ function exportOne(dir: string, name: string | undefined, target: string | undef
   return 0;
 }
 
-function audit(
+async function audit(
   origin: string | undefined,
   propia: boolean,
   capabilitiesFile: string | undefined,
   json: boolean,
-): number {
+  subprocess: boolean,
+): Promise<number> {
   if (!origin)
     throw new UserError(
       "Indica qué auditar: una carpeta, un .zip o https://…/repo@<sha de 40 caracteres>.",
@@ -135,10 +146,14 @@ function audit(
   const capacidades = capabilitiesFile
     ? parseDeclaration(readFileSync(resolve(capabilitiesFile), "utf8"), capabilitiesFile)
     : undefined;
-  const { report, informe, cuarentena } = auditSkill(origin, {
+  const first = auditSkill(origin, {
     propia,
     ...(capacidades ? { capacidades } : {}),
   });
+  const { informe, cuarentena } = first;
+  let report = first.report;
+  // the readers are asked before the verdict is shown, so what is shown is the whole audit
+  if (subprocess && report.huella) report = await secondPass(report.huella, requireReaders());
   if (json) {
     out(JSON.stringify({ ...report, informe, cuarentena }, null, 2));
   } else {
@@ -161,13 +176,65 @@ function audit(
     }
     if (informe) out(`Informe: ${informe}`);
     if (cuarentena) out(`Cuarentena: ${cuarentena}`);
-    out("Pasada 2 (subproceso): pendiente; llega con evol skills approve.");
+    out(
+      report.pasadas.subproceso === "hecha"
+        ? `Pasada 2 (subproceso): hecha por ${(report.subproceso?.lectores ?? []).map((l) => l.id).join(", ")}.`
+        : report.pasadas.subproceso === "fallo"
+          ? `Pasada 2 (subproceso): falló: ${report.subproceso?.detalle ?? "sin detalle"}`
+          : "Pasada 2 (subproceso): pendiente; se ejecuta con --subproceso y es necesaria para aprobar.",
+    );
     if (report.veredicto === "no-auditada")
       out(
         "Una skill «no auditada» no puede aprobarse. Instala las herramientas que faltan y vuelve a ejecutar la auditoría.",
       );
   }
   return report.veredicto === "pass" || report.veredicto === "warn" ? 0 : 1;
+}
+
+async function selfTestCommand(json: boolean): Promise<number> {
+  const results: Record<string, SelfTestResult> = {};
+  for (const reader of requireReaders()) results[reader.id] = await selfTest(reader);
+  if (json) out(JSON.stringify(results, null, 2));
+  else
+    for (const [id, r] of Object.entries(results))
+      out(`${r.fiable ? "✓" : "×"} ${id}: ${r.fiable ? "fiable" : "NO fiable"}: ${r.detalle}`);
+  return Object.values(results).every((r) => r.fiable) ? 0 : 1;
+}
+
+/** Approving is for a person at a terminal: it types the skill's name, and accepts any warnings in writing. */
+function ttyApprove(session: TypingSession): ApproveConfirm {
+  return {
+    approver: userInfo().username,
+    name: (skill) =>
+      session.confirm(
+        `Para aprobar la skill escribe su nombre («${skill}»): `,
+        skill,
+        "Aprobación cancelada: el nombre no coincide.",
+      ),
+    warnings: () =>
+      session.confirm(
+        "Hay avisos. Para aceptarlos escribe «acepto los avisos»: ",
+        "acepto los avisos",
+        "Aprobación cancelada: no se aceptaron los avisos.",
+      ),
+  };
+}
+
+async function approve(dir: string, name: string | undefined): Promise<number> {
+  // fail before reading anything when nobody is there to approve
+  if (!hasTerminal()) throw new NotInteractiveError();
+  if (!name)
+    throw new UserError("Indica qué skill aprobar: evol skills approve <nombre> [--dir <carpeta>]");
+  const session = typingSession();
+  try {
+    const result = await approveSkill(dir, name, ttyApprove(session), out);
+    out(
+      `Skill «${name}» ${result.estado === "aprobada" ? "aprobada" : "aprobada con avisos aceptados"} (huella ${result.huella.slice(0, 16)}…).`,
+    );
+  } finally {
+    session.close();
+  }
+  return 0;
 }
 
 export default async function run(argv: string[]): Promise<number> {
@@ -181,6 +248,8 @@ export default async function run(argv: string[]): Promise<number> {
       salida: { type: "string" },
       propia: { type: "boolean" },
       capacidades: { type: "string" },
+      subproceso: { type: "boolean" },
+      autoprueba: { type: "boolean" },
     },
   });
   const [action, name] = positionals;
@@ -193,7 +262,16 @@ export default async function run(argv: string[]): Promise<number> {
     case "export":
       return exportOne(dir, name, values.salida);
     case "audit":
-      return audit(name, values.propia === true, values.capacidades, values.json === true);
+      if (values.autoprueba === true) return selfTestCommand(values.json === true);
+      return audit(
+        name,
+        values.propia === true,
+        values.capacidades,
+        values.json === true,
+        values.subproceso === true,
+      );
+    case "approve":
+      return approve(dir, name);
     default:
       throw new UserError(USAGE);
   }

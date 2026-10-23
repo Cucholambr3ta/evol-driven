@@ -44,8 +44,24 @@ export interface AuditReport {
   herramientas: Record<string, ToolReport>;
   inventario: { archivos: number; bytes: number; scripts: string[] };
   capacidades: CapacidadesReport;
-  /** Pass 1 (rules) is this report; pass 2 (the isolated sub-process) comes with `approve`. */
-  pasadas: { reglas: "hecha"; subproceso: "pendiente" };
+  /** Pass 1 (rules) is this report; pass 2 (the isolated reader) is added by `audit --subproceso`. */
+  pasadas: { reglas: "hecha"; subproceso: "pendiente" | "hecha" | "fallo" };
+  /** What pass 2 did: who read the skill, with which model and prompt, and what it added. */
+  subproceso?: {
+    lectores: {
+      id: string;
+      modelo: string;
+      promptHash: string;
+      entradaHash: string;
+      ms: number;
+      intentos: number;
+      veredictoPropuesto: "pass" | "warn" | "block";
+      aceptados: number;
+      descartados: number;
+    }[];
+    /** Why pass 2 did not complete, when it did not. */
+    detalle?: string;
+  };
 }
 
 export const VEREDICTO_LABEL: Record<Veredicto, string> = {

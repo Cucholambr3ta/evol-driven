@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { z } from "zod";
 import { UserError } from "../core/errors.js";
@@ -13,6 +13,9 @@ const AuditSchema = z.object({
   huella: z.string().regex(/^[0-9a-f]{64}$/),
   fecha: z.string().min(1),
   informe: z.string().optional(),
+  /** Who approved it, at a terminal, and whether they accepted its warnings. */
+  aprobadaPor: z.string().optional(),
+  avisosAceptados: z.boolean().optional(),
 });
 
 const EntrySchema = z.object({
@@ -65,3 +68,10 @@ export const AUDIT_LABEL: Record<AuditState, string> = {
   aprobada: "auditada",
   "con-avisos": "auditada con avisos",
 };
+
+export function writeManifest(dir: string, manifest: Manifest): void {
+  const file = join(dir, MANIFEST_FILE);
+  const tmp = `${file}.tmp`;
+  writeFileSync(tmp, `${JSON.stringify(manifest, null, 2)}\n`);
+  renameSync(tmp, file);
+}
