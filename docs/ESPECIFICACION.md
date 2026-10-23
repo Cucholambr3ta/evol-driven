@@ -1149,6 +1149,23 @@ siempre igual, con las mismas opciones fijadas.
 > de inyección de la auditoría de skills, y solo lo aceptado llega a `ready/<fuente>/`, la única carpeta que un indexador puede leer.
 > **Falta:** ejecutar el motor sobre `ready/` (R1 restante), `evol knowledge search` y `status` por encima de él, `doctor` y las citas en el
 > informe (R3), y el piloto R0 con las 30 preguntas.
+>
+> **Piloto R0 preparado (2026-10-23).**
+>
+> - **Motores instalados** con versión fija en `~/.local/share/evol/knowledge-engines/` (docs-mcp-server 3.3.0 y mcp-local-rag 0.23.1),
+>   sin ejecutar los scripts de instalación salvo los de los módulos nativos, y con osv-scanner sobre cada archivo de bloqueo: docs-mcp-server
+>   0 avisos; mcp-local-rag 3 de nivel HIGH en `sharp` 0.33.5, que es la copia anidada de LanceDB que mcp-local-rag no usa (procesa imágenes y aquí
+>   se indexan PDF y texto; el `sharp` que sí usa es 0.35.5, corregido). **Riesgo aceptado y anotado.** No se ejecuta `mcp-local-rag skills install`:
+>   una skill solo entra por `evol skills audit`.
+> - **Tres fuentes reales capturadas por commit fijo y revisadas:** OWASP Cheat Sheet Series (CC-BY-SA-4.0), el manual de TypeScript (CC-BY-4.0) y
+>   la documentación de React (CC-BY-4.0). Node.js quedó fuera a propósito: GitHub declara su licencia como `NOASSERTION` y su `LICENSE` no
+>   deja claro qué cubre la carpeta `doc/`; con la regla del registro, una licencia que no se puede comprobar en origen no entra.
+> - **La revisión sobre documentación real rechazó 8 de unos 500 documentos, casi todos falsos positivos en las guías de seguridad** (un JWT de
+>   ejemplo, caracteres bidi de ejemplo en la guía de evasión de XSS, frases del tipo «envía las credenciales al servidor» en guías que
+>   advierten de ello). Por eso se añadió `evol knowledge accept <fuente> <ruta> --motivo --por`: una persona acepta ese documento por escrito;
+>   la aceptación queda en el registro **atada al hash del archivo** y solo vale para lo que la revisión rechazó. Ninguna se ha aplicado todavía.
+> - `evol knowledge source add --git … --commit … --subcarpeta <ruta>` descarga solo esa carpeta (captura parcial y dispersa), que pasa a ser la raíz.
+> - Las 30 preguntas están en `docs/piloto-conocimiento/preguntas.json` con documento y sección esperados, comprobados contra las capturas.
 
 **Qué es y qué no.** Tres memorias distintas, que no se mezclan:
 

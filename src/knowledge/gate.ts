@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { copyFileSync, mkdirSync, readFileSync, rmSync, statSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { UserError } from "../core/errors.js";
@@ -10,6 +11,16 @@ import { filesOf } from "./capture.js";
 export const DOC_FILE = /\.(md|mdx|markdown|txt|rst|adoc|asciidoc|html?|json|ya?ml)$/i;
 const MAX_BYTES = 2 * 1024 * 1024;
 
+export interface Acceptance {
+  ruta: string;
+  sha256: string;
+  motivo: string;
+  responsable: string;
+}
+
+export const sha256Of = (file: string): string =>
+  createHash("sha256").update(readFileSync(file)).digest("hex");
+
 export interface Rejection {
   ruta: string;
   motivos: string[];
@@ -17,6 +28,13 @@ export interface Rejection {
 
 export interface Review {
   aceptados: string[];
+  /** Rejected by the gate, accepted by a person: they are in `aceptados` too. */
+  aceptadosPorPersona: {
+    ruta: string;
+    motivo: string;
+    responsable: string;
+    motivosOriginales: string[];
+  }[];
   rechazados: Rejection[];
   /** Kept, but worth a look: a hidden HTML comment, a phrase that is often benign in documentation. */
   avisos: { ruta: string; texto: string }[];
@@ -27,7 +45,7 @@ export interface Review {
  * the agent does not get in, and the review says which one and why; it never repeats a secret's
  * value. Without gitleaks nothing is reviewed: a review that did not run is not a pass.
  */
-export function reviewCapture(dir: string): Review {
+export function reviewCapture(dir: string, acceptances: Acceptance[] = []): Review {
   const docs = filesOf(dir).filter((f) => DOC_FILE.test(f));
   const reasons = new Map<string, Set<string>>();
   const warnings: Review["avisos"] = [];
@@ -63,9 +81,25 @@ export function reviewCapture(dir: string): Review {
     else warnings.push({ ruta: f.archivo, texto: f.texto });
   }
 
+  const overridden: Review["aceptadosPorPersona"] = [];
+  for (const [ruta, motivos] of [...reasons]) {
+    const accepted = acceptances.find(
+      (a) => a.ruta === ruta && a.sha256 === sha256Of(join(dir, ruta)),
+    );
+    if (!accepted) continue;
+    reasons.delete(ruta);
+    overridden.push({
+      ruta,
+      motivo: accepted.motivo,
+      responsable: accepted.responsable,
+      motivosOriginales: [...motivos],
+    });
+  }
+
   const rechazados = [...reasons].map(([ruta, motivos]) => ({ ruta, motivos: [...motivos] }));
   return {
     aceptados: docs.filter((d) => !reasons.has(d)),
+    aceptadosPorPersona: overridden,
     rechazados,
     avisos: warnings.filter((w) => !reasons.has(w.ruta)),
   };

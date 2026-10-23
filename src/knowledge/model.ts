@@ -5,7 +5,7 @@ export interface KnowledgeSource {
   nombre: string;
   /** The version of the software the documentation describes. */
   version: string;
-  origen: { tipo: "git" | "local"; url: string; commit?: string };
+  origen: { tipo: "git" | "local"; url: string; commit?: string; subcarpeta?: string };
   capturadoEl: string;
   licencia: {
     /** An SPDX expression, or «desconocida». */
@@ -20,8 +20,26 @@ export interface KnowledgeSource {
   usoPrivado?: { motivo: string; responsable: string; el: string };
   /** False for «uso privado»: the text is never quoted verbatim in a report. */
   citable: boolean;
+  /**
+   * Documents the gate rejected and a person accepted after reading them (a sample token in a JWT
+   * guide, a bidi example in an XSS guide). Tied to the file's own hash: if the content changes, the
+   * acceptance no longer applies.
+   */
+  aceptaciones?: {
+    ruta: string;
+    sha256: string;
+    motivo: string;
+    responsable: string;
+    el: string;
+  }[];
   estado: SourceState;
-  revision?: { el: string; aceptados: number; rechazados: number; avisos: number };
+  revision?: {
+    el: string;
+    aceptados: number;
+    rechazados: number;
+    avisos: number;
+    aceptadosPorPersona: number;
+  };
   retirada?: { el: string; motivo: string };
 }
 

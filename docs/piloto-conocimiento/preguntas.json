@@ -1,0 +1,316 @@
+{
+  "version": 1,
+  "descripcion": "30 preguntas fijas del piloto R0 del conocimiento propio. Cada una lleva el documento y la sección donde está la respuesta, comprobados contra las capturas indicadas en `fuentes`.",
+  "fuentes": {
+    "owasp": "owasp-cheatsheets-6c87b0e",
+    "typescript": "typescript-handbook-2453b61",
+    "react": "react-docs-ae5e480"
+  },
+  "tipos": {
+    "literal": "la pregunta comparte los términos técnicos exactos del documento",
+    "parafraseada": "describe lo mismo con otras palabras",
+    "conceptual": "pregunta general sin los términos del título"
+  },
+  "preguntas": [
+    {
+      "id": "P01",
+      "fuente": "owasp",
+      "tipo": "literal",
+      "pregunta": "¿Qué valor debo darle al atributo SameSite de la cookie de sesión y para qué sirven Secure y HttpOnly?",
+      "esperado": {
+        "archivo": "Session_Management_Cheat_Sheet.md",
+        "seccion": "SameSite Attribute"
+      }
+    },
+    {
+      "id": "P02",
+      "fuente": "owasp",
+      "tipo": "literal",
+      "pregunta": "¿Cómo se usa un nonce en la Content Security Policy para permitir scripts en línea?",
+      "esperado": {
+        "archivo": "Content_Security_Policy_Cheat_Sheet.md",
+        "seccion": "Nonce based"
+      }
+    },
+    {
+      "id": "P03",
+      "fuente": "owasp",
+      "tipo": "literal",
+      "pregunta": "¿Qué parámetros recomienda OWASP para Argon2id al guardar contraseñas?",
+      "esperado": {
+        "archivo": "Password_Storage_Cheat_Sheet.md",
+        "seccion": "Argon2id"
+      }
+    },
+    {
+      "id": "P04",
+      "fuente": "owasp",
+      "tipo": "parafraseada",
+      "pregunta": "¿Por qué no basta con escapar los caracteres especiales para evitar la inyección SQL y qué hay que hacer en su lugar?",
+      "esperado": {
+        "archivo": "SQL_Injection_Prevention_Cheat_Sheet.md",
+        "seccion": "Defense Option 1: Prepared Statements (with Parameterized Queries)"
+      }
+    },
+    {
+      "id": "P05",
+      "fuente": "owasp",
+      "tipo": "parafraseada",
+      "pregunta": "¿Cómo evito que un paquete de npm ejecute código durante la instalación?",
+      "esperado": {
+        "archivo": "NPM_Security_Cheat_Sheet.md",
+        "seccion": "3) Minimize attack surfaces by ignoring run-scripts"
+      }
+    },
+    {
+      "id": "P06",
+      "fuente": "owasp",
+      "tipo": "parafraseada",
+      "pregunta": "¿Por qué no debería correr mi contenedor como root y cómo lo evito en el Dockerfile?",
+      "esperado": {
+        "archivo": "Docker_Security_Cheat_Sheet.md",
+        "seccion": "RULE \\#2 - Set a user"
+      }
+    },
+    {
+      "id": "P07",
+      "fuente": "owasp",
+      "tipo": "conceptual",
+      "pregunta": "¿Cada cuánto y cómo se deben rotar los secretos de una aplicación?",
+      "esperado": {
+        "archivo": "Secrets_Management_Cheat_Sheet.md",
+        "seccion": "2.7 Secret Lifecycle"
+      }
+    },
+    {
+      "id": "P08",
+      "fuente": "owasp",
+      "tipo": "literal",
+      "pregunta": "Explícame el patrón double submit cookie contra CSRF.",
+      "esperado": {
+        "archivo": "Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.md",
+        "seccion": "ALTERNATIVE: Using A Double-Submit Cookie Pattern"
+      }
+    },
+    {
+      "id": "P09",
+      "fuente": "owasp",
+      "tipo": "parafraseada",
+      "pregunta": "Mi servidor descarga imágenes desde una URL que da el usuario; ¿cómo evito que la usen para atacar la red interna?",
+      "esperado": {
+        "archivo": "Server_Side_Request_Forgery_Prevention_Cheat_Sheet.md",
+        "seccion": "Case 2 - Application can send requests to ANY external IP address or domain name"
+      }
+    },
+    {
+      "id": "P10",
+      "fuente": "owasp",
+      "tipo": "conceptual",
+      "pregunta": "¿Qué preguntas me hago al hacer el modelo de amenazas de un sistema nuevo?",
+      "esperado": {
+        "archivo": "Threat_Modeling_Cheat_Sheet.md",
+        "seccion": "Addressing Each Question"
+      }
+    },
+    {
+      "id": "P11",
+      "fuente": "owasp",
+      "tipo": "conceptual",
+      "pregunta": "¿Qué riesgos tienen los servidores MCP y cómo limito lo que pueden hacer los agentes?",
+      "esperado": {
+        "archivo": "MCP_Security_Cheat_Sheet.md",
+        "seccion": "Key Risks"
+      }
+    },
+    {
+      "id": "P12",
+      "fuente": "typescript",
+      "tipo": "literal",
+      "pregunta": "¿Cómo estrecho un tipo unión usando el operador in?",
+      "esperado": {
+        "archivo": "handbook-v2/Narrowing.md",
+        "seccion": "The `in` operator narrowing"
+      }
+    },
+    {
+      "id": "P13",
+      "fuente": "typescript",
+      "tipo": "literal",
+      "pregunta": "¿Para qué sirve infer dentro de un tipo condicional?",
+      "esperado": {
+        "archivo": "handbook-v2/Type Manipulation/Conditional Types.md",
+        "seccion": "Inferring Within Conditional Types"
+      }
+    },
+    {
+      "id": "P14",
+      "fuente": "typescript",
+      "tipo": "parafraseada",
+      "pregunta": "Quiero convertir todas las propiedades de un tipo en solo lectura u opcionales; ¿cómo lo hago con tipos mapeados?",
+      "esperado": {
+        "archivo": "handbook-v2/Type Manipulation/Mapped Types.md",
+        "seccion": "Mapping Modifiers"
+      }
+    },
+    {
+      "id": "P15",
+      "fuente": "typescript",
+      "tipo": "literal",
+      "pregunta": "¿Cuál es la diferencia entre Pick y Omit?",
+      "esperado": {
+        "archivo": "reference/Utility Types.md",
+        "seccion": "`Omit<Type, Keys>`"
+      }
+    },
+    {
+      "id": "P16",
+      "fuente": "typescript",
+      "tipo": "parafraseada",
+      "pregunta": "¿Cómo limito el tipo que acepta un parámetro genérico para que tenga una propiedad length?",
+      "esperado": {
+        "archivo": "handbook-v2/Type Manipulation/Generics.md",
+        "seccion": "Generic Constraints"
+      }
+    },
+    {
+      "id": "P17",
+      "fuente": "typescript",
+      "tipo": "parafraseada",
+      "pregunta": "En un monorepo, ¿cómo hago que un proyecto TypeScript dependa de otro y que se compile solo lo que cambió?",
+      "esperado": {
+        "archivo": "project-config/Project References.md",
+        "seccion": "Build Mode for TypeScript"
+      }
+    },
+    {
+      "id": "P18",
+      "fuente": "typescript",
+      "tipo": "conceptual",
+      "pregunta": "¿Conviene usar enums o uniones de literales de cadena?",
+      "esperado": {
+        "archivo": "reference/Enums.md",
+        "seccion": "Objects vs Enums"
+      }
+    },
+    {
+      "id": "P19",
+      "fuente": "typescript",
+      "tipo": "literal",
+      "pregunta": "¿En qué versión de TypeScript apareció el operador satisfies?",
+      "esperado": {
+        "archivo": "release-notes/TypeScript 4.9.md",
+        "seccion": "The `satisfies` Operator"
+      }
+    },
+    {
+      "id": "P20",
+      "fuente": "typescript",
+      "tipo": "parafraseada",
+      "pregunta": "¿Cómo declaro que un recurso se libera solo al salir del bloque, por ejemplo cerrar un archivo?",
+      "esperado": {
+        "archivo": "release-notes/TypeScript 5.2.md",
+        "seccion": "`using` Declarations and Explicit Resource Management"
+      }
+    },
+    {
+      "id": "P21",
+      "fuente": "typescript",
+      "tipo": "conceptual",
+      "pregunta": "¿Qué cambios de TypeScript 6.0 pueden romper mi proyecto?",
+      "esperado": {
+        "archivo": "release-notes/TypeScript 6.0.md",
+        "seccion": "Breaking Changes and Deprecations in TypeScript 6.0"
+      }
+    },
+    {
+      "id": "P22",
+      "fuente": "react",
+      "tipo": "literal",
+      "pregunta": "¿Cómo limpio una suscripción dentro de useEffect?",
+      "esperado": {
+        "archivo": "reference/react/useEffect.md",
+        "seccion": "Connecting to an external system"
+      }
+    },
+    {
+      "id": "P23",
+      "fuente": "react",
+      "tipo": "parafraseada",
+      "pregunta": "¿Cuándo es un error usar un efecto para calcular un valor derivado del estado?",
+      "esperado": {
+        "archivo": "learn/you-might-not-need-an-effect.md",
+        "seccion": "Updating state based on props or state"
+      }
+    },
+    {
+      "id": "P24",
+      "fuente": "react",
+      "tipo": "literal",
+      "pregunta": "¿Cómo actualizo el estado en función del valor anterior con useState?",
+      "esperado": {
+        "archivo": "reference/react/useState.md",
+        "seccion": "Updating state based on the previous state"
+      }
+    },
+    {
+      "id": "P25",
+      "fuente": "react",
+      "tipo": "conceptual",
+      "pregunta": "¿Por qué después de llamar a setState el valor sigue siendo el anterior dentro del mismo manejador de eventos?",
+      "esperado": {
+        "archivo": "learn/state-as-a-snapshot.md",
+        "seccion": "Rendering takes a snapshot in time"
+      }
+    },
+    {
+      "id": "P26",
+      "fuente": "react",
+      "tipo": "parafraseada",
+      "pregunta": "¿Cuándo conviene pasar de useState a un reducer?",
+      "esperado": {
+        "archivo": "learn/extracting-state-logic-into-a-reducer.md",
+        "seccion": "Comparing `useState` and `useReducer`"
+      }
+    },
+    {
+      "id": "P27",
+      "fuente": "react",
+      "tipo": "parafraseada",
+      "pregunta": "Tengo props que paso por muchos niveles de componentes; ¿cómo evito eso?",
+      "esperado": {
+        "archivo": "learn/passing-data-deeply-with-context.md",
+        "seccion": "Context: an alternative to passing props"
+      }
+    },
+    {
+      "id": "P28",
+      "fuente": "react",
+      "tipo": "literal",
+      "pregunta": "¿Para qué sirve la prop key al renderizar listas?",
+      "esperado": {
+        "archivo": "learn/rendering-lists.md",
+        "seccion": "Keeping list items in order with `key`"
+      }
+    },
+    {
+      "id": "P29",
+      "fuente": "react",
+      "tipo": "conceptual",
+      "pregunta": "¿Cómo evito que datos sensibles del usuario lleguen al cliente desde un componente de servidor?",
+      "esperado": {
+        "archivo": "reference/react/experimental_taintObjectReference.md",
+        "seccion": "Prevent user data from unintentionally reaching the client"
+      }
+    },
+    {
+      "id": "P30",
+      "fuente": "react",
+      "tipo": "parafraseada",
+      "pregunta": "¿Cómo muestro un cambio en la interfaz al instante mientras se confirma la petición al servidor?",
+      "esperado": {
+        "archivo": "reference/react/useOptimistic.md",
+        "seccion": "Adding optimistic state to a component"
+      }
+    }
+  ]
+}

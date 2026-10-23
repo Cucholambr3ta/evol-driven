@@ -1,8 +1,9 @@
 import { rmSync } from "node:fs";
+import { join } from "node:path";
 import { parseArgs } from "node:util";
 import { UserError } from "../core/errors.js";
-import { captureGit, copyLocal, hashTree } from "../knowledge/capture.js";
-import { publish, reviewCapture } from "../knowledge/gate.js";
+import { captureGit, copyLocal, filesOf, hashTree, SUBPATH } from "../knowledge/capture.js";
+import { publish, reviewCapture, sha256Of } from "../knowledge/gate.js";
 import type { KnowledgeSource } from "../knowledge/model.js";
 import {
   capturePath,
@@ -22,6 +23,7 @@ const USAGE = [
   "  evol knowledge source list [--json]",
   "  evol knowledge source retire <id> --motivo <texto>",
   "  evol knowledge review <id> [--json]",
+  "  evol knowledge accept <id> <ruta> --motivo <texto> --por <responsable>",
 ].join("\n");
 
 const SPDX = /^[A-Za-z0-9][A-Za-z0-9.+-]*(\s+(OR|AND|WITH)\s+[A-Za-z0-9][A-Za-z0-9.+-]*)*$/;
@@ -38,6 +40,7 @@ function add(argv: string[]): number {
       "licencia-url": { type: "string" },
       git: { type: "string" },
       commit: { type: "string" },
+      subcarpeta: { type: "string" },
       ruta: { type: "string" },
       origen: { type: "string" },
       "uso-privado": { type: "string" },
@@ -83,6 +86,10 @@ function add(argv: string[]): number {
     );
   let origenUrl = git;
   if (git !== "" && !HTTPS.test(git)) problems.push("--git debe ser una URL https");
+  if ((values.subcarpeta ?? "").trim() !== "" && git === "")
+    problems.push("--subcarpeta solo vale con --git");
+  if ((values.subcarpeta ?? "").trim() !== "" && !SUBPATH.test((values.subcarpeta ?? "").trim()))
+    problems.push("--subcarpeta debe ser una ruta relativa, sin «..» ni caracteres raros");
   if (git !== "" && !/^[0-9a-f]{40}$/.test((values.commit ?? "").trim()))
     problems.push("--commit debe ser el hash completo de 40 caracteres");
   if (ruta !== "") {
@@ -102,7 +109,14 @@ function add(argv: string[]): number {
   const dest = capturePath(id);
   rmSync(dest, { recursive: true, force: true });
   try {
-    if (git !== "") captureGit(git, (values.commit ?? "").trim(), dest);
+    if (git !== "")
+      captureGit(
+        git,
+        (values.commit ?? "").trim(),
+        dest,
+        ["https"],
+        (values.subcarpeta ?? "").trim() || undefined,
+      );
     else copyLocal(ruta, dest);
   } catch (error) {
     rmSync(dest, { recursive: true, force: true });
@@ -122,6 +136,9 @@ function add(argv: string[]): number {
       tipo: git !== "" ? "git" : "local",
       url: origenUrl,
       ...(git !== "" ? { commit: (values.commit ?? "").trim() } : {}),
+      ...(git !== "" && (values.subcarpeta ?? "").trim() !== ""
+        ? { subcarpeta: (values.subcarpeta ?? "").trim() }
+        : {}),
     },
     capturadoEl: now,
     licencia: {
@@ -199,7 +216,7 @@ function review(argv: string[]): number {
     throw new UserError(
       `La captura de «${source.id}» ya no coincide con la registrada (cambió después de capturarla). No se revisa ni se indexa.`,
     );
-  const result = reviewCapture(dir);
+  const result = reviewCapture(dir, source.aceptaciones ?? []);
   publish(dir, readyPath(source.id), result.aceptados);
   source.estado = "revisada";
   source.revision = {
@@ -207,6 +224,7 @@ function review(argv: string[]): number {
     aceptados: result.aceptados.length,
     rechazados: result.rechazados.length,
     avisos: result.avisos.length,
+    aceptadosPorPersona: result.aceptadosPorPersona.length,
   };
   writeRegistry(registry);
 
@@ -218,15 +236,53 @@ function review(argv: string[]): number {
     `Revisión de «${source.id}»: ${result.aceptados.length} documento(s) aceptado(s), ${result.rechazados.length} rechazado(s).`,
   );
   for (const r of result.rechazados) out(`  × ${r.ruta}: ${r.motivos.join("; ")}`);
+  for (const a of result.aceptadosPorPersona)
+    out(`  ✓ ${a.ruta}: aceptado por ${a.responsable} (${a.motivo})`);
   for (const a of result.avisos.slice(0, 20)) out(`  ! ${a.ruta}: ${a.texto}`);
   if (result.avisos.length > 20) out(`  ! … y ${result.avisos.length - 20} aviso(s) más`);
   out(`Listos para indexar en: ${readyPath(source.id)}`);
   return 0;
 }
 
+function accept(argv: string[]): number {
+  const { values, positionals } = parseArgs({
+    args: argv,
+    allowPositionals: true,
+    options: { motivo: { type: "string" }, por: { type: "string" } },
+  });
+  const [id = "", ruta = ""] = positionals;
+  const motivo = (values.motivo ?? "").trim();
+  const responsable = (values.por ?? "").trim();
+  if (ruta === "" || motivo === "" || responsable === "")
+    throw new UserError(
+      `Falta la ruta, --motivo o --por: una persona acepta el documento por escrito.\n\n${USAGE}`,
+    );
+  const registry = readRegistry();
+  const source = getSource(registry, id);
+  if (source.estado === "retirada") throw new UserError(`La fuente «${id}» está retirada.`);
+  const file = join(capturePath(id), ruta);
+  if (!filesOf(capturePath(id)).includes(ruta))
+    throw new UserError(`«${ruta}» no está en la captura de «${id}».`);
+  // only what the gate actually rejects can be accepted: it is not a way around the review
+  const review = reviewCapture(capturePath(id), []);
+  const rejection = review.rechazados.find((r) => r.ruta === ruta);
+  if (!rejection) throw new UserError(`«${ruta}» no está rechazado: no hace falta aceptarlo.`);
+  source.aceptaciones = [
+    ...(source.aceptaciones ?? []).filter((a) => a.ruta !== ruta),
+    { ruta, sha256: sha256Of(file), motivo, responsable, el: new Date().toISOString() },
+  ];
+  writeRegistry(registry);
+  out(
+    `«${ruta}» aceptado por ${responsable}. Motivos del rechazo que se levantan: ${rejection.motivos.join("; ")}`,
+  );
+  out(`Vuelve a ejecutar: evol knowledge review ${id}`);
+  return 0;
+}
+
 export default async function run(argv: string[]): Promise<number> {
   const [area, ...rest] = argv;
   if (area === "review") return review(rest);
+  if (area === "accept") return accept(rest);
   if (area !== "source") throw new UserError(USAGE);
   const [action, ...args] = rest;
   switch (action) {
