@@ -21,10 +21,13 @@ import { approveSkill } from "../skills/approve.js";
 import type { ApproveConfirm } from "../skills/approve.js";
 import { hasTerminal, typingSession } from "./tty.js";
 import type { TypingSession } from "./tty.js";
+import { AGENT_IDS, installSkill, installedSkills } from "../skills/install.js";
+import type { AgentId, Scope } from "../skills/install.js";
+import { findProjectRoot } from "../core/paths.js";
 import { out } from "./shared.js";
 
 const USAGE =
-  "Uso: evol skills <list|check|export|audit|approve> [nombre|origen] [--dir <carpeta>] [--json] [--disciplinas] [--salida <archivo.zip>] [--propia] [--capacidades <archivo.json>] [--subproceso] [--autoprueba] [--lector <id>]";
+  "Uso: evol skills <list|check|export|audit|approve|install> [nombre|origen] [--dir <carpeta>] [--json] [--disciplinas] [--salida <archivo.zip>] [--propia] [--capacidades <archivo.json>] [--subproceso] [--autoprueba] [--lector <id>] [--agente <id|all>] [--global] [--reemplazar] [--estado]";
 
 const MARK: Record<Level, string> = { ok: "✓", aviso: "!", error: "×" };
 
@@ -252,6 +255,58 @@ async function approve(dir: string, name: string | undefined): Promise<number> {
   return 0;
 }
 
+function install(
+  dir: string,
+  name: string | undefined,
+  v: { agente?: string; global?: boolean; reemplazar?: boolean; estado?: boolean; json?: boolean },
+): number {
+  const scope: Scope = v.global === true ? "global" : "proyecto";
+  const root = findProjectRoot() ?? null;
+  if (v.estado === true) {
+    const rows = installedSkills(dir, scope, root);
+    if (v.json === true) out(JSON.stringify(rows, null, 2));
+    else if (rows.length === 0) out("No hay skills de la biblioteca instaladas aquí.");
+    else
+      for (const r of rows) {
+        const ok = r.estado === "aprobada" || r.estado === "con-avisos";
+        out(
+          `${ok ? "✓" : "×"} ${r.skill} en ${r.carpeta}: ${r.estado === "ajena" ? "ajena" : AUDIT_LABEL[r.estado]}`,
+        );
+      }
+    return rows.some((r) => r.estado !== "aprobada" && r.estado !== "con-avisos") ? 1 : 0;
+  }
+  if (!name)
+    throw new UserError(
+      "Indica qué skill instalar: evol skills install <nombre> --agente <id|all> [--global]",
+    );
+  const choice = v.agente ?? "claude-code";
+  if (choice !== "all" && !AGENT_IDS.includes(choice as AgentId))
+    throw new UserError(`Agente desconocido «${choice}». Uno de: ${AGENT_IDS.join(", ")}, all.`);
+  const agents = choice === "all" ? AGENT_IDS : [choice as AgentId];
+  const outcomes = installSkill({
+    libraryDir: dir,
+    name,
+    agents,
+    scope,
+    projectRoot: root,
+    replace: v.reemplazar === true,
+  });
+  if (v.json === true) out(JSON.stringify(outcomes, null, 2));
+  else
+    for (const o of outcomes) {
+      const mark =
+        o.resultado === "instalada" || o.resultado === "reemplazada"
+          ? "+"
+          : o.resultado === "sin-cambios"
+            ? "="
+            : "!";
+      out(
+        `  ${mark} ${o.agente}: ${o.resultado}${o.carpeta ? ` (${o.carpeta})` : ""}${o.detalle ? ` — ${o.detalle}` : ""}`,
+      );
+    }
+  return outcomes.some((o) => o.resultado === "existe") ? 1 : 0;
+}
+
 export default async function run(argv: string[]): Promise<number> {
   const { values, positionals } = parseArgs({
     args: argv,
@@ -266,6 +321,10 @@ export default async function run(argv: string[]): Promise<number> {
       subproceso: { type: "boolean" },
       autoprueba: { type: "boolean" },
       lector: { type: "string" },
+      agente: { type: "string" },
+      global: { type: "boolean" },
+      reemplazar: { type: "boolean" },
+      estado: { type: "boolean" },
     },
   });
   const [action, name] = positionals;
@@ -289,6 +348,8 @@ export default async function run(argv: string[]): Promise<number> {
       );
     case "approve":
       return approve(dir, name);
+    case "install":
+      return install(dir, name, values);
     default:
       throw new UserError(USAGE);
   }

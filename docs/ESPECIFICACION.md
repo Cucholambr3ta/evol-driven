@@ -1135,6 +1135,20 @@ siempre igual, con las mismas opciones fijadas.
 > - **Falta del S3:** el análisis dinámico (S3b) y la regla de confirmación por IDE (control 9). Los lectores de Codex, OpenCode, Gemini CLI y los
 >   demás de la lista se suman con su propio adaptador y su prueba de aislamiento. La instalación en la biblioteca es del S5.
 
+> **S5 implementado (2026-10-23): instalar skills en los IDE.**
+>
+> - `evol skills install <nombre> [--agente <id|all>] [--global] [--reemplazar]` pone un **enlace simbólico** a la skill de la biblioteca en la carpeta que
+>   cada IDE lee (proyecto: `.claude/skills`, `.agents/skills` para Codex y Antigravity, `.opencode/skills`; global: `~/.claude/skills`, `~/.agents/skills`,
+>   `~/.config/opencode/skills`, `~/.hermes/skills`). Una sola copia que auditar: si la skill cambia, el enlace apunta a algo que la auditoría ya no avala.
+> - **Instalar es aprobar primero (criterios 54 y 60):** se rechaza una skill sin auditar, o cuya huella cambió después de aprobarla, o con el frontmatter
+>   roto. Una aprobada con avisos se instala (la persona ya los aceptó).
+> - **No pisa nada:** si ya hay algo distinto en el destino, lo deja y sale con 1; con `--reemplazar`, un enlace ajeno se sustituye y una carpeta real
+>   se aparta como `.<nombre>.previa-<fecha>`, nunca se borra. Repetir el comando no cambia nada. Codex y Antigravity comparten carpeta: un enlace.
+> - **Lo no confirmado no se adivina:** sin carpeta de proyecto para Hermes ni global para Antigravity, el resultado es «no aplica».
+> - `evol skills install --estado [--global]` lista las skills instaladas que vienen de la biblioteca y sale con 1 si alguna dejó de estar auditada.
+> - **Falta:** `add --proyecto` (copiar una skill de terceros al proyecto, que siempre pasa antes por `audit`); desinstalar (se borra el enlace a mano);
+>   comprobar que cada IDE sigue enlaces simbólicos (los de las consultas no lo confirmaron).
+
 > **O5 implementado (2026-10-23): pruebas de portabilidad** (`tests/portability.test.ts`).
 >
 > - Por adaptador: todo archivo generado lleva la marca de evol y ningún estado del proyecto; todo lo que un envoltorio manda cargar existe como skill; los
