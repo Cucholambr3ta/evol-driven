@@ -71,12 +71,25 @@ exit ${code}`;
 const NPM_CLEAN = `case "$1" in --version) echo 11.0.0; exit 0;; esac
 echo '{"vulnerabilities":{}}'`;
 
+/** Stand-ins for the recommended tools that find nothing: the tests do not depend on what the machine has. */
+const OSV_CLEAN = `case "$1" in --version) echo "osv-scanner version: 2.7.0"; exit 0;; esac
+echo '{"results":[]}'`;
+const BANDIT_CLEAN = `case "$1" in --version) echo "bandit 1.9.4"; exit 0;; esac
+echo '{"errors":[],"results":[]}'`;
+const SHELLCHECK_CLEAN = `case "$1" in --version) echo "version: 0.11.0"; exit 0;; esac
+echo '[]'`;
+const GUARDDOG_CLEAN = `case "$1" in --version) echo 3.2.0; exit 0;; esac
+echo '[]'`;
+
 const TOOL_ENV = [
   "EVOL_TOOL_GITLEAKS",
   "EVOL_TOOL_SEMGREP",
   "EVOL_TOOL_NPM",
   "EVOL_TOOL_PIP_AUDIT",
   "EVOL_TOOL_OSV_SCANNER",
+  "EVOL_TOOL_BANDIT",
+  "EVOL_TOOL_SHELLCHECK",
+  "EVOL_TOOL_GUARDDOG",
 ] as const;
 function useTools(
   tools: Partial<Record<(typeof TOOL_ENV)[number], string>> = {},
@@ -86,7 +99,10 @@ function useTools(
     EVOL_TOOL_SEMGREP: stub("semgrep", semgrep()),
     EVOL_TOOL_NPM: stub("npm", NPM_CLEAN),
     EVOL_TOOL_PIP_AUDIT: "",
-    EVOL_TOOL_OSV_SCANNER: "",
+    EVOL_TOOL_OSV_SCANNER: stub("osv-scanner", OSV_CLEAN),
+    EVOL_TOOL_BANDIT: stub("bandit", BANDIT_CLEAN),
+    EVOL_TOOL_SHELLCHECK: stub("shellcheck", SHELLCHECK_CLEAN),
+    EVOL_TOOL_GUARDDOG: stub("guarddog", GUARDDOG_CLEAN),
     ...tools,
   };
   for (const [k, v] of Object.entries(set)) process.env[k] = v;
@@ -487,6 +503,157 @@ describe("auditoría: dependencias (criterio 79)", () => {
         .map((h) => h.nivel)
         .sort(),
     ).toEqual(["aviso", "bloqueo"]);
+  });
+});
+
+describe("auditoría: herramientas recomendadas de la pasada 1 (hito T1, criterios 92 y 93)", () => {
+  const SHELL = { "scripts/run.sh": "#!/bin/bash\necho hola\n" };
+  const PY = { "scripts/run.py": "print('hola')\n" };
+  const NODE = {
+    "package.json": JSON.stringify({ dependencies: { left: "1.0.0" } }),
+    "package-lock.json": "{}",
+  };
+  const run = (files: Record<string, string>, tools: Parameters<typeof useTools>[0] = {}) => {
+    useTools(tools);
+    return auditSkill(folder(files), { propia: true }).report;
+  };
+  const MISSING = {
+    EVOL_TOOL_BANDIT: "",
+    EVOL_TOOL_SHELLCHECK: "",
+    EVOL_TOOL_OSV_SCANNER: "",
+    EVOL_TOOL_GUARDDOG: "",
+  };
+
+  it("una skill sin scripts ni dependencias no pide ninguna: PASS aunque no estén instaladas", () => {
+    const report = run({}, MISSING);
+    expect(report.veredicto).toBe("pass");
+    expect(report.hallazgos).toEqual([]);
+    for (const t of ["shellcheck", "bandit", "osv-scanner", "guarddog"])
+      expect(report.herramientas[t]?.estado, t).toBe("no-aplica");
+  });
+
+  it("si falta una que la skill necesita, avisa (WARN) pero nunca la deja «no auditada»", () => {
+    const shell = run(SHELL, MISSING);
+    expect(shell.veredicto).toBe("warn");
+    expect(shell.herramientas["shellcheck"]?.estado).toBe("falta");
+    expect(shell.hallazgos.filter((h) => h.regla === "herramientas-opcionales")).toHaveLength(1);
+    const note = shell.hallazgos.find((h) => h.regla === "herramientas-opcionales");
+    expect(note?.texto).toContain("shellcheck");
+    expect(note?.texto).toContain("es opcional");
+
+    const py = run(PY, MISSING);
+    expect(py.veredicto).toBe("warn");
+    expect(py.herramientas["bandit"]?.estado).toBe("falta");
+
+    const node = run(NODE, MISSING);
+    expect(node.veredicto).toBe("warn");
+    expect(node.herramientas["osv-scanner"]?.estado).toBe("falta");
+    expect(node.herramientas["guarddog"]?.estado).toBe("falta");
+  });
+
+  it("gitleaks y semgrep siguen siendo las que dejan una skill «no auditada»", () => {
+    expect(run(SHELL, { EVOL_TOOL_SEMGREP: "" }).veredicto).toBe("no-auditada");
+    expect(run(SHELL, { EVOL_TOOL_GITLEAKS: "" }).veredicto).toBe("no-auditada");
+  });
+
+  it("shellcheck y bandit solo suman avisos: lo grave en los scripts ya lo bloquean las reglas", () => {
+    const report = run(
+      { ...SHELL, ...PY },
+      {
+        EVOL_TOOL_SHELLCHECK: stub(
+          "shellcheck",
+          `case "$1" in --version) echo "version: 0.11.0"; exit 0;; esac
+echo '[{"file":"scripts/run.sh","line":2,"level":"warning","code":2086},{"file":"scripts/run.sh","line":3,"level":"style","code":2250}]'
+exit 1`,
+        ),
+        EVOL_TOOL_BANDIT: stub(
+          "bandit",
+          `case "$1" in --version) echo "bandit 1.9.4"; exit 0;; esac
+echo '{"errors":[],"results":[{"filename":"./scripts/run.py","line_number":3,"issue_severity":"HIGH","test_id":"B602","test_name":"subprocess_popen_with_shell_equals_true","issue_text":"password hunter2hunter2"},{"filename":"./scripts/run.py","line_number":1,"issue_severity":"LOW","test_id":"B404","test_name":"blacklist"}]}'
+exit 1`,
+        ),
+      },
+    );
+    expect(report.veredicto).toBe("warn");
+    const sh = report.hallazgos.filter((h) => h.regla === "shellcheck");
+    expect(sh).toHaveLength(1); // the «style» note is dropped
+    expect(sh[0]).toMatchObject({ nivel: "aviso", archivo: "scripts/run.sh" });
+    expect(sh[0]?.texto).toContain("SC2086");
+    expect(sh[0]?.texto).toContain("línea 2");
+    const bd = report.hallazgos.filter((h) => h.regla === "bandit");
+    expect(bd).toHaveLength(1); // the LOW one is dropped
+    expect(bd[0]?.texto).toContain("B602");
+    // bandit quotes passwords in its messages: none of that text may reach the report
+    expect(JSON.stringify(report)).not.toContain("hunter2");
+    expect(report.herramientas["shellcheck"]).toMatchObject({ estado: "ok", version: "0.11.0" });
+  });
+
+  it("osv-scanner: una vulnerabilidad alta o crítica es BLOCK y una media, aviso", () => {
+    const report = run(NODE, {
+      EVOL_TOOL_OSV_SCANNER: stub(
+        "osv-scanner",
+        `case "$1" in --version) echo "osv-scanner version: 2.7.0"; exit 0;; esac
+echo '{"results":[{"source":{"path":"'"$PWD"'/package-lock.json"},"packages":[{"package":{"name":"left","version":"1.0.0"},"groups":[{"ids":["GHSA-aaaa"],"max_severity":"9.8"},{"ids":["GHSA-bbbb"],"max_severity":"5.3"}],"vulnerabilities":[{"id":"GHSA-aaaa","summary":"Inyección"},{"id":"GHSA-bbbb","summary":"ReDoS"}]}]}]}'
+exit 1`,
+      ),
+    });
+    expect(report.veredicto).toBe("block");
+    const v = report.hallazgos.filter((h) => h.regla === "vulnerabilidades");
+    expect(v.map((h) => h.nivel).sort()).toEqual(["aviso", "bloqueo"]);
+    expect(v.find((h) => h.nivel === "bloqueo")?.texto).toContain("GHSA-aaaa");
+    expect(v[0]?.archivo).toBe("package-lock.json");
+  });
+
+  it("guarddog: una regla de amenaza es un aviso, no una condena (sus reglas son heurísticas)", () => {
+    const report = run(NODE, {
+      EVOL_TOOL_GUARDDOG: stub(
+        "guarddog",
+        `case "$1" in --version) echo 3.2.0; exit 0;; esac
+echo '[{"dependency":"left","version":"1.0.0","result":{"issues":2,"errors":{},"results":{"threat-network-exfiltration":[{"location":"x.js:1"}],"capability-process-spawn":[{"location":"y.js:2"}]}}}]'`,
+      ),
+    });
+    expect(report.veredicto).toBe("warn");
+    const g = report.hallazgos.filter((h) => h.regla === "paquete-sospechoso");
+    expect(g).toHaveLength(1); // «capability-*» only says what a package can do
+    expect(g[0]?.nivel).toBe("aviso");
+    expect(g[0]?.texto).toContain("threat-network-exfiltration");
+    expect(g[0]?.texto).toContain("falso positivo");
+  });
+
+  it("una que falla (por ejemplo sin red) avisa, y no se confunde con un visto bueno", () => {
+    const report = run(NODE, {
+      EVOL_TOOL_OSV_SCANNER: stub(
+        "osv-scanner",
+        `case "$1" in --version) echo "osv-scanner version: 2.7.0"; exit 0;; esac
+echo "failed to fetch" >&2
+exit 127`,
+      ),
+    });
+    expect(report.veredicto).toBe("warn");
+    expect(report.herramientas["osv-scanner"]?.estado).toBe("fallo");
+    expect(
+      report.hallazgos.some(
+        (h) => h.regla === "herramientas-opcionales" && h.texto.includes("osv-scanner"),
+      ),
+    ).toBe(true);
+  });
+
+  it("lee también los scripts escondidos en carpetas como «build»", () => {
+    const seen = join(tempDir("evol-seen-"), "args.txt");
+    const report = run(
+      { "build/oculto.sh": "#!/bin/bash\necho x\n" },
+      {
+        EVOL_TOOL_SHELLCHECK: stub(
+          "shellcheck",
+          `case "$1" in --version) echo "version: 0.11.0"; exit 0;; esac
+echo "$@" > ${seen}
+echo '[]'`,
+        ),
+      },
+    );
+    expect(report.herramientas["shellcheck"]?.estado).toBe("ok");
+    // a project scan skips «build»; a skill's audit must not
+    expect(readFileSync(seen, "utf8")).toContain("build/oculto.sh");
   });
 });
 

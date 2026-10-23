@@ -34,12 +34,16 @@ const SKIP_DIRS = new Set([
 ]);
 
 /** Every file of the project (relative, with «/»), minus the folders above. */
-export function projectFiles(root: string, base = ""): string[] {
+export function projectFiles(
+  root: string,
+  base = "",
+  skip: ReadonlySet<string> = SKIP_DIRS,
+): string[] {
   return readdirSync(join(root, base)).flatMap((name) => {
     const rel = base ? `${base}/${name}` : name;
-    if (SKIP_DIRS.has(name)) return [];
+    if (skip.has(name)) return [];
     const stat = statSync(join(root, rel));
-    return stat.isDirectory() ? projectFiles(root, rel) : stat.isFile() ? [rel] : [];
+    return stat.isDirectory() ? projectFiles(root, rel, skip) : stat.isFile() ? [rel] : [];
   });
 }
 

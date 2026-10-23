@@ -23,6 +23,7 @@ import { verdictOf } from "./report.js";
 import type { AuditFinding, AuditReport, Capacidades, ToolReport } from "./report.js";
 import { huellaDe, readSkill } from "./skill.js";
 import { snapshotBase, verifySnapshot, writeSnapshot } from "./snapshot.js";
+import { runOptionalTools } from "./optional-tools.js";
 import { runDependencyAudit, runGitleaks, runSemgrep } from "./tools.js";
 
 export interface AuditOptions {
@@ -292,6 +293,9 @@ export function auditSkill(origen: string, options: AuditOptions = {}): AuditOut
       Object.assign(herramientas, d.reports);
       findings.push(...d.findings);
     }
+    // The recommended tools only add warnings: the loop below is about the required ones.
+    const optional = runOptionalTools(skillDir);
+    findings.push(...optional.findings);
     let incomplete = false;
     for (const [name, r] of Object.entries(herramientas)) {
       if (r.estado === "falta" || r.estado === "fallo") {
@@ -314,7 +318,7 @@ export function auditSkill(origen: string, options: AuditOptions = {}): AuditOut
       huella,
       veredicto: verdictOf(hallazgos, incomplete),
       hallazgos,
-      herramientas,
+      herramientas: { ...herramientas, ...optional.reports },
       inventario: {
         archivos: entries.length,
         bytes: entries.reduce((n, e) => n + e.data.length, 0),

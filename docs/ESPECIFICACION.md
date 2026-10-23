@@ -1090,6 +1090,15 @@ siempre igual, con las mismas opciones fijadas.
 >   hace fallar el comando.
 > - **Pendiente:** guarddog tarda (descarga cada paquete).
 
+> **T1 implementado (2026-10-23), salvo yara.** La pasada 1 de `evol skills audit` ejecuta además `shellcheck` (scripts de shell), `bandit`
+> (scripts de Python), `osv-scanner` (archivos de bloqueo) y `guarddog` (dependencias declaradas), **solo si la skill trae lo que cada una lee**.
+> Son opcionales: si faltan o fallan (por ejemplo sin red) la auditoría avisa y sigue, y **nunca dejan una skill «no auditada»**; eso sigue siendo
+> solo de gitleaks y semgrep (criterio 93). Cómo pesa cada una: shellcheck y bandit suman **avisos** (se descarta lo de gravedad baja, porque lo
+> peligroso ya lo bloquean las reglas propias de semgrep); osv-scanner **bloquea** con una vulnerabilidad alta o crítica, igual que `npm audit`;
+> guarddog solo **avisa**, porque sus reglas son heurísticas y marcó, por ejemplo, un indexador de documentación que lista `.env` entre sus
+> extensiones. A diferencia de un escaneo de proyecto, la auditoría de una skill **no se salta carpetas como `build`**: un script escondido
+> ahí se lee igual. **yara queda fuera:** necesita reglas propias que todavía no están escritas.
+
 > **T4b implementado.** SecDD tiene una verificación nueva, `escaneoSeguridad`, que ejecuta el escaneo **dentro del mismo proceso** (no por una
 > shell, así que `evol` no tiene que estar en el `PATH`) y bloquea la fase de QA por cualquier CRITICAL o HIGH sin ignorar o por una herramienta
 > obligatoria que no corrió. **No escribe nada**: si reescribiera `QA_REPORT.md` al verificar, cambiaría el archivo al que está fijada la
