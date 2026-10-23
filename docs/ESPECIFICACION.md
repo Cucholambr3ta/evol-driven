@@ -1127,9 +1127,115 @@ siempre igual, con las mismas opciones fijadas.
 | 107 | `incorporar-skill` nunca ejecuta `evol skills approve`: la aprobación la hace una persona (criterio 69).                                                        |
 | 108 | `incorporar-dependencia` no deja entrar una dependencia sin versión fija y sin archivo de bloqueo, ni una con una vulnerabilidad alta sin ignorar justificada.  |
 
+### Conocimiento propio: documentación con origen, fecha y licencia (RAG propio)
+
+> **Estado: PROPUESTA de diseño.** No hay código. Parte de lo que pediste: «toda la documentación posible», y que cada fuente quede registrada con
+> su **origen, su fecha y su licencia**. Esta sección va **antes** que RAGFlow porque es la que se hace primero; RAGFlow queda como alternativa
+> para PDF y escaneados.
+
+> **Decisión del 2026-10-23: no se construye el motor; se adopta [docs-mcp-server](https://github.com/arabold/docs-mcp-server) (MIT,
+> TypeScript, 3.3.0).** Hace el trabajo pesado: descarga documentación de repositorios, sitios, npm y carpetas, la parte por versión de
+> librería, la guarda en SQLite con texto completo y vectores opcionales, y la sirve por MCP con un modo `readOnly` que deja fuera las
+> herramientas de escribir (criterio 114 ya cubierto). **Lo que sí construye evol es la capa fina de gobierno**, que ese proyecto no tiene:
+> el registro de fuentes con licencia, la revisión previa de secretos e instrucciones, y la configuración fija. Cambios frente al diseño de más
+> abajo: el almacén es SQLite (**ya no hace falta tocar la imagen de PostgreSQL ni pgvector**); R1 a R3 se reducen a esa capa; y se
+> añaden tres condiciones propias de adoptarlo: **telemetría apagada** (viene activada y envía a PostHog; se apaga con
+> `DOCS_MCP_TELEMETRY=false`), **versión anclada** y **solo lectura para los agentes** (`--read-only` o `DOCS_MCP_READ_ONLY=true`). Para
+> los vectores hace falta un servidor de embeddings compatible con OpenAI en local (Ollama, por ejemplo) porque no hay clave de OpenAI; sin
+> él funciona con texto completo, que es la línea base del piloto R0.
+>
+> **Hecho (2026-10-23):** `evol knowledge source add | list | retire` y `evol knowledge review` (criterios 109 y 110): el registro vive en
+> `~/.config/evol/knowledge/`, la captura se fija por commit de 40 caracteres o por carpeta, cada documento pasa por gitleaks y por las reglas
+> de inyección de la auditoría de skills, y solo lo aceptado llega a `ready/<fuente>/`, la única carpeta que un indexador puede leer.
+> **Falta:** ejecutar el motor sobre `ready/` (R1 restante), `evol knowledge search` y `status` por encima de él, `doctor` y las citas en el
+> informe (R3), y el piloto R0 con las 30 preguntas.
+
+**Qué es y qué no.** Tres memorias distintas, que no se mezclan:
+
+| Memoria                     | Guarda                                                                   | Dónde                                            |
+| --------------------------- | ------------------------------------------------------------------------ | ------------------------------------------------ |
+| MemPalace                   | Decisiones y lecciones del proyecto                                      | `~/.mempalace` (ya instalado)                    |
+| Grafo de código             | Símbolos y llamadas del código propio                                    | `.evol/` del proyecto                            |
+| **Conocimiento (este RAG)** | **Documentación de terceros** (guías, referencias, estándares), con cita | Una base por usuario, **no** dentro del proyecto |
+
+El conocimiento es **de la persona, no del proyecto**: la documentación de Node o de PostgreSQL sirve igual a todos sus proyectos, y copiarla en
+cada uno la duplicaría. Cada proyecto solo declara **qué fuentes y qué versiones usa** en `evol.config.json`.
+
+**Qué tiene tu PostgreSQL (comprobado el 2026-10-23).** El contenedor `postgres18` es la imagen oficial `postgres:18` (PostgreSQL 18.6). **No trae
+pgvector**: entre sus extensiones disponibles solo están `pg_trgm` y `unaccent`. Sí existe el paquete `postgresql-18-pgvector` (0.8.7) en los
+repositorios de esa misma imagen, así que añadirlo es una imagen propia de dos líneas (`FROM postgres:18` + `apt-get install`), no una
+migración. Tocar tu `compose.yaml` es decisión tuya (ver «Para decidir»).
+
+**Diseño**
+
+| Pieza               | Diseño                                                                                                                                                                                                                                                                                                                                                                                                              |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Registro de fuentes | Una fuente no entra sin: **origen** (URL canónica o repositorio con el commit fijado), **versión del software que documenta**, **fecha de captura**, **licencia** (SPDX) con **dónde y cuándo se comprobó**, y el hash del contenido. **Licencia desconocida: se rechaza** salvo que una persona la acepte por escrito como «uso privado» (queda anotado, y esas fuentes nunca se citan textualmente en un informe) |
+| Obtención           | Primero repositorios de documentación en Git con el commit fijado (Markdown, sin raspar); después el sitio oficial **solo** si su licencia lo permite, respetando `robots.txt` y con ritmo bajo; nada tras un muro de pago ni con sesión iniciada                                                                                                                                                                   |
+| Fragmentos          | Se parte por encabezados; cada fragmento guarda su fuente, la ruta de encabezados, el ancla de la URL, la versión, la fecha de captura, la licencia, el modelo de embeddings y su hash. Un fragmento repetido no se vuelve a guardar                                                                                                                                                                                |
+| Búsqueda            | **Híbrida** en la misma base: texto completo de PostgreSQL (configuraciones `spanish` y `english`) más vectores con índice HNSW de pgvector, fusionados por rango (RRF). Sin pgvector sigue funcionando solo con texto completo                                                                                                                                                                                     |
+| Embeddings          | **Locales y en CPU**: la GPU de 8 GB ya la ocupa el modelo de chat. Como la documentación suele estar en inglés y preguntas en español, el modelo debe ser **multilingüe**. El modelo concreto **se elige en el piloto R0** con preguntas fijas, no por reputación; queda fijado por versión y hash                                                                                                                 |
+| Interfaz            | `evol knowledge source add \| list \| retire`, `evol knowledge ingest <fuente>`, `evol knowledge search "<pregunta>" [--fuente] [--version] [--json]`, `evol knowledge status` y `evol knowledge verify`. **Desactivado por defecto**                                                                                                                                                                               |
+| Respuesta           | Cada resultado trae texto, fuente, URL con ancla, versión, fecha de captura y licencia, y va marcado como **dato, no instrucción**. `evol report` puede citarlo                                                                                                                                                                                                                                                     |
+| Frescura            | La fuente queda atada a una versión del software; `evol knowledge status` avisa de las capturas de más de 90 días y de las fuentes cuya versión ya no coincide con la que usa el proyecto (lo lee del archivo de bloqueo). Actualizar es una orden explícita, nunca automática                                                                                                                                      |
+
+**Condiciones de seguridad** (las mismas que pide RAGFlow, más las del propio diseño)
+
+1. **Solo local.** La base escucha en `127.0.0.1`; no hay servicio externo ni telemetría. La cadena de conexión vive en la carpeta de configuración
+   del usuario, **nunca en el proyecto**.
+2. **Lo recuperado son datos, no instrucciones.** Antes de guardar un documento, evol lo pasa por la misma revisión de secretos y de instrucciones
+   ocultas que la auditoría de skills (gitleaks y las reglas de inyección); si algo salta, el documento no entra y se dice por qué.
+3. **Los agentes solo leen.** Se expone `evol_knowledge_search` en el MCP de evol; **no hay** herramienta para añadir, ingerir ni borrar. Ingerir
+   lo hace una persona desde la terminal.
+4. **Sin red al consultar.** Buscar no sale de la máquina; solo `ingest` y `verify` usan la red, y lo dicen.
+5. **Nada se compila a skills.** Si algún texto parece una skill, entra como documento; una skill solo entra por `evol skills audit`.
+6. **Versión y modelo anclados.** Cambiar el modelo de embeddings obliga a reindexar; el modelo de cada fragmento se guarda para saber qué mezcla hay.
+
+**Primera ola de fuentes (propuesta, la licencia de cada una se comprueba en origen en el hito R0).** Se parte de lo que tu pila ya usa:
+Node.js y TypeScript; PostgreSQL 18; React, Next.js, Vite, Express, NestJS y Fastify; Docker y Compose; y los estándares que respaldan las
+disciplinas de evol (OWASP, RFC y OpenAPI). «Toda la documentación posible» se alcanza por capas: primero las de la pila, después las de cada
+proyecto nuevo cuando lo pida, y siempre con la misma regla de origen, fecha y licencia.
+
+**Cómo se mide si sirve.** Un conjunto fijo de 30 preguntas reales, cada una con la página y el ancla que debería devolver, y tres líneas base:
+`ripgrep` sobre los mismos archivos, texto completo de PostgreSQL y búsqueda híbrida. Se mide cuántas veces la respuesta correcta está entre los
+5 primeros resultados (recall@5) y en qué puesto aparece (MRR). **Los vectores solo entran si la búsqueda híbrida mejora al menos 15 puntos de
+recall@5 al texto completo**; si no, se queda con el texto completo, que no necesita pgvector ni modelo.
+
+**Relación con lo demás.** RAGFlow (sección siguiente) y este diseño son **dos proveedores de la misma interfaz** `evol knowledge`: los criterios
+97 a 101 valen para los dos, y K1 y K2 reutilizan lo que se haga aquí. Este va primero porque cubre Markdown, HTML y OpenAPI sin servicio
+extra; RAGFlow solo se justifica si importan los PDF y los escaneados. **Open Notebook** sigue siendo una herramienta personal de lectura:
+no entra al framework, porque un agente necesita resultados repetibles y con cita, no un chat.
+
+**Qué cuesta (sin inventar cifras).** El disco sobra (408 GB libres). La memoria es lo justo: 15 GiB en total y unos 5 libres con todo abierto;
+PostgreSQL con 128 MB de búferes cabe, y el modelo de embeddings residente se mide en R0. El tiempo de indexar en CPU y el tamaño de la base
+también se **miden en el piloto**; hasta entonces no se prometen.
+
+**Hitos**
+
+| #   | Qué se hace                                                                                                                                                                                                                              | Se comprueba con    |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- |
+| R0  | **Piloto sin código de evol:** tres fuentes reales con su licencia comprobada en origen, las 30 preguntas, la medición con `ripgrep` y texto completo, y la prueba de dos o tres modelos de embeddings en CPU (memoria y tiempo medidos) | informe del piloto  |
+| R1  | Registro de fuentes, obtención desde Git, fragmentos con procedencia y búsqueda por texto completo; `evol knowledge source \| ingest \| search \| status \| verify`                                                                      | criterios 109 a 112 |
+| R2  | Vectores y búsqueda híbrida (solo si el piloto lo justifica) con la imagen de PostgreSQL con pgvector                                                                                                                                    | criterio 113        |
+| R3  | `evol_knowledge_search` en el MCP de solo lectura, `evol doctor` y las citas en `evol report`                                                                                                                                            | criterios 114 y 115 |
+
+**Criterios de aceptación (preliminares; se suman a los 97 a 101)**
+
+| #   | Criterio                                                                                                                                                                                                        |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 109 | `evol knowledge source add` rechaza una fuente sin origen, versión, fecha, licencia o hash; una licencia desconocida solo entra con la aceptación escrita de una persona, y esa fuente no se cita textualmente. |
+| 110 | `evol knowledge ingest` no guarda un documento con secretos o con instrucciones ocultas, y dice cuál y por qué; nunca incluye el valor del secreto.                                                             |
+| 111 | Cada resultado de `evol knowledge search` trae fuente, URL con ancla, versión, fecha de captura y licencia, y va marcado como dato; buscar no abre ninguna conexión de red.                                     |
+| 112 | `evol knowledge status` avisa de las capturas de más de 90 días y de las fuentes cuya versión ya no coincide con la del archivo de bloqueo del proyecto.                                                        |
+| 113 | Con pgvector, la búsqueda híbrida supera al texto completo en al menos 15 puntos de recall@5 sobre el conjunto fijo; si no, no se activa. Sin pgvector, la búsqueda por texto completo sigue funcionando.       |
+| 114 | Los agentes solo acceden por `evol_knowledge_search`; ninguna herramienta del MCP ingiere, añade ni borra.                                                                                                      |
+| 115 | `evol doctor` informa de si la base de conocimiento es accesible, de si tiene pgvector y del modelo de embeddings; sin ellos no falla.                                                                          |
+
 ### Conocimiento documental con RAGFlow
 
 > **Decisión: complemento opcional, no reemplazo de la memoria, y solo después de un piloto.**
+
+> **Ver antes** «Conocimiento propio»: el RAG propio va primero y comparte con este la interfaz `evol knowledge` y los criterios 97 a 101.
 
 **Qué es y qué no.** MemPalace (ya instalado: 2 407 recuerdos en ChromaDB, local) guarda **decisiones y lecciones**. RAGFlow
 (Apache-2.0, versión 1.0.0-rc2) es un motor de recuperación sobre **documentos complejos** (PDF con tablas, escaneados, Office, web) que
@@ -1184,3 +1290,10 @@ en uso, y RAGFlow recomienda 16 GB solo para él. El piloto cabe si se cierra lo
 - ¿Qué proyectos tuyos tienen API (OpenAPI), para saber si `schemathesis` entra pronto?
 - ¿Qué documentos tuyos justificarían RAGFlow? Si son sobre todo Markdown y código, MemPalace más el grafo de código ya bastan.
 - ¿Dónde correría el piloto de RAGFlow: esta máquina, con la memoria justa, u otra?
+- **RAG propio, almacén:** ¿añadimos pgvector con una imagen propia de PostgreSQL (recomendado: ya usas PostgreSQL y la búsqueda híbrida cabe en la
+  misma base), o prefieres un archivo local sin servidor (SQLite con `sqlite-vec`), que no toca tu `compose.yaml`?
+- **RAG propio, dónde vive:** ¿una base por usuario compartida por todos tus proyectos (recomendado), o una por proyecto?
+- **RAG propio, licencias:** ¿una fuente con licencia desconocida se rechaza siempre (recomendado) o puede entrar como «uso privado» con tu aceptación
+  escrita?
+- **RAG propio, primeras fuentes:** ¿confirmas la lista de la pila (Node, TypeScript, PostgreSQL 18, React, Next.js, Vite, Express, NestJS, Fastify,
+  Docker, OWASP, RFC, OpenAPI) o quitas o añades alguna?

@@ -82,6 +82,11 @@ const COMMANDS: Record<string, CommandSpec> = {
     summary: "Escaneo de seguridad: secretos, código y dependencias (scan [--solo] [--ci])",
     load: async () => (await import("./commands/security.js")).default,
   },
+  knowledge: {
+    summary:
+      "Fuentes de documentación con origen, fecha y licencia, y su revisión (source | review)",
+    load: async () => (await import("./commands/knowledge.js")).default,
+  },
   agents: {
     summary: "Crea o refresca la integración con Claude Code y MCP",
     load: async () => (await import("./commands/agents.js")).default,
