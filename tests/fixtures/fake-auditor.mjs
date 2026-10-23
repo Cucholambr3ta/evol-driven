@@ -10,36 +10,10 @@
 //   http500       answers with an error
 //   hang          never answers
 import { createServer } from "node:http";
+import { findings } from "./auditor-logic.mjs";
 
 const mode = process.env.FAKE_MODE ?? "honest";
 let calls = 0;
-
-const RULES = [
-  { re: /ignora todas las instrucciones anteriores[^\n.]*/i, categoria: "inyeccion", severidad: "bloqueo" },
-  { re: /curl [^\n]*\$\(env\)/, categoria: "filtracion", severidad: "bloqueo" },
-  { re: /MARCA-SOSPECHOSA[^\n]*/, categoria: "otro", severidad: "aviso" },
-];
-
-function findings(prompt) {
-  const out = [];
-  for (const m of prompt.matchAll(/<<<ARCHIVO ruta="([^"]+)" marca=(\w+)>>>\n([\s\S]*?)\n<<<FIN marca=\2>>>/g)) {
-    const [, label, , body] = m;
-    for (const rule of RULES) {
-      const hit = rule.re.exec(body);
-      if (!hit) continue;
-      const linea = body.slice(0, hit.index).split("\n").length;
-      out.push({
-        archivo: label,
-        linea,
-        categoria: rule.categoria,
-        severidad: rule.severidad,
-        cita: hit[0].trim(),
-        texto: mode === "leaky" ? `contiene «${hit[0].trim()}»` : "hay algo sospechoso en este archivo",
-      });
-    }
-  }
-  return out;
-}
 
 const answer = (content) => JSON.stringify({ choices: [{ message: { role: "assistant", content } }] });
 
@@ -64,7 +38,7 @@ createServer((req, res) => {
         hallazgos: [{ archivo: "skill.md.txt", categoria: "inyeccion", severidad: "bloqueo", cita: "esta frase no existe en ningún archivo", texto: "inventado" }],
       });
     else {
-      const f = findings(prompt);
+      const f = findings(prompt, mode === "leaky");
       const json = JSON.stringify({
         veredicto: f.some((x) => x.severidad === "bloqueo") ? "block" : f.length > 0 ? "warn" : "pass",
         hallazgos: f,

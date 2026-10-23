@@ -13,6 +13,7 @@ import { AUDIT_LABEL, auditState, readManifest } from "../skills/manifest.js";
 import { userInfo } from "node:os";
 import { NotInteractiveError } from "../core/errors.js";
 import { requireReaders } from "../skills/auditor/config.js";
+import type { Reader } from "../skills/auditor/config.js";
 import { secondPass } from "../skills/auditor/pass2.js";
 import { selfTest } from "../skills/auditor/selftest.js";
 import type { SelfTestResult } from "../skills/auditor/selftest.js";
@@ -23,7 +24,7 @@ import type { TypingSession } from "./tty.js";
 import { out } from "./shared.js";
 
 const USAGE =
-  "Uso: evol skills <list|check|export|audit|approve> [nombre|origen] [--dir <carpeta>] [--json] [--disciplinas] [--salida <archivo.zip>] [--propia] [--capacidades <archivo.json>] [--subproceso] [--autoprueba]";
+  "Uso: evol skills <list|check|export|audit|approve> [nombre|origen] [--dir <carpeta>] [--json] [--disciplinas] [--salida <archivo.zip>] [--propia] [--capacidades <archivo.json>] [--subproceso] [--autoprueba] [--lector <id>]";
 
 const MARK: Record<Level, string> = { ok: "✓", aviso: "!", error: "×" };
 
@@ -138,6 +139,7 @@ async function audit(
   capabilitiesFile: string | undefined,
   json: boolean,
   subprocess: boolean,
+  readerId?: string,
 ): Promise<number> {
   if (!origin)
     throw new UserError(
@@ -153,7 +155,8 @@ async function audit(
   const { informe, cuarentena } = first;
   let report = first.report;
   // the readers are asked before the verdict is shown, so what is shown is the whole audit
-  if (subprocess && report.huella) report = await secondPass(report.huella, requireReaders());
+  if (subprocess && report.huella)
+    report = await secondPass(report.huella, chooseReaders(readerId));
   if (json) {
     out(JSON.stringify({ ...report, informe, cuarentena }, null, 2));
   } else {
@@ -191,9 +194,21 @@ async function audit(
   return report.veredicto === "pass" || report.veredicto === "warn" ? 0 : 1;
 }
 
-async function selfTestCommand(json: boolean): Promise<number> {
+/** All the configured readers, or only the one asked for with --lector. */
+function chooseReaders(id: string | undefined): Reader[] {
+  const readers = requireReaders();
+  if (id === undefined) return readers;
+  const one = readers.find((r) => r.id === id);
+  if (!one)
+    throw new UserError(
+      `No hay un lector «${id}». Los configurados son: ${readers.map((r) => r.id).join(", ")}.`,
+    );
+  return [one];
+}
+
+async function selfTestCommand(json: boolean, readerId?: string): Promise<number> {
   const results: Record<string, SelfTestResult> = {};
-  for (const reader of requireReaders()) results[reader.id] = await selfTest(reader);
+  for (const reader of chooseReaders(readerId)) results[reader.id] = await selfTest(reader);
   if (json) out(JSON.stringify(results, null, 2));
   else
     for (const [id, r] of Object.entries(results))
@@ -250,6 +265,7 @@ export default async function run(argv: string[]): Promise<number> {
       capacidades: { type: "string" },
       subproceso: { type: "boolean" },
       autoprueba: { type: "boolean" },
+      lector: { type: "string" },
     },
   });
   const [action, name] = positionals;
@@ -262,13 +278,14 @@ export default async function run(argv: string[]): Promise<number> {
     case "export":
       return exportOne(dir, name, values.salida);
     case "audit":
-      if (values.autoprueba === true) return selfTestCommand(values.json === true);
+      if (values.autoprueba === true) return selfTestCommand(values.json === true, values.lector);
       return audit(
         name,
         values.propia === true,
         values.capacidades,
         values.json === true,
         values.subproceso === true,
+        values.lector,
       );
     case "approve":
       return approve(dir, name);

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { Entry } from "../inventory.js";
 import type { AuditFinding } from "../report.js";
+import { readerModel } from "./config.js";
 import type { Reader } from "./config.js";
 import { buildPrompt, CATEGORIES, labelOf, promptHash } from "./prompt.js";
 import { askReader, ReaderError } from "./runner.js";
@@ -89,13 +90,16 @@ export async function readSkillWith(reader: Reader, entries: Entry[]): Promise<R
   const started = Date.now();
   let prompt = buildPrompt(entries);
   let output: Output | null = null;
+  let modelo: string | undefined;
   let intentos = 0;
   // Up to three tries if the answer is not valid JSON of the right shape; any other failure ends the
   // audit. Each try gets a new marker, because the same prompt at temperature 0 answers the same.
   while (output === null && intentos < MAX_TRIES) {
     intentos++;
     if (intentos > 1) prompt = buildPrompt(entries);
-    output = parseOutput(await askReader(reader, prompt.system, prompt.user));
+    const answer = await askReader(reader, prompt.system, prompt.user);
+    modelo = answer.modelo ?? modelo;
+    output = parseOutput(answer.texto);
   }
   if (output === null)
     throw new ReaderError(
@@ -135,7 +139,7 @@ export async function readSkillWith(reader: Reader, entries: Entry[]): Promise<R
   }
   return {
     id: reader.id,
-    modelo: reader.modelo,
+    modelo: modelo ?? readerModel(reader),
     promptHash: promptHash(),
     entradaHash: prompt.entradaHash,
     ms: Date.now() - started,

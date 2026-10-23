@@ -17,6 +17,7 @@ import { loadReport, secondPass } from "../src/skills/auditor/pass2.js";
 import { buildPrompt, labelOf, promptHash } from "../src/skills/auditor/prompt.js";
 import { readSkillWith, resolveLabel } from "../src/skills/auditor/read.js";
 import { ReaderError } from "../src/skills/auditor/runner.js";
+import { isolationTest } from "../src/skills/auditor/isolation.js";
 import { hostileSkill, selfTest } from "../src/skills/auditor/selftest.js";
 import { isTrusted } from "../src/skills/auditor/trust.js";
 import { readManifest } from "../src/skills/manifest.js";
@@ -47,7 +48,7 @@ afterAll(() => {
   for (const s of servers) s.kill();
 });
 
-const reader = (url: string, extra: Partial<Reader> = {}): Reader => ({
+const reader = (url: string, extra: Partial<Extract<Reader, { tipo: "api" }>> = {}): Reader => ({
   id: "qwen-test",
   tipo: "api",
   url,
@@ -57,6 +58,28 @@ const reader = (url: string, extra: Partial<Reader> = {}): Reader => ({
   maxTokens: 500,
   ...extra,
 });
+
+/** A stand-in for the `claude` executable: a script that runs the fake with a fixed mode and call log. */
+function fakeClaude(mode: string, log?: string): string {
+  const file = join(tempDir("evol-fake-claude-"), "claude");
+  writeFileSync(
+    file,
+    `#!/bin/sh\nFAKE_MODE=${mode} ${log ? `FAKE_CLAUDE_LOG=${log}` : ""} exec ${process.execPath} ${join(REPO, "tests", "fixtures", "fake-claude.mjs")} "$@"\n`,
+  );
+  chmodSync(file, 0o755);
+  return file;
+}
+const cliReader = (mode: string, extra: Record<string, unknown> = {}, log?: string): Reader =>
+  ({
+    id: `cli-${mode}`,
+    tipo: "cli",
+    adaptador: "claude-code",
+    comando: fakeClaude(mode, log),
+    bloquea: true,
+    tiempoMs: 5_000,
+    ...extra,
+  }) as Reader;
+
 const writeConfig = (url: string, extra: Record<string, unknown> = {}): void =>
   writeFileSync(
     auditorConfigPath(),
@@ -425,6 +448,195 @@ describe("la segunda pasada sobre una skill auditada", () => {
     await expect(secondPass(huella, [reader(await startModel("honest"))])).rejects.toThrow(
       /cambió desde la auditoría/,
     );
+  });
+});
+
+/* ---------- a reader that is an agent CLI ---------- */
+
+describe("un lector que es un CLI de agente (Claude Code)", () => {
+  it("se ejecuta sin herramientas, sin MCP, sin skills, sin ajustes y sin sesión, en una carpeta vacía", async () => {
+    const log = join(tempDir("evol-claude-log-"), "calls.jsonl");
+    await readSkillWith(cliReader("honest", {}, log), hostileSkill());
+    const call = JSON.parse(readFileSync(log, "utf8").trim().split("\n")[0] ?? "{}") as {
+      args: string[];
+      cwd: string;
+      prompt: string;
+    };
+    const at = (flag: string): string | undefined => call.args[call.args.indexOf(flag) + 1];
+    expect(call.args).toContain("-p");
+    expect(at("--tools")).toBe("");
+    expect(call.args).toContain("--strict-mcp-config");
+    expect(call.args).toContain("--disable-slash-commands");
+    expect(at("--setting-sources")).toBe("");
+    expect(call.args).toContain("--no-session-persistence");
+    expect(at("--output-format")).toBe("json");
+    expect(at("--system-prompt")).toContain("DATOS");
+    // the skill goes in through standard input, never as an argument
+    expect(call.prompt).toContain("<<<ARCHIVO");
+    expect(call.args.join(" ")).not.toContain("recoge.example.com");
+    // a fresh folder outside the project and the tests' own
+    expect(call.cwd).toContain("evol-lector-");
+    expect(call.cwd.startsWith(REPO)).toBe(false);
+  });
+
+  it("encuentra lo mismo que el lector API y el informe guarda el modelo que el CLI dice haber usado", async () => {
+    const run = await readSkillWith(cliReader("honest"), hostileSkill());
+    expect(run.aceptados.map((f) => f.categoria).sort()).toEqual(["filtracion", "inyeccion"]);
+    expect(run.modelo).toBe("fake-model-1");
+    expect(run.descartados).toBe(0);
+  });
+
+  it("falla cerrada: error, silencio, salida inválida o ejecutable que no existe", async () => {
+    await expect(readSkillWith(cliReader("error"), hostileSkill())).rejects.toThrow(
+      /terminó con el código 1/,
+    );
+    await expect(
+      readSkillWith(cliReader("hang", { tiempoMs: 400 }), hostileSkill()),
+    ).rejects.toThrow(/no respondió/);
+    await expect(readSkillWith(cliReader("garbage"), hostileSkill())).rejects.toThrow(
+      /JSON válido/,
+    );
+    await expect(
+      readSkillWith(cliReader("honest", { comando: "/no/existe/claude" }), hostileSkill()),
+    ).rejects.toThrow(/no se pudo ejecutar/);
+  });
+});
+
+describe("la prueba de aislamiento (criterio 90)", () => {
+  it("un CLI que no hace nada de lo que se le pide es elegible", async () => {
+    const r = await isolationTest(cliReader("honest"));
+    expect(r.elegible).toBe(true);
+  });
+
+  it("una API de chat no tiene herramientas: elegible por construcción", async () => {
+    expect((await isolationTest(reader("http://127.0.0.1:1/v1"))).elegible).toBe(true);
+  });
+
+  it("no es elegible si escribe fuera de su carpeta, si ejecuta un comando o si abre una conexión", async () => {
+    const write = await isolationTest(cliReader("escape-write"));
+    expect(write).toMatchObject({ elegible: false });
+    expect(write.detalle).toContain("escribió un archivo fuera de su carpeta");
+    expect((await isolationTest(cliReader("escape-run"))).detalle).toContain("ejecutó un comando");
+    expect((await isolationTest(cliReader("escape-net"))).detalle).toContain("abrió una conexión");
+    const all = await isolationTest(cliReader("escape"));
+    expect(all.detalle).toMatch(/escribió.*ejecutó.*abrió/);
+  });
+
+  it("una prueba que no llegó a hacerse no demuestra nada: tampoco es elegible", async () => {
+    expect((await isolationTest(cliReader("hang", { tiempoMs: 400 }))).elegible).toBe(false);
+    expect((await isolationTest(cliReader("error"))).detalle).toContain("no se pudo completar");
+  });
+
+  it("la autoprueba de un CLI empieza por el aislamiento: uno que se escapa no es fiable aunque lea bien", async () => {
+    const bad = cliReader("escape-run", { id: "cli-fugitivo" });
+    const result = await selfTest(bad);
+    expect(result.fiable).toBe(false);
+    expect(result.detalle).toContain("NO supera la prueba de aislamiento");
+    expect(isTrusted("cli-fugitivo", "fake-model-1")).toBe(false);
+
+    const good = cliReader("honest", { id: "cli-bueno" });
+    const ok = await selfTest(good);
+    expect(ok.fiable).toBe(true);
+    expect(ok.detalle).toContain("aislado");
+    // it is trusted under the model the CLI reported, which is what a report will carry
+    expect(isTrusted("cli-bueno", "fake-model-1")).toBe(true);
+  });
+});
+
+describe("dos lecturas para los scripts de terceros (criterio 91)", () => {
+  async function twoReaders() {
+    const api = reader(await startModel("honest"), { id: "lector-api" });
+    const cli = cliReader("honest", { id: "lector-cli" });
+    await selfTest(api);
+    await selfTest(cli);
+    return { api, cli };
+  }
+  const thirdParty = () => {
+    useCleanTools();
+    const dir = skillFolder({
+      "SKILL.md": FRONT(`\nÚnica ${Math.random()}\n`),
+      "scripts/run.sh": "#!/bin/sh\necho hola\n",
+    });
+    return auditSkill(dir, { propia: false }).report.huella;
+  };
+
+  it("con dos lectores distintos no queda el aviso de lectura única, y el informe nombra a los dos", async () => {
+    const { api, cli } = await twoReaders();
+    const after = await secondPass(thirdParty(), [api, cli]);
+    expect(after.hallazgos.some((h) => h.regla === "lecturas")).toBe(false);
+    expect(after.subproceso?.lectores.map((l) => l.id)).toEqual(["lector-api", "lector-cli"]);
+    expect(after.subproceso?.lectores.map((l) => l.modelo)).toEqual([
+      "modelo-de-prueba",
+      "fake-model-1",
+    ]);
+  });
+
+  it("con uno solo sigue el aviso", async () => {
+    const { api } = await twoReaders();
+    const after = await secondPass(thirdParty(), [api]);
+    expect(after.hallazgos.some((h) => h.regla === "lecturas")).toBe(true);
+  });
+
+  it("si uno de los dos falla, la skill queda «no auditada»: no se aprueba con media lectura", async () => {
+    const { api } = await twoReaders();
+    useCleanTools();
+    const dir = skillFolder({ "SKILL.md": FRONT(`\nÚnica ${Math.random()}\n`) });
+    const { huella } = auditSkill(dir, { propia: true }).report;
+    const after = await secondPass(huella, [api, cliReader("garbage", { id: "lector-roto" })]);
+    expect(after.veredicto).toBe("no-auditada");
+    expect(after.subproceso?.detalle).toContain("JSON válido");
+  });
+
+  it("para aprobar hacen falta de confianza los dos lectores que leyeron", async () => {
+    const { api, cli } = await twoReaders();
+    useCleanTools();
+    const lib = tempDir("evol-lib-");
+    skillFolder({ "SKILL.md": FRONT(`\nÚnica ${Math.random()}\n`) }, lib);
+    const { report } = auditSkill(join(lib, "demo"), { propia: true });
+    await secondPass(report.huella, [api, cli]);
+    // the CLI loses its standing: it is trusted for a model and a prompt, and it now fails the test
+    await selfTest(cliReader("escape-run", { id: "lector-cli" }));
+    const confirm: ApproveConfirm = {
+      approver: "ana",
+      name: () => Promise.resolve(),
+      warnings: () => Promise.resolve(),
+    };
+    await expect(approveSkill(lib, "demo", confirm, () => {})).rejects.toThrow(
+      /«lector-cli» no ha pasado la autoprueba/,
+    );
+  });
+
+  it("--lector elige uno de los configurados y avisa de uno que no existe", async () => {
+    const dir = skillFolder({ "notas.md": "MARCA-SOSPECHOSA: revisar esto\n" });
+    writeFileSync(
+      auditorConfigPath(),
+      JSON.stringify({
+        version: 1,
+        lectores: [
+          { id: "uno", tipo: "api", url: await startModel("honest"), modelo: "m" },
+          { id: "dos", tipo: "cli", adaptador: "claude-code", comando: fakeClaude("honest") },
+        ],
+      }),
+    );
+    const env = { EVOL_CONFIG_DIR: userConfig, ...cleanSecurityTools() };
+    const only = cli(
+      ["skills", "audit", dir, "--propia", "--subproceso", "--lector", "dos", "--json"],
+      { cwd: dir, env },
+    );
+    expect(
+      (
+        JSON.parse(only.stdout) as { subproceso: { lectores: { id: string }[] } }
+      ).subproceso.lectores.map((l) => l.id),
+    ).toEqual(["dos"]);
+    const unknown = cli(["skills", "audit", dir, "--propia", "--subproceso", "--lector", "tres"], {
+      cwd: dir,
+      env,
+    });
+    expect(unknown.status).toBe(1);
+    expect(unknown.stderr).toContain("Los configurados son: uno, dos");
+    const both = cli(["skills", "audit", "--autoprueba"], { cwd: dir, env });
+    expect(both.stdout).toContain("✓ uno: fiable");
+    expect(both.stdout).toContain("✓ dos: fiable");
   });
 });
 

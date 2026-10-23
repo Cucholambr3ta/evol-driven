@@ -1,0 +1,1621 @@
+{
+  "fecha": "2026-10-23",
+  "descripcion": "Resultados del piloto R0: 30 preguntas fijas, buscadas dentro de la fuente que corresponde. recall@5: el documento esperado está entre los 5 primeros resultados; MRR: inverso del puesto; seccion@5: además aparece la sección esperada.",
+  "montajes": {
+    "dmcp-fts": {
+      "resumen": {
+        "montaje": "dmcp-fts",
+        "total": {
+          "n": 30,
+          "recall@5": 0.333,
+          "MRR": 0.266,
+          "seccion@5": 0.233,
+          "mediana_s": 0.93
+        },
+        "por_tipo": {
+          "conceptual": {
+            "n": 7,
+            "recall@5": 0.286,
+            "MRR": 0.192,
+            "seccion@5": 0.143,
+            "mediana_s": 0.93
+          },
+          "literal": {
+            "n": 11,
+            "recall@5": 0.545,
+            "MRR": 0.455,
+            "seccion@5": 0.455,
+            "mediana_s": 0.94
+          },
+          "parafraseada": {
+            "n": 12,
+            "recall@5": 0.167,
+            "MRR": 0.137,
+            "seccion@5": 0.083,
+            "mediana_s": 0.93
+          }
+        },
+        "por_fuente": {
+          "owasp": {
+            "n": 11,
+            "recall@5": 0.545,
+            "MRR": 0.367,
+            "seccion@5": 0.455,
+            "mediana_s": 0.94
+          },
+          "react": {
+            "n": 9,
+            "recall@5": 0.222,
+            "MRR": 0.222,
+            "seccion@5": 0.0,
+            "mediana_s": 0.93
+          },
+          "typescript": {
+            "n": 10,
+            "recall@5": 0.2,
+            "MRR": 0.195,
+            "seccion@5": 0.2,
+            "mediana_s": 0.94
+          }
+        }
+      },
+      "preguntas": [
+        {
+          "id": "P01",
+          "fuente": "owasp",
+          "tipo": "literal",
+          "rank_doc": 1,
+          "rank_seccion": 1,
+          "resultados": 10,
+          "segundos": 0.95,
+          "top": [
+            "Session_Management_Cheat_Sheet.md",
+            "FastAPI_Security_Cheat_Sheet.md",
+            "Nodejs_Security_Cheat_Sheet.md",
+            "PHP_Configuration_Cheat_Sheet.md",
+            "DotNet_Security_Cheat_Sheet.md"
+          ]
+        },
+        {
+          "id": "P02",
+          "fuente": "owasp",
+          "tipo": "literal",
+          "rank_doc": 3,
+          "rank_seccion": 3,
+          "resultados": 8,
+          "segundos": 0.94,
+          "top": [
+            "HTTP_Headers_Cheat_Sheet.md",
+            "Ruby_on_Rails_Cheat_Sheet.md",
+            "Content_Security_Policy_Cheat_Sheet.md",
+            "Nextjs_Security_Cheat_Sheet.md",
+            "Browser_Extension_Vulnerabilities_Cheat_Sheet.md"
+          ]
+        },
+        {
+          "id": "P03",
+          "fuente": "owasp",
+          "tipo": "literal",
+          "rank_doc": 1,
+          "rank_seccion": 1,
+          "resultados": 5,
+          "segundos": 0.94,
+          "top": [
+            "Password_Storage_Cheat_Sheet.md",
+            "Transaction_Authorization_Cheat_Sheet.md",
+            "XML_External_Entity_Prevention_Cheat_Sheet.md",
+            "AI-Powered_Advertising_Systems_Security_Cheat_Sheet.md",
+            "AI-Powered_Advertising_Systems_Security_Cheat_Sheet.md"
+          ]
+        },
+        {
+          "id": "P04",
+          "fuente": "owasp",
+          "tipo": "parafraseada",
+          "rank_doc": null,
+          "rank_seccion": null,
+          "resultados": 6,
+          "segundos": 0.93,
+          "top": [
+            "Multifactor_Authentication_Cheat_Sheet.md",
+            "Multifactor_Authentication_Cheat_Sheet.md",
+            "Authentication_Patterns_Cheat_Sheet.md",
+            "Database_Security_Cheat_Sheet.md",
+            "DotNet_Security_Cheat_Sheet.md"
+          ]
+        },
+        {
+          "id": "P05",
+          "fuente": "owasp",
+          "tipo": "parafraseada",
+          "rank_doc": null,
+          "rank_seccion": null,
+          "resultados": 8,
+          "segundos": 0.93,
+          "top": [
+            "AML_Sanctions_AI_Agent_Payments_Cheat_Sheet.md",
+            "Deserialization_Cheat_Sheet.md",
+            "XPath_Injection_Prevention_Cheat_Sheet.md",
+            "Ruby_on_Rails_Cheat_Sheet.md",
+            "RAG_Security_Cheat_Sheet.md"
+          ]
+        },
+        {
+          "id": "P06",
+          "fuente": "owasp",
+          "tipo": "parafraseada",
+          "rank_doc": 2,
+          "rank_seccion": 2,
+          "resultados": 6,
+          "segundos": 0.94,
+          "top": [
+            "NodeJS_Docker_Cheat_Sheet.md",
+            "Docker_Security_Cheat_Sheet.md",
+            "Logging_Cheat_Sheet.md",
+            "NodeJS_Docker_Cheat_Sheet.md",
+            "GraphQL_Cheat_Sheet.md"
+          ]
+        },
+        {
+          "id": "P07",
+          "fuente": "owasp",
+          "tipo": "conceptual",
+          "rank_doc": null,
+          "rank_seccion": null,
+          "resultados": 8,
+          "segundos": 0.94,
+          "top": [
+            "Java_Security_Cheat_Sheet.md",
+            "OS_Command_Injection_Defense_Cheat_Sheet.md",
+            "Pinning_Cheat_Sheet.md",
+            "SQL_Injection_Prevention_Cheat_Sheet.md",
+            "Query_Parameterization_Cheat_Sheet.md"
+          ]
+        },
+        {
+          "id": "P08",
+          "fuente": "owasp",
+          "tipo": "literal",
+          "rank_doc": 1,
+          "rank_seccion": 1,
+          "resultados": 6,
+          "segundos": 0.93,
+          "top": [
+            "Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.md",
+            "Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.md",
+            "Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.md",
+            "Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.md",
+            "Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.md"
+          ]
+        },
+        {
+          "id": "P09",
+          "fuente": "owasp",
+          "tipo": "parafraseada",
+          "rank_doc": null,
+          "rank_seccion": null,
+          "resultados": 9,
+          "segundos": 0.94,
+          "top": [
+            "Logging_Cheat_Sheet.md",
+            "GraphQL_Cheat_Sheet.md",
+            "AI-Powered_Advertising_Systems_Security_Cheat_Sheet.md",
+            "AI-Powered_Advertising_Systems_Security_Cheat_Sheet.md",
+            "LLM_Prompt_Injection_Prevention_Cheat_Sheet.md"
+          ]
+        },
+        {
+          "id": "P10",
+          "fuente": "owasp",
+          "tipo": "conceptual",
+          "rank_doc": null,
+          "rank_seccion": null,
+          "resultados": 7,
+          "segundos": 0.93,
+          "top": [
+            "Deserialization_Cheat_Sheet.md",
+            "Ruby_on_Rails_Cheat_Sheet.md",
+            "XPath_Injection_Prevention_Cheat_Sheet.md",
+            "RAG_Security_Cheat_Sheet.md",
+            "Logging_Cheat_Sheet.md"
+          ]
+        },
+        {
+          "id": "P11",
+          "fuente": "owasp",
+          "tipo": "conceptual",
+          "rank_doc": 5,
+          "rank_seccion": null,
+          "resultados": 7,
+          "segundos": 0.93,
+          "top": [
+            "Secure_Coding_with_AI_Cheat_Sheet.md",
+            "AML_Sanctions_AI_Agent_Payments_Cheat_Sheet.md",
+            "Secure_Coding_with_AI_Cheat_Sheet.md",
+            "AML_Sanctions_AI_Agent_Payments_Cheat_Sheet.md",
+            "MCP_Security_Cheat_Sheet.md"
+          ]
+        },
+        {
+          "id": "P12",
+          "fuente": "typescript",
+          "tipo": "literal",
+          "rank_doc": null,
+          "rank_seccion": null,
+          "resultados": 10,
+          "segundos": 0.95,
+          "top": [
+            "release-notes/TypeScript 4.4.md",
+            "release-notes/TypeScript 4.6.md",
+            "handbook-v2/More on Functions.md",
+            "release-notes/TypeScript 3.0.md",
+            "reference/Declaration Merging.md"
+          ]
+        },
+        {
+          "id": "P13",
+          "fuente": "typescript",
+          "tipo": "literal",
+          "rank_doc": null,
+          "rank_seccion": null,
+          "resultados": 10,
+          "segundos": 0.96,
+          "top": [
+            "handbook-v2/Object Types.md",
+            "release-notes/TypeScript 4.2.md",
+            "reference/Declaration Merging.md",
+            "release-notes/TypeScript 2.0.md",
+            "handbook-v2/Type Declarations.md"
+          ]
+        },
+        {
+          "id": "P14",
+          "fuente": "typescript",
+          "tipo": "parafraseada",
+          "rank_doc": null,
+          "rank_seccion": null,
+          "resultados": 10,
+          "segundos": 0.97,
+          "top": [
+            "handbook-v2/Type Manipulation/Generics.md",
+            "release-notes/TypeScript 4.0.md",
+            "reference/Declaration Merging.md",
+            "release-notes/TypeScript 2.0.md",
+            "handbook-v2/Type Declarations.md"
+          ]
+        },
+        {
+          "id": "P15",
+          "fuente": "typescript",
+          "tipo": "literal",
+          "rank_doc": 2,
+          "rank_seccion": 2,
+          "resultados": 10,
+          "segundos": 0.97,
+          "top": [
+            "release-notes/TypeScript 2.8.md",
+            "reference/Utility Types.md",
+            "modules-reference/Theory.md",
+            "handbook-v2/Modules.md",
+            "modules-reference/Reference.md"
+          ]
+        },
+        {
+          "id": "P16",
+          "fuente": "typescript",
+          "tipo": "parafraseada",
+          "rank_doc": null,
+          "rank_seccion": null,
+          "resultados": 10,
+          "segundos": 0.93,
+          "top": [
+            "handbook-v2/Object Types.md",
+            "release-notes/TypeScript 4.6.md",
+            "handbook-v2/More on Functions.md",
+            "release-notes/TypeScript 3.0.md",
+            "reference/Declaration Merging.md"
+          ]
+        },
+        {
+          "id": "P17",
+          "fuente": "typescript",
+          "tipo": "parafraseada",
+          "rank_doc": null,
+          "rank_seccion": null,
+          "resultados": 10,
+          "segundos": 0.93,
+          "top": [
+            "handbook-v2/Object Types.md",
+            "release-notes/TypeScript 2.3.md",
+            "release-notes/TypeScript 2.0.md",
+            "reference/Declaration Merging.md",
+            "release-notes/TypeScript 2.0.md"
+          ]
+        },
+        {
+          "id": "P18",
+          "fuente": "typescript",
+          "tipo": "conceptual",
+          "rank_doc": 7,
+          "rank_seccion": null,
+          "resultados": 9,
+          "segundos": 0.92,
+          "top": [
+            "release-notes/TypeScript 4.4.md",
+            "get-started/TS for Functional Programmers.md",
+            "release-notes/TypeScript 4.9.md",
+            "modules-reference/Theory.md",
+            "release-notes/TypeScript 2.9.md"
+          ]
+        },
+        {
+          "id": "P19",
+          "fuente": "typescript",
+          "tipo": "literal",
+          "rank_doc": 6,
+          "rank_seccion": 6,
+          "resultados": 8,
+          "segundos": 0.94,
+          "top": [
+            "release-notes/TypeScript 1.8.md",
+            "release-notes/TypeScript 4.6.md",
+            "handbook-v2/More on Functions.md",
+            "release-notes/TypeScript 3.0.md",
+            "release-notes/TypeScript 5.0.md"
+          ]
+        },
+        {
+          "id": "P20",
+          "fuente": "typescript",
+          "tipo": "parafraseada",
+          "rank_doc": 7,
+          "rank_seccion": null,
+          "resultados": 10,
+          "segundos": 0.93,
+          "top": [
+            "reference/Declaration Merging.md",
+            "release-notes/TypeScript 2.0.md",
+            "handbook-v2/Type Declarations.md",
+            "release-notes/TypeScript 2.0.md",
+            "release-notes/TypeScript 2.3.md"
+          ]
+        },
+        {
+          "id": "P21",
+          "fuente": "typescript",
+          "tipo": "conceptual",
+          "rank_doc": 1,
+          "rank_seccion": 4,
+          "resultados": 6,
+          "segundos": 0.95,
+          "top": [
+            "release-notes/TypeScript 6.0.md",
+            "release-notes/TypeScript 3.6.md",
+            "handbook-v2/Modules.md",
+            "release-notes/TypeScript 6.0.md",
+            "release-notes/TypeScript 6.0.md"
+          ]
+        },
+        {
+          "id": "P22",
+          "fuente": "react",
+          "tipo": "literal",
+          "rank_doc": 1,
+          "rank_seccion": null,
+          "resultados": 8,
+          "segundos": 0.92,
+          "top": [
+            "reference/react/useEffect.md",
+            "community/meetups.md",
+            "learn/updating-objects-in-state.md",
+            "learn/passing-data-deeply-with-context.md",
+            "community/docs-contributors.md"
+          ]
+        },
+        {
+          "id": "P23",
+          "fuente": "react",
+          "tipo": "parafraseada",
+          "rank_doc": null,
+          "rank_seccion": null,
+          "resultados": 6,
+          "segundos": 0.93,
+          "top": [
+            "learn/keeping-components-pure.md",
+            "learn/conditional-rendering.md",
+            "learn/importing-and-exporting-components.md",
+            "community/meetups.md",
+            "community/conferences.md"
+          ]
+        },
+        {
+          "id": "P24",
+          "fuente": "react",
+          "tipo": "literal",
+          "rank_doc": null,
+          "rank_seccion": null,
+          "resultados": 6,
+          "segundos": 0.93,
+          "top": [
+            "learn/conditional-rendering.md",
+            "learn/reacting-to-input-with-state.md",
+            "learn/reacting-to-input-with-state.md",
+            "learn/synchronizing-with-effects.md",
+            "reference/react/useEffect.md"
+          ]
+        },
+        {
+          "id": "P25",
+          "fuente": "react",
+          "tipo": "conceptual",
+          "rank_doc": null,
+          "rank_seccion": null,
+          "resultados": 6,
+          "segundos": 0.93,
+          "top": [
+            "learn/reacting-to-input-with-state.md",
+            "learn/reacting-to-input-with-state.md",
+            "learn/state-a-components-memory.md",
+            "community/meetups.md",
+            "learn/updating-objects-in-state.md"
+          ]
+        },
+        {
+          "id": "P26",
+          "fuente": "react",
+          "tipo": "parafraseada",
+          "rank_doc": null,
+          "rank_seccion": null,
+          "resultados": 8,
+          "segundos": 0.93,
+          "top": [
+            "learn/adding-interactivity.md",
+            "learn/updating-objects-in-state.md",
+            "reference/react/useEffect.md",
+            "reference/react/useState.md",
+            "learn/state-a-components-memory.md"
+          ]
+        },
+        {
+          "id": "P27",
+          "fuente": "react",
+          "tipo": "parafraseada",
+          "rank_doc": 1,
+          "rank_seccion": null,
+          "resultados": 8,
+          "segundos": 0.93,
+          "top": [
+            "learn/passing-data-deeply-with-context.md",
+            "community/meetups.md",
+            "learn/updating-objects-in-state.md",
+            "community/docs-contributors.md",
+            "learn/adding-interactivity.md"
+          ]
+        },
+        {
+          "id": "P28",
+          "fuente": "react",
+          "tipo": "literal",
+          "rank_doc": null,
+          "rank_seccion": null,
+          "resultados": 6,
+          "segundos": 0.94,
+          "top": [
+            "learn/sharing-state-between-components.md",
+            "learn/managing-state.md",
+            "community/meetups.md",
+            "learn/state-a-components-memory.md",
+            "learn/adding-interactivity.md"
+          ]
+        },
+        {
+          "id": "P29",
+          "fuente": "react",
+          "tipo": "conceptual",
+          "rank_doc": null,
+          "rank_seccion": null,
+          "resultados": 9,
+          "segundos": 0.93,
+          "top": [
+            "reference/react/useEffect.md",
+            "learn/conditional-rendering.md",
+            "learn/synchronizing-with-effects.md",
+            "reference/react/useEffect.md",
+            "learn/build-a-react-app-from-scratch.md"
+          ]
+        },
+        {
+          "id": "P30",
+          "fuente": "react",
+          "tipo": "parafraseada",
+          "rank_doc": null,
+          "rank_seccion": null,
+          "resultados": 6,
+          "segundos": 0.93,
+          "top": [
+            "learn/managing-state.md",
+            "community/meetups.md",
+            "learn/sharing-state-between-components.md",
+            "learn/state-a-components-memory.md",
+            "learn/adding-interactivity.md"
+          ]
+        }
+      ]
+    },
+    "dmcp-bge": {
+      "resumen": {
+        "montaje": "dmcp-bge",
+        "total": {
+          "n": 30,
+          "recall@5": 0.767,
+          "MRR": 0.512,
+          "seccion@5": 0.6,
+          "mediana_s": 1.02
+        },
+        "por_tipo": {
+          "conceptual": {
+            "n": 7,
+            "recall@5": 0.857,
+            "MRR": 0.54,
+            "seccion@5": 0.571,
+            "mediana_s": 1.02
+          },
+          "literal": {
+            "n": 11,
+            "recall@5": 0.818,
+            "MRR": 0.639,
+            "seccion@5": 0.727,
+            "mediana_s": 1.01
+          },
+          "parafraseada": {
+            "n": 12,
+            "recall@5": 0.667,
+            "MRR": 0.378,
+            "seccion@5": 0.5,
+            "mediana_s": 1.02
+          }
+        },
+        "por_fuente": {
+          "owasp": {
+            "n": 11,
+            "recall@5": 0.909,
+            "MRR": 0.658,
+            "seccion@5": 0.727,
+            "mediana_s": 1.02
+          },
+          "react": {
+            "n": 9,
+            "recall@5": 0.556,
+            "MRR": 0.309,
+            "seccion@5": 0.333,
+            "mediana_s": 1.02
+          },
+          "typescript": {
+            "n": 10,
+            "recall@5": 0.8,
+            "MRR": 0.533,
+            "seccion@5": 0.7,
+            "mediana_s": 1.02
+          }
+        }
+      },
+      "preguntas": [
+        {
+          "id": "P01",
+          "fuente": "owasp",
+          "tipo": "literal",
+          "rank_doc": 1,
+          "rank_seccion": 1,
+          "resultados": 9,
+          "segundos": 3.19,
+          "top": [
+            "Session_Management_Cheat_Sheet.md",
+            "FastAPI_Security_Cheat_Sheet.md",
+            "DotNet_Security_Cheat_Sheet.md",
+            "Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.md",
+            "Clickjacking_Defense_Cheat_Sheet.md"
+          ]
+        },
+        {
+          "id": "P02",
+          "fuente": "owasp",
+          "tipo": "literal",
+          "rank_doc": 1,
+          "rank_seccion": 1,
+          "resultados": 7,
+          "segundos": 1.1,
+          "top": [
+            "Content_Security_Policy_Cheat_Sheet.md",
+            "Nextjs_Security_Cheat_Sheet.md",
+            "Content_Security_Policy_Cheat_Sheet.md",
+            "Browser_Extension_Vulnerabilities_Cheat_Sheet.md",
+            "HTTP_Headers_Cheat_Sheet.md"
+          ]
+        },
+        {
+          "id": "P03",
+          "fuente": "owasp",
+          "tipo": "literal",
+          "rank_doc": 1,
+          "rank_seccion": 1,
+          "resultados": 5,
+          "segundos": 1.01,
+          "top": [
+            "Password_Storage_Cheat_Sheet.md",
+            "AI-Powered_Advertising_Systems_Security_Cheat_Sheet.md",
+            "Authentication_Cheat_Sheet.md",
+            "OAuth2_Cheat_Sheet.md",
+            "Transaction_Authorization_Cheat_Sheet.md"
+          ]
+        },
+        {
+          "id": "P04",
+          "fuente": "owasp",
+          "tipo": "parafraseada",
+          "rank_doc": null,
+          "rank_seccion": null,
+          "resultados": 8,
+          "segundos": 1.03,
+          "top": [
+            "DotNet_Security_Cheat_Sheet.md",
+            "Database_Security_Cheat_Sheet.md",
+            "Symfony_Cheat_Sheet.md",
+            "Ruby_on_Rails_Cheat_Sheet.md",
+            "HTML5_Security_Cheat_Sheet.md"
+          ]
+        },
+        {
+          "id": "P05",
+          "fuente": "owasp",
+          "tipo": "parafraseada",
+          "rank_doc": 1,
+          "rank_seccion": 1,
+          "resultados": 6,
+          "segundos": 1.01,
+          "top": [
+            "NPM_Security_Cheat_Sheet.md",
+            "NPM_Security_Cheat_Sheet.md",
+            "NodeJS_Docker_Cheat_Sheet.md",
+            "NPM_Security_Cheat_Sheet.md",
+            "Deserialization_Cheat_Sheet.md"
+          ]
+        },
+        {
+          "id": "P06",
+          "fuente": "owasp",
+          "tipo": "parafraseada",
+          "rank_doc": 2,
+          "rank_seccion": 2,
+          "resultados": 4,
+          "segundos": 1.02,
+          "top": [
+            "NodeJS_Docker_Cheat_Sheet.md",
+            "Docker_Security_Cheat_Sheet.md",
+            "Docker_Security_Cheat_Sheet.md",
+            "Docker_Security_Cheat_Sheet.md"
+          ]
+        },
+        {
+          "id": "P07",
+          "fuente": "owasp",
+          "tipo": "conceptual",
+          "rank_doc": 1,
+          "rank_seccion": 3,
+          "resultados": 6,
+          "segundos": 1.02,
+          "top": [
+            "Secrets_Management_Cheat_Sheet.md",
+            "RAG_Security_Cheat_Sheet.md",
+            "Secrets_Management_Cheat_Sheet.md",
+            "Java_Security_Cheat_Sheet.md",
+            "OS_Command_Injection_Defense_Cheat_Sheet.md"
+          ]
+        },
+        {
+          "id": "P08",
+          "fuente": "owasp",
+          "tipo": "literal",
+          "rank_doc": 1,
+          "rank_seccion": 1,
+          "resultados": 3,
+          "segundos": 1.01,
+          "top": [
+            "Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.md",
+            "Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.md",
+            "Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.md"
+          ]
+        },
+        {
+          "id": "P09",
+          "fuente": "owasp",
+          "tipo": "parafraseada",
+          "rank_doc": 5,
+          "rank_seccion": 7,
+          "resultados": 10,
+          "segundos": 1.04,
+          "top": [
+            "GraphQL_Cheat_Sheet.md",
+            "Unvalidated_Redirects_and_Forwards_Cheat_Sheet.md",
+            "Network_Segmentation_Cheat_Sheet.md",
+            "Logging_Cheat_Sheet.md",
+            "Server_Side_Request_Forgery_Prevention_Cheat_Sheet.md"
+          ]
+        },
+        {
+          "id": "P10",
+          "fuente": "owasp",
+          "tipo": "conceptual",
+          "rank_doc": 5,
+          "rank_seccion": null,
+          "resultados": 8,
+          "segundos": 1.01,
+          "top": [
+            "AI-Powered_Advertising_Systems_Security_Cheat_Sheet.md",
+            "LLM_Prompt_Injection_Prevention_Cheat_Sheet.md",
+            "AML_Sanctions_AI_Agent_Payments_Cheat_Sheet.md",
+            "Deserialization_Cheat_Sheet.md",
+            "Threat_Modeling_Cheat_Sheet.md"
+          ]
+        },
+        {
+          "id": "P11",
+          "fuente": "owasp",
+          "tipo": "conceptual",
+          "rank_doc": 3,
+          "rank_seccion": 4,
+          "resultados": 7,
+          "segundos": 1.05,
+          "top": [
+            "Secure_Coding_with_AI_Cheat_Sheet.md",
+            "Secure_Coding_with_AI_Cheat_Sheet.md",
+            "MCP_Security_Cheat_Sheet.md",
+            "MCP_Security_Cheat_Sheet.md",
+            "AML_Sanctions_AI_Agent_Payments_Cheat_Sheet.md"
+          ]
+        },
+        {
+          "id": "P12",
+          "fuente": "typescript",
+          "tipo": "literal",
+          "rank_doc": null,
+          "rank_seccion": null,
+          "resultados": 9,
+          "segundos": 1.04,
+          "top": [
+            "handbook-v2/Everyday Types.md",
+            "reference/Utility Types.md",
+            "handbook-v2/Type Manipulation/Conditional Types.md",
+            "release-notes/TypeScript 1.4.md",
+            "handbook-v1/Unions and Intersections.md"
+          ]
+        },
+        {
+          "id": "P13",
+          "fuente": "typescript",
+          "tipo": "literal",
+          "rank_doc": 3,
+          "rank_seccion": 3,
+          "resultados": 10,
+          "segundos": 1.01,
+          "top": [
+            "reference/Advanced Types.md",
+            "release-notes/TypeScript 2.8.md",
+            "handbook-v2/Type Manipulation/Conditional Types.md",
+            "release-notes/TypeScript 2.8.md",
+            "reference/Type Inference.md"
+          ]
+        },
+        {
+          "id": "P14",
+          "fuente": "typescript",
+          "tipo": "parafraseada",
+          "rank_doc": 4,
+          "rank_seccion": 4,
+          "resultados": 9,
+          "segundos": 1.02,
+          "top": [
+            "handbook-v2/Object Types.md",
+            "reference/Advanced Types.md",
+            "handbook-v2/Type Manipulation/Generics.md",
+            "handbook-v2/Type Manipulation/Mapped Types.md",
+            "reference/Advanced Types.md"
+          ]
+        },
+        {
+          "id": "P15",
+          "fuente": "typescript",
+          "tipo": "literal",
+          "rank_doc": 1,
+          "rank_seccion": 1,
+          "resultados": 9,
+          "segundos": 1.01,
+          "top": [
+            "reference/Utility Types.md",
+            "release-notes/TypeScript 3.5.md",
+            "release-notes/TypeScript 3.2.md",
+            "reference/Advanced Types.md",
+            "release-notes/TypeScript 4.8.md"
+          ]
+        },
+        {
+          "id": "P16",
+          "fuente": "typescript",
+          "tipo": "parafraseada",
+          "rank_doc": 1,
+          "rank_seccion": 1,
+          "resultados": 9,
+          "segundos": 1.04,
+          "top": [
+            "handbook-v2/Type Manipulation/Generics.md",
+            "handbook-v1/Generics.md",
+            "handbook-v2/Type Manipulation/Generics.md",
+            "handbook-v1/Generics.md",
+            "handbook-v2/More on Functions.md"
+          ]
+        },
+        {
+          "id": "P17",
+          "fuente": "typescript",
+          "tipo": "parafraseada",
+          "rank_doc": null,
+          "rank_seccion": null,
+          "resultados": 9,
+          "segundos": 1.03,
+          "top": [
+            "modules-reference/Reference.md",
+            "release-notes/TypeScript 5.7.md",
+            "release-notes/TypeScript 5.2.md",
+            "release-notes/TypeScript 5.5.md",
+            "release-notes/TypeScript 5.5.md"
+          ]
+        },
+        {
+          "id": "P18",
+          "fuente": "typescript",
+          "tipo": "conceptual",
+          "rank_doc": 1,
+          "rank_seccion": null,
+          "resultados": 7,
+          "segundos": 1.02,
+          "top": [
+            "reference/Enums.md",
+            "handbook-v1/Literal Types.md",
+            "release-notes/TypeScript 5.0.md",
+            "reference/Advanced Types.md",
+            "release-notes/TypeScript 2.9.md"
+          ]
+        },
+        {
+          "id": "P19",
+          "fuente": "typescript",
+          "tipo": "literal",
+          "rank_doc": 2,
+          "rank_seccion": 2,
+          "resultados": 9,
+          "segundos": 1.01,
+          "top": [
+            "release-notes/TypeScript 5.0.md",
+            "release-notes/TypeScript 4.9.md",
+            "javascript/JSDoc Reference.md",
+            "release-notes/TypeScript 3.0.md",
+            "release-notes/TypeScript 4.6.md"
+          ]
+        },
+        {
+          "id": "P20",
+          "fuente": "typescript",
+          "tipo": "parafraseada",
+          "rank_doc": 4,
+          "rank_seccion": 4,
+          "resultados": 8,
+          "segundos": 1.02,
+          "top": [
+            "tutorials/ASP.NET Core.md",
+            "release-notes/TypeScript 4.2.md",
+            "reference/Declaration Merging.md",
+            "release-notes/TypeScript 5.2.md",
+            "release-notes/TypeScript 2.0.md"
+          ]
+        },
+        {
+          "id": "P21",
+          "fuente": "typescript",
+          "tipo": "conceptual",
+          "rank_doc": 1,
+          "rank_seccion": 1,
+          "resultados": 3,
+          "segundos": 1.01,
+          "top": [
+            "release-notes/TypeScript 6.0.md",
+            "release-notes/TypeScript 6.0.md",
+            "release-notes/TypeScript 3.6.md"
+          ]
+        },
+        {
+          "id": "P22",
+          "fuente": "react",
+          "tipo": "literal",
+          "rank_doc": 1,
+          "rank_seccion": null,
+          "resultados": 8,
+          "segundos": 1.03,
+          "top": [
+            "reference/react/useEffect.md",
+            "learn/synchronizing-with-effects.md",
+            "learn/you-might-not-need-an-effect.md",
+            "learn/you-might-not-need-an-effect.md",
+            "community/meetups.md"
+          ]
+        },
+        {
+          "id": "P23",
+          "fuente": "react",
+          "tipo": "parafraseada",
+          "rank_doc": 3,
+          "rank_seccion": 3,
+          "resultados": 6,
+          "segundos": 1.02,
+          "top": [
+            "learn/keeping-components-pure.md",
+            "reference/react/useActionState.md",
+            "learn/you-might-not-need-an-effect.md",
+            "learn/you-might-not-need-an-effect.md",
+            "learn/conditional-rendering.md"
+          ]
+        },
+        {
+          "id": "P24",
+          "fuente": "react",
+          "tipo": "literal",
+          "rank_doc": 5,
+          "rank_seccion": 5,
+          "resultados": 6,
+          "segundos": 1.05,
+          "top": [
+            "learn/updating-arrays-in-state.md",
+            "learn/reacting-to-input-with-state.md",
+            "reference/react/useEffect.md",
+            "learn/conditional-rendering.md",
+            "reference/react/useState.md"
+          ]
+        },
+        {
+          "id": "P25",
+          "fuente": "react",
+          "tipo": "conceptual",
+          "rank_doc": null,
+          "rank_seccion": null,
+          "resultados": 7,
+          "segundos": 1.03,
+          "top": [
+            "learn/reacting-to-input-with-state.md",
+            "learn/state-a-components-memory.md",
+            "learn/updating-objects-in-state.md",
+            "learn/synchronizing-with-effects.md",
+            "learn/reacting-to-input-with-state.md"
+          ]
+        },
+        {
+          "id": "P26",
+          "fuente": "react",
+          "tipo": "parafraseada",
+          "rank_doc": null,
+          "rank_seccion": null,
+          "resultados": 9,
+          "segundos": 1.02,
+          "top": [
+            "reference/react/useReducer.md",
+            "learn/managing-state.md",
+            "learn/managing-state.md",
+            "reference/react/useOptimistic.md",
+            "reference/react/useContext.md"
+          ]
+        },
+        {
+          "id": "P27",
+          "fuente": "react",
+          "tipo": "parafraseada",
+          "rank_doc": 1,
+          "rank_seccion": null,
+          "resultados": 7,
+          "segundos": 1.0,
+          "top": [
+            "learn/passing-data-deeply-with-context.md",
+            "learn/passing-data-deeply-with-context.md",
+            "learn/passing-props-to-a-component.md",
+            "learn/passing-data-deeply-with-context.md",
+            "community/meetups.md"
+          ]
+        },
+        {
+          "id": "P28",
+          "fuente": "react",
+          "tipo": "literal",
+          "rank_doc": null,
+          "rank_seccion": null,
+          "resultados": 8,
+          "segundos": 1.01,
+          "top": [
+            "reference/react/Children.md",
+            "learn/you-might-not-need-an-effect.md",
+            "warnings/special-props.md",
+            "reference/react/Component.md",
+            "reference/react/cloneElement.md"
+          ]
+        },
+        {
+          "id": "P29",
+          "fuente": "react",
+          "tipo": "conceptual",
+          "rank_doc": 4,
+          "rank_seccion": 4,
+          "resultados": 7,
+          "segundos": 1.02,
+          "top": [
+            "learn/keeping-components-pure.md",
+            "learn/passing-data-deeply-with-context.md",
+            "learn/synchronizing-with-effects.md",
+            "reference/react/experimental_taintObjectReference.md",
+            "reference/react/useEffect.md"
+          ]
+        },
+        {
+          "id": "P30",
+          "fuente": "react",
+          "tipo": "parafraseada",
+          "rank_doc": null,
+          "rank_seccion": null,
+          "resultados": 8,
+          "segundos": 1.02,
+          "top": [
+            "reference/rsc/use-client.md",
+            "reference/rsc/use-server.md",
+            "learn/synchronizing-with-effects.md",
+            "learn/keeping-components-pure.md",
+            "learn/adding-interactivity.md"
+          ]
+        }
+      ]
+    },
+    "rag-minilm": {
+      "resumen": {
+        "montaje": "rag-minilm",
+        "total": {
+          "n": 30,
+          "recall@5": 0.667,
+          "MRR": 0.53,
+          "seccion@5": 0.367,
+          "mediana_s": 3.19
+        },
+        "por_tipo": {
+          "conceptual": {
+            "n": 7,
+            "recall@5": 0.857,
+            "MRR": 0.568,
+            "seccion@5": 0.714,
+            "mediana_s": 3.26
+          },
+          "literal": {
+            "n": 11,
+            "recall@5": 0.545,
+            "MRR": 0.447,
+            "seccion@5": 0.364,
+            "mediana_s": 3.29
+          },
+          "parafraseada": {
+            "n": 12,
+            "recall@5": 0.667,
+            "MRR": 0.585,
+            "seccion@5": 0.167,
+            "mediana_s": 3.12
+          }
+        },
+        "por_fuente": {
+          "owasp": {
+            "n": 11,
+            "recall@5": 1.0,
+            "MRR": 0.735,
+            "seccion@5": 0.636,
+            "mediana_s": 3.26
+          },
+          "react": {
+            "n": 9,
+            "recall@5": 0.444,
+            "MRR": 0.437,
+            "seccion@5": 0.111,
+            "mediana_s": 3.11
+          },
+          "typescript": {
+            "n": 10,
+            "recall@5": 0.5,
+            "MRR": 0.389,
+            "seccion@5": 0.3,
+            "mediana_s": 3.19
+          }
+        }
+      },
+      "preguntas": [
+        {
+          "id": "P01",
+          "fuente": "owasp",
+          "tipo": "literal",
+          "rank_doc": 2,
+          "rank_seccion": 5,
+          "resultados": 10,
+          "segundos": 3.28,
+          "top": [
+            "Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.md",
+            "Session_Management_Cheat_Sheet.md",
+            "Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.md",
+            "Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.md",
+            "Session_Management_Cheat_Sheet.md"
+          ]
+        },
+        {
+          "id": "P02",
+          "fuente": "owasp",
+          "tipo": "literal",
+          "rank_doc": 4,
+          "rank_seccion": null,
+          "resultados": 10,
+          "segundos": 3.43,
+          "top": [
+            "Cross_Site_Scripting_Prevention_Cheat_Sheet.md",
+            "Django_Security_Cheat_Sheet.md",
+            "Browser_Extension_Vulnerabilities_Cheat_Sheet.md",
+            "Content_Security_Policy_Cheat_Sheet.md",
+            "HTTP_Headers_Cheat_Sheet.md"
+          ]
+        },
+        {
+          "id": "P03",
+          "fuente": "owasp",
+          "tipo": "literal",
+          "rank_doc": 1,
+          "rank_seccion": 1,
+          "resultados": 10,
+          "segundos": 3.54,
+          "top": [
+            "Password_Storage_Cheat_Sheet.md",
+            "Password_Storage_Cheat_Sheet.md",
+            "Password_Storage_Cheat_Sheet.md",
+            "Choosing_and_Using_Security_Questions_Cheat_Sheet.md",
+            "Transaction_Authorization_Cheat_Sheet.md"
+          ]
+        },
+        {
+          "id": "P04",
+          "fuente": "owasp",
+          "tipo": "parafraseada",
+          "rank_doc": 3,
+          "rank_seccion": null,
+          "resultados": 10,
+          "segundos": 3.14,
+          "top": [
+            "Security_Terminology_Cheat_Sheet.md",
+            "Laravel_Cheat_Sheet.md",
+            "SQL_Injection_Prevention_Cheat_Sheet.md",
+            "SQL_Injection_Prevention_Cheat_Sheet.md",
+            "Ruby_on_Rails_Cheat_Sheet.md"
+          ]
+        },
+        {
+          "id": "P05",
+          "fuente": "owasp",
+          "tipo": "parafraseada",
+          "rank_doc": 1,
+          "rank_seccion": 3,
+          "resultados": 10,
+          "segundos": 3.05,
+          "top": [
+            "NPM_Security_Cheat_Sheet.md",
+            "NodeJS_Docker_Cheat_Sheet.md",
+            "NPM_Security_Cheat_Sheet.md",
+            "NPM_Security_Cheat_Sheet.md",
+            "NPM_Security_Cheat_Sheet.md"
+          ]
+        },
+        {
+          "id": "P06",
+          "fuente": "owasp",
+          "tipo": "parafraseada",
+          "rank_doc": 1,
+          "rank_seccion": 8,
+          "resultados": 10,
+          "segundos": 3.09,
+          "top": [
+            "Docker_Security_Cheat_Sheet.md",
+            "Docker_Security_Cheat_Sheet.md",
+            "Docker_Security_Cheat_Sheet.md",
+            "Docker_Security_Cheat_Sheet.md",
+            "Docker_Security_Cheat_Sheet.md"
+          ]
+        },
+        {
+          "id": "P07",
+          "fuente": "owasp",
+          "tipo": "conceptual",
+          "rank_doc": 2,
+          "rank_seccion": 4,
+          "resultados": 10,
+          "segundos": 3.59,
+          "top": [
+            "Cryptographic_Storage_Cheat_Sheet.md",
+            "Secrets_Management_Cheat_Sheet.md",
+            "Secrets_Management_Cheat_Sheet.md",
+            "Secrets_Management_Cheat_Sheet.md",
+            "Secrets_Management_Cheat_Sheet.md"
+          ]
+        },
+        {
+          "id": "P08",
+          "fuente": "owasp",
+          "tipo": "literal",
+          "rank_doc": 1,
+          "rank_seccion": 1,
+          "resultados": 10,
+          "segundos": 3.67,
+          "top": [
+            "Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.md",
+            "Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.md",
+            "Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.md",
+            "Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.md",
+            "WebSocket_Security_Cheat_Sheet.md"
+          ]
+        },
+        {
+          "id": "P09",
+          "fuente": "owasp",
+          "tipo": "parafraseada",
+          "rank_doc": 1,
+          "rank_seccion": 10,
+          "resultados": 10,
+          "segundos": 3.16,
+          "top": [
+            "Server_Side_Request_Forgery_Prevention_Cheat_Sheet.md",
+            "Webhook_Security_Cheat_Sheet.md",
+            "Nextjs_Security_Cheat_Sheet.md",
+            "HTML5_Security_Cheat_Sheet.md",
+            "Abuse_Case_Cheat_Sheet.md"
+          ]
+        },
+        {
+          "id": "P10",
+          "fuente": "owasp",
+          "tipo": "conceptual",
+          "rank_doc": 1,
+          "rank_seccion": 1,
+          "resultados": 10,
+          "segundos": 3.15,
+          "top": [
+            "Threat_Modeling_Cheat_Sheet.md",
+            "Threat_Modeling_Cheat_Sheet.md",
+            "Threat_Modeling_Cheat_Sheet.md",
+            "Threat_Modeling_Cheat_Sheet.md",
+            "Threat_Modeling_Cheat_Sheet.md"
+          ]
+        },
+        {
+          "id": "P11",
+          "fuente": "owasp",
+          "tipo": "conceptual",
+          "rank_doc": 2,
+          "rank_seccion": 5,
+          "resultados": 10,
+          "segundos": 3.26,
+          "top": [
+            "Secure_Coding_with_AI_Cheat_Sheet.md",
+            "MCP_Security_Cheat_Sheet.md",
+            "Secure_Coding_with_AI_Cheat_Sheet.md",
+            "Secure_Coding_with_AI_Cheat_Sheet.md",
+            "MCP_Security_Cheat_Sheet.md"
+          ]
+        },
+        {
+          "id": "P12",
+          "fuente": "typescript",
+          "tipo": "literal",
+          "rank_doc": null,
+          "rank_seccion": null,
+          "resultados": 10,
+          "segundos": 3.17,
+          "top": [
+            "release-notes/TypeScript 2.7.md",
+            "handbook-v2/Type Manipulation/Keyof Type Operator.md",
+            "handbook-v2/Everyday Types.md",
+            "handbook-v2/Type Manipulation/Template Literal Types.md",
+            "handbook-v2/Everyday Types.md"
+          ]
+        },
+        {
+          "id": "P13",
+          "fuente": "typescript",
+          "tipo": "literal",
+          "rank_doc": 1,
+          "rank_seccion": 2,
+          "resultados": 10,
+          "segundos": 3.01,
+          "top": [
+            "handbook-v2/Type Manipulation/Conditional Types.md",
+            "handbook-v2/Type Manipulation/Conditional Types.md",
+            "handbook-v2/Type Manipulation/Conditional Types.md",
+            "release-notes/TypeScript 5.5.md",
+            "release-notes/TypeScript 2.8.md"
+          ]
+        },
+        {
+          "id": "P14",
+          "fuente": "typescript",
+          "tipo": "parafraseada",
+          "rank_doc": 6,
+          "rank_seccion": null,
+          "resultados": 10,
+          "segundos": 2.99,
+          "top": [
+            "release-notes/TypeScript 2.1.md",
+            "reference/Advanced Types.md",
+            "reference/Advanced Types.md",
+            "reference/Advanced Types.md",
+            "release-notes/TypeScript 4.3.md"
+          ]
+        },
+        {
+          "id": "P15",
+          "fuente": "typescript",
+          "tipo": "literal",
+          "rank_doc": null,
+          "rank_seccion": null,
+          "resultados": 10,
+          "segundos": 3.33,
+          "top": [
+            "release-notes/TypeScript 4.7.md",
+            "modules-reference/guides/Choosing Compiler Options.md",
+            "handbook-v2/Object Types.md",
+            "handbook-v1/Functions.md",
+            "release-notes/TypeScript 3.9.md"
+          ]
+        },
+        {
+          "id": "P16",
+          "fuente": "typescript",
+          "tipo": "parafraseada",
+          "rank_doc": 7,
+          "rank_seccion": 7,
+          "resultados": 10,
+          "segundos": 3.05,
+          "top": [
+            "handbook-v2/More on Functions.md",
+            "handbook-v2/More on Functions.md",
+            "handbook-v2/More on Functions.md",
+            "release-notes/TypeScript 2.7.md",
+            "handbook-v1/Generics.md"
+          ]
+        },
+        {
+          "id": "P17",
+          "fuente": "typescript",
+          "tipo": "parafraseada",
+          "rank_doc": 4,
+          "rank_seccion": null,
+          "resultados": 10,
+          "segundos": 3.49,
+          "top": [
+            "release-notes/TypeScript 3.3.md",
+            "release-notes/TypeScript 5.5.md",
+            "release-notes/TypeScript 5.6.md",
+            "project-config/Project References.md",
+            "project-config/Compiler Options in MSBuild.md"
+          ]
+        },
+        {
+          "id": "P18",
+          "fuente": "typescript",
+          "tipo": "conceptual",
+          "rank_doc": 3,
+          "rank_seccion": null,
+          "resultados": 10,
+          "segundos": 3.09,
+          "top": [
+            "reference/Advanced Types.md",
+            "handbook-v2/Type Manipulation/Template Literal Types.md",
+            "reference/Enums.md",
+            "handbook-v2/Everyday Types.md",
+            "release-notes/TypeScript 4.1.md"
+          ]
+        },
+        {
+          "id": "P19",
+          "fuente": "typescript",
+          "tipo": "literal",
+          "rank_doc": null,
+          "rank_seccion": null,
+          "resultados": 10,
+          "segundos": 3.29,
+          "top": [
+            "handbook-v2/Narrowing.md",
+            "handbook-v2/Everyday Types.md",
+            "release-notes/TypeScript 4.6.md",
+            "handbook-v2/Type Declarations.md",
+            "release-notes/TypeScript 5.0.md"
+          ]
+        },
+        {
+          "id": "P20",
+          "fuente": "typescript",
+          "tipo": "parafraseada",
+          "rank_doc": 1,
+          "rank_seccion": 1,
+          "resultados": 10,
+          "segundos": 3.2,
+          "top": [
+            "release-notes/TypeScript 5.2.md",
+            "release-notes/TypeScript 5.2.md",
+            "reference/Variable Declarations.md",
+            "release-notes/TypeScript 5.2.md",
+            "release-notes/TypeScript 5.2.md"
+          ]
+        },
+        {
+          "id": "P21",
+          "fuente": "typescript",
+          "tipo": "conceptual",
+          "rank_doc": 1,
+          "rank_seccion": 1,
+          "resultados": 10,
+          "segundos": 3.61,
+          "top": [
+            "release-notes/TypeScript 6.0.md",
+            "release-notes/TypeScript 6.0.md",
+            "release-notes/TypeScript 5.0.md",
+            "release-notes/TypeScript 4.5.md",
+            "release-notes/TypeScript 5.4.md"
+          ]
+        },
+        {
+          "id": "P22",
+          "fuente": "react",
+          "tipo": "literal",
+          "rank_doc": 6,
+          "rank_seccion": null,
+          "resultados": 10,
+          "segundos": 3.03,
+          "top": [
+            "reference/react/useInsertionEffect.md",
+            "reference/react/Activity.md",
+            "reference/react/useEffectEvent.md",
+            "reference/react/Activity.md",
+            "blog/2022/03/29/react-v18.md"
+          ]
+        },
+        {
+          "id": "P23",
+          "fuente": "react",
+          "tipo": "parafraseada",
+          "rank_doc": 8,
+          "rank_seccion": null,
+          "resultados": 10,
+          "segundos": 2.99,
+          "top": [
+            "reference/react/useEffectEvent.md",
+            "reference/eslint-plugin-react-hooks/lints/unsupported-syntax.md",
+            "reference/react/useMemo.md",
+            "reference/react-dom/components/form.md",
+            "blog/2024/12/05/react-19.md"
+          ]
+        },
+        {
+          "id": "P24",
+          "fuente": "react",
+          "tipo": "literal",
+          "rank_doc": 1,
+          "rank_seccion": null,
+          "resultados": 10,
+          "segundos": 3.03,
+          "top": [
+            "reference/react/useState.md",
+            "learn/adding-interactivity.md",
+            "reference/rules/components-and-hooks-must-be-pure.md",
+            "reference/react/hooks.md",
+            "learn/referencing-values-with-refs.md"
+          ]
+        },
+        {
+          "id": "P25",
+          "fuente": "react",
+          "tipo": "conceptual",
+          "rank_doc": 7,
+          "rank_seccion": null,
+          "resultados": 10,
+          "segundos": 3.08,
+          "top": [
+            "reference/react/useState.md",
+            "reference/react/useState.md",
+            "reference/react/useOptimistic.md",
+            "learn/lifecycle-of-reactive-effects.md",
+            "learn/queueing-a-series-of-state-updates.md"
+          ]
+        },
+        {
+          "id": "P26",
+          "fuente": "react",
+          "tipo": "parafraseada",
+          "rank_doc": 1,
+          "rank_seccion": 7,
+          "resultados": 10,
+          "segundos": 3.11,
+          "top": [
+            "learn/extracting-state-logic-into-a-reducer.md",
+            "reference/react/useActionState.md",
+            "blog/2024/04/25/react-19-upgrade-guide.md",
+            "learn/extracting-state-logic-into-a-reducer.md",
+            "reference/react/useActionState.md"
+          ]
+        },
+        {
+          "id": "P27",
+          "fuente": "react",
+          "tipo": "parafraseada",
+          "rank_doc": 1,
+          "rank_seccion": null,
+          "resultados": 10,
+          "segundos": 3.46,
+          "top": [
+            "learn/passing-data-deeply-with-context.md",
+            "learn/removing-effect-dependencies.md",
+            "learn/understanding-your-ui-as-a-tree.md",
+            "reference/eslint-plugin-react-hooks/lints/static-components.md",
+            "reference/react/memo.md"
+          ]
+        },
+        {
+          "id": "P28",
+          "fuente": "react",
+          "tipo": "literal",
+          "rank_doc": null,
+          "rank_seccion": null,
+          "resultados": 10,
+          "segundos": 3.36,
+          "top": [
+            "blog/2022/06/15/react-labs-what-we-have-been-working-on-june-2022.md",
+            "reference/react/Children.md",
+            "reference/react/useLayoutEffect.md",
+            "reference/react/useId.md",
+            "learn/preserving-and-resetting-state.md"
+          ]
+        },
+        {
+          "id": "P29",
+          "fuente": "react",
+          "tipo": "conceptual",
+          "rank_doc": 2,
+          "rank_seccion": 2,
+          "resultados": 10,
+          "segundos": 3.42,
+          "top": [
+            "reference/react/experimental_taintUniqueValue.md",
+            "reference/react/experimental_taintObjectReference.md",
+            "reference/react/experimental_taintObjectReference.md",
+            "reference/react/experimental_taintObjectReference.md",
+            "reference/rsc/use-server.md"
+          ]
+        },
+        {
+          "id": "P30",
+          "fuente": "react",
+          "tipo": "parafraseada",
+          "rank_doc": null,
+          "rank_seccion": null,
+          "resultados": 10,
+          "segundos": 3.49,
+          "top": [
+            "reference/rsc/use-server.md",
+            "reference/react-dom/components/form.md",
+            "reference/react-dom/components/form.md",
+            "reference/react/useTransition.md",
+            "blog/2023/03/22/react-labs-what-we-have-been-working-on-march-2023.md"
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -1093,7 +1093,7 @@ siempre igual, con las mismas opciones fijadas.
 > **S3 implementado en su primera parte (2026-10-23).** Qué hay: `evol skills audit <ruta> --subproceso` (la segunda pasada), `evol skills audit
 --autoprueba` y `evol skills approve <nombre> [--dir]`, con `src/skills/auditor/` y `src/skills/approve.ts`.
 >
-> - **Un solo lector, por ahora: una API de chat en esta máquina** (`~/.config/evol/auditor.json`; solo se aceptan direcciones `127.0.0.1`, porque
+> - **Primer lector: una API de chat en esta máquina** (`~/.config/evol/auditor.json`; solo se aceptan direcciones `127.0.0.1`, porque
 >   lo que se audita sale hacia el lector). Está aislado por construcción: no tiene herramientas, shell ni redirecciones, y la petición lleva solo el
 >   prompt. El modelo de referencia es el Qwen3.5-9B local (base `Qwen/Qwen3.5-9B`, Apache-2.0 según su ficha de Hugging Face).
 > - **La skill se entrega como datos:** `SKILL.md` pasa a `skill.md.txt`, el resto lleva `.txt`, entre delimitadores con una marca distinta en cada
@@ -1118,9 +1118,22 @@ siempre igual, con las mismas opciones fijadas.
 > - **Medido con el Qwen local sobre las 7 skills propias:** la autoprueba pasa; la respuesta varía de una ejecución a otra (cambian los hallazgos y
 >   hubo un intento con JSON inválido que el reintento resolvió), así que **un resultado suelto no es una medida**. Salen avisos en unas 4 de 7 y
 >   casi todos son falsos positivos; por eso aprobar sigue siendo una decisión de la persona.
-> - **Falta del S3:** el segundo lector (Claude Code u otro CLI) con su prueba de aislamiento, que es lo que permite las «dos lecturas», el análisis
->   dinámico (S3b), y la regla de confirmación por IDE (control 9). Hasta entonces, las skills de terceros con scripts quedan siempre con el aviso
->   de lectura única. La instalación en la biblioteca es del S5.
+> - **Segundo lector: Claude Code (`claude -p`), añadido el mismo día.** Un lector de tipo `cli` se ejecuta **sin herramientas** (`--tools ""`), sin
+>   MCP (`--strict-mcp-config`), sin skills ni comandos (`--disable-slash-commands`), sin ajustes y por tanto sin ganchos (`--setting-sources ""`),
+>   sin sesión guardada, con **nuestro** prompt de sistema en lugar del suyo y en una carpeta vacía y nueva; la skill le llega solo por la entrada
+>   estándar. Se descartó `--bare` porque exige una clave de API y no admite el inicio de sesión de la cuenta. **Un CLI solo es elegible si supera la
+>   prueba de aislamiento** (criterio 90): se le pide escribir un archivo fuera de su carpeta, ejecutar un comando y abrir una conexión a un puerto
+>   local que evol escucha, y se comprueba que no ocurrió ninguna de las tres cosas; si la prueba no llega a hacerse, tampoco es elegible. La
+>   autoprueba de un CLI empieza por ahí. Con Claude Code real: supera el aislamiento, detecta la skill hostil (3 hallazgos verificados) y la
+>   confianza se guarda bajo el modelo que el propio CLI dice haber usado (`claude-opus-5-5`, el valor por defecto de la cuenta; con `modelo` en el
+>   archivo se puede pedir uno más barato).
+> - **Dos lecturas (criterio 91):** `audit --subproceso` usa todos los lectores configurados (o uno con `--lector <id>`); con dos lectores distintos
+>   desaparece el aviso de lectura única de las skills de terceros con scripts, y **si uno de los dos falla la skill queda «no auditada»**: no se
+>   aprueba con media lectura. `approve` pide que **todos** los lectores que leyeron sigan en confianza.
+> - **Se envía a la nube:** el lector Claude Code manda el contenido de la skill a Anthropic con la cuenta de la persona; por eso el lector API solo
+>   admite `127.0.0.1` y el CLI se configura a propósito. Una skill privada no debería pasar por él sin que la persona lo decida.
+> - **Falta del S3:** el análisis dinámico (S3b) y la regla de confirmación por IDE (control 9). Los lectores de Codex, OpenCode, Gemini CLI y los
+>   demás de la lista se suman con su propio adaptador y su prueba de aislamiento. La instalación en la biblioteca es del S5.
 
 > **T1 implementado (2026-10-23), salvo yara.** La pasada 1 de `evol skills audit` ejecuta además `shellcheck` (scripts de shell), `bandit`
 > (scripts de Python), `osv-scanner` (archivos de bloqueo) y `guarddog` (dependencias declaradas), **solo si la skill trae lo que cada una lee**.
