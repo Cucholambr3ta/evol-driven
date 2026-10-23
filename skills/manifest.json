@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "skills": {
+    "revisar-secretos": {
+      "alcance": "paquete",
+      "fases": ["build", "qa"],
+      "disciplina": "SecDD"
+    },
+    "incorporar-dependencia": {
+      "alcance": "paquete",
+      "fases": ["plan", "build"],
+      "disciplina": "SecDD"
+    },
+    "incorporar-skill": {
+      "alcance": "paquete",
+      "fases": ["briefing", "spec", "plan", "build", "qa", "retro"]
+    },
+    "evaluar-skill": {
+      "alcance": "paquete",
+      "fases": ["qa"]
+    }
+  }
+}

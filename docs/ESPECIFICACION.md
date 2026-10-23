@@ -678,14 +678,17 @@ con `--propia` y `--capacidades`. Cubre los criterios 59, 65, 77, 78, 79, 80, 81
 - **No hace todavía:** aprobar ni instalar (S3), la pasada 2 con el subproceso (S3), las dos lecturas ni el análisis dinámico (S3b). El informe
   lo dice: `pasadas.subproceso: "pendiente"`.
 - **Falla cerrada de verdad:** si `gitleaks` o `semgrep` faltan o fallan, toda auditoría termina «no auditada»; `evol doctor` lo avisa.
-- **Verificado con las herramientas reales (hito T0, en curso):** `semgrep` 1.182.0 está instalado y probado; `gitleaks` espera a que se
-  instale (necesita `sudo`). Lo que el simulacro no podía decir y salió al usar `semgrep` de verdad:
+- **Verificado con las herramientas reales (hito T0, hecho):** `semgrep` 1.182.0 y `gitleaks` 8.30.1 están instalados y probados. Lo que el simulacro no podía decir y salió al usar `semgrep` de verdad:
   - **El comando del S2 estaba mal:** `--config auto --metrics off` lo rechaza el propio semgrep, y `--config auto` manda datos a
     `semgrep.dev`. Ahora semgrep corre **sin red**, con las **reglas propias de evol** (`rules/semgrep/`, 12 reglas con sus pruebas
     `semgrep --test`); `EVOL_SEMGREP_CONFIG` permite sumar conjuntos del registro, aceptando la red.
   - **semgrep se salta `tests/` por defecto**, y un script malicioso escondido ahí pasaría sin revisión. La auditoría escanea una **copia
     temporal con un `.semgrepignore` vacío** (la copia en cuarentena no se toca) y **comprueba la cobertura**: el JSON de semgrep dice qué
     archivos leyó, y todo script que no lea es un fallo (la skill queda «no auditada»), no un pase.
+  - **`gitleaks` lee los ignorados de la carpeta que escanea** (`.gitleaks.toml`, `.gitleaksignore` y los comentarios `gitleaks:allow`): una
+    skill maliciosa podía esconder su propio secreto. La auditoría usa su propia configuración, una carpeta de ignorados vacía,
+    `--ignore-gitleaks-allow` y `--redact`, y llama al subcomando `dir` (`detect` es el nombre obsoleto). Hay dos pruebas con el binario real,
+    una de ellas con una skill que intenta esconder el secreto de las tres formas.
   - Con las 81 skills reales de esta máquina: 0 fallos de cobertura, 0 bloqueos de semgrep y unos pocos avisos (carga dinámica de módulos),
     a unos 3,6 s por skill.
 
@@ -993,13 +996,13 @@ adaptador de cada IDE las pone en la lista de comandos que piden confirmación, 
 
 **Hitos**
 
-| #   | Qué se hace                                                                                                                                                                                                                             | Se comprueba con            |
-| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------- |
-| T0  | **En curso.** `semgrep` verificado con la herramienta real (y corregido el S2); falta `gitleaks`, que necesita `sudo pacman -S gitleaks`, y comprobar con la versión instalada si `detect --no-git` sigue siendo el subcomando correcto | criterio 80, pruebas del S2 |
-| T1  | Añadir a la pasada 1 las herramientas recomendadas (`osv-scanner`, `shellcheck`, `bandit`, `yara`, `guarddog`) como análisis opcionales que avisan si faltan                                                                            | criterios 92 y 93           |
-| T2  | Un corpus de ataques con `promptfoo` para la autoprueba del subproceso y para los evals de las skills (con el S3)                                                                                                                       | criterios 87 y 94           |
-| T3  | Con el S3b, `bubblewrap` y `strace` para el análisis dinámico, con credenciales trampa                                                                                                                                                  | criterio 89                 |
-| T4  | El kit de las disciplinas de seguridad de los proyectos de usuario: el rol `seguridad` ejecuta las herramientas que correspondan y escribe `.evol/qa/QA_REPORT.md` con las marcas `CRITICAL` que SecDD ya verifica                      | criterios 95 y 96           |
+| #   | Qué se hace                                                                                                                                                                                                                                                                                                | Se comprueba con            |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------- |
+| T0  | **Hecho.** `semgrep` y `gitleaks` verificados con los binarios reales; ambos instalados, además de `osv-scanner`, `trivy`, `syft`, `cosign`, `opengrep`, `nuclei`, `bandit`, `schemathesis`, `checkov`, `reuse`, `guarddog`, `garak` y `promptfoo`. Pendientes por `sudo`: `yara`, `zaproxy`, `testssl.sh` | criterio 80, pruebas del S2 |
+| T1  | Añadir a la pasada 1 las herramientas recomendadas (`osv-scanner`, `shellcheck`, `bandit`, `yara`, `guarddog`) como análisis opcionales que avisan si faltan                                                                                                                                               | criterios 92 y 93           |
+| T2  | Un corpus de ataques con `promptfoo` para la autoprueba del subproceso y para los evals de las skills (con el S3)                                                                                                                                                                                          | criterios 87 y 94           |
+| T3  | Con el S3b, `bubblewrap` y `strace` para el análisis dinámico, con credenciales trampa                                                                                                                                                                                                                     | criterio 89                 |
+| T4  | El kit de las disciplinas de seguridad de los proyectos de usuario: el rol `seguridad` ejecuta las herramientas que correspondan y escribe `.evol/qa/QA_REPORT.md` con las marcas `CRITICAL` que SecDD ya verifica                                                                                         | criterios 95 y 96           |
 
 **Criterios de aceptación (preliminares)**
 

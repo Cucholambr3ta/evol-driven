@@ -22,6 +22,7 @@ import { cli, isolateUserConfig, tempDir, write } from "./helpers.js";
 
 /** Resolved before any test points a tool at a stand-in, so it is the one really installed (or null). */
 const REAL_SEMGREP = toolPath("semgrep");
+const REAL_GITLEAKS = toolPath("gitleaks");
 
 let userConfig: string;
 beforeAll(() => {
@@ -47,9 +48,8 @@ const GITLEAKS_CLEAN = `case "$1" in version) echo 8.99.0; exit 0;; esac
 while [ $# -gt 0 ]; do if [ "$1" = "--report-path" ]; then shift; echo "[]" > "$1"; fi; shift; done
 exit 0`;
 const gitleaksLeak = (file: string): string => `case "$1" in version) echo 8.99.0; exit 0;; esac
-SRC=""; OUT=""
+SRC="$2"; OUT=""
 while [ $# -gt 0 ]; do
-  if [ "$1" = "--source" ]; then shift; SRC="$1"; fi
   if [ "$1" = "--report-path" ]; then shift; OUT="$1"; fi
   shift
 done
@@ -847,5 +847,39 @@ describe("semgrep: cobertura y reglas propias", () => {
     );
     expect(report.herramientas["semgrep"]?.estado).toBe("ok");
     expect(report.hallazgos.filter((h) => h.regla === "semgrep")).toEqual([]);
+  });
+});
+
+describe("gitleaks real", () => {
+  const real = REAL_GITLEAKS !== null;
+  const token = `ghp_${"R8x2KpQ7mZ4vN1cB6tY9wL3sD5fH0jA2eGqU"}`;
+  const useReal = (): void => {
+    useTools();
+    process.env["EVOL_TOOL_GITLEAKS"] = REAL_GITLEAKS ?? "";
+    process.env["EVOL_TOOL_SEMGREP"] = stub("semgrep", semgrep("[]", 0, false));
+  };
+
+  it.skipIf(!real)("encuentra un secreto sin copiar su valor al informe", () => {
+    useReal();
+    const { report } = auditSkill(folder({ "ref/config.md": `token = "${token}"\n` }), {
+      propia: true,
+    });
+    expect(report.herramientas["gitleaks"]?.estado).toBe("ok");
+    expect(report.veredicto).toBe("block");
+    expect(JSON.stringify(report)).not.toContain(token);
+  });
+
+  it.skipIf(!real)("la skill no puede esconder su secreto con sus propios ignorados", () => {
+    useReal();
+    const { report } = auditSkill(
+      folder({
+        "ref/config.md": `token = "${token}" # gitleaks:allow\n`,
+        ".gitleaks.toml": '[allowlist]\npaths = ["ref/.*"]\n',
+        ".gitleaksignore": "ref/config.md:github-pat:1\n",
+      }),
+      { propia: true },
+    );
+    expect(report.hallazgos.some((h) => h.regla === "gitleaks")).toBe(true);
+    expect(report.veredicto).toBe("block");
   });
 });

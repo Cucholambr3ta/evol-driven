@@ -3,6 +3,7 @@ import {
   accessSync,
   constants,
   cpSync,
+  mkdirSync,
   mkdtempSync,
   readdirSync,
   readFileSync,
@@ -11,7 +12,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { delimiter, join, relative, resolve } from "node:path";
+import { delimiter, isAbsolute, join, relative, resolve } from "node:path";
 import { packageRoot } from "../core/paths.js";
 import type { Entry } from "./inventory.js";
 import type { AuditFinding, ToolReport } from "./report.js";
@@ -78,13 +79,23 @@ export function runGitleaks(dir: string): ToolRun {
   const work = mkdtempSync(join(tmpdir(), "evol-gitleaks-"));
   try {
     const file = join(work, "report.json");
+    // The skill must not choose what is ignored: its own .gitleaks.toml, .gitleaksignore and
+    // «gitleaks:allow» comments would let it hide a secret from the audit.
+    const config = join(work, "gitleaks.toml");
+    writeFileSync(config, "[extend]\nuseDefault = true\n");
+    const noIgnores = join(work, "sin-ignorados");
+    mkdirSync(noIgnores);
     const r = spawnSync(
       bin,
       [
-        "detect",
-        "--no-git",
-        "--source",
+        "dir",
         dir,
+        "--config",
+        config,
+        "--gitleaks-ignore-path",
+        noIgnores,
+        "--ignore-gitleaks-allow",
+        "--redact",
         "--report-format",
         "json",
         "--report-path",
@@ -113,7 +124,7 @@ export function runGitleaks(dir: string): ToolRun {
       regla: "gitleaks",
       nivel: "bloqueo",
       texto: `gitleaks encontró un secreto (${l.RuleID ?? "regla desconocida"})${l.StartLine ? ` en la línea ${l.StartLine}` : ""}.`,
-      archivo: relative(dir, l.File ?? "") || (l.File ?? ""),
+      archivo: isAbsolute(l.File ?? "") ? relative(dir, l.File ?? "") : (l.File ?? ""),
     }));
     return { report: { estado: "ok", ...(version ? { version } : {}) }, findings };
   } finally {
