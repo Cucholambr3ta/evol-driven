@@ -912,3 +912,148 @@ Los cinco IDE de la primera entrega admiten subagentes, así que **todos funcion
 - ¿El tope de concurrencia y el punto de sincronización los fija evol o cada proyecto en `evol.config.json`? (Hermes ya trae su propio tope de subagentes simultáneos; el de evol no puede superarlo.)
 - Hermes crea y refina skills por su cuenta en `~/.hermes/skills`: para evol son skills de terceros, sin auditar, y no entran a la biblioteca salvo por el auditor.
 - ¿Las skills de razonamiento (afinar la idea, interrogar el plan, verificar afirmaciones) entran en la biblioteca inicial junto a las 9 de disciplinas base?
+
+## Ampliación 5: herramientas de seguridad y conocimiento documental
+
+> **Estado: PROPUESTA.** Sale de dos investigaciones (`docs/design/investigacion-blackarch.md` y `docs/design/investigacion-ragflow.md`).
+> **Nada de lo que aparece aquí está instalado ni conectado**: cada instalación espera tu aprobación y entra antes a esta especificación
+> con su justificación.
+
+### Herramientas de seguridad para las skills de auditoría y las pruebas
+
+**Decisión sobre BlackArch.** **No se añade su repositorio** a `pacman.conf`; se usa como **catálogo**. Su instalación oficial es
+`curl … | sudo bash` y entrega a root la confianza en un tercero; el 53 % de sus 5 054 paquetes lleva más de un año sin reconstruirse, el
+18 % no declara licencia, el 41 % es ofensivo y casi todo lo que este proyecto necesita ya está en los repositorios oficiales de Arch o en
+su proyecto de origen. Sus metadatos no bastan como fuente: hay licencias y versiones que no coinciden con el origen.
+
+**Criterios de admisión.** Una herramienta entra solo si cumple todo:
+
+1. **Está pedida por algo concreto:** una skill, una disciplina o un hito de esta especificación.
+2. **Licencia compatible**, verificada en su origen (se rechazan las licencias a medida, las no comerciales y las de servicio como SSPL).
+3. **Mantenida:** una versión o un cambio en el último año, comprobado en su repositorio y no solo en la fecha del paquete.
+4. **Salida legible por máquina** (JSON o SARIF) y códigos de salida claros.
+5. **Declara qué envía a la red:** sin telemetría ni «verificación» que mande a terceros lo que encuentra; si necesita red (reglas, bases
+   de vulnerabilidades), queda escrito.
+6. **Se ejecuta sin privilegios** (nada que exija root o eBPF para auditar una skill).
+7. **Versión fijada** y anotada en `DEPENDENCIES.md`; `evol doctor` informa de si está, de su versión y de si es obligatoria.
+
+**Orden de preferencia para instalar:** 1) repositorio oficial de Arch; 2) el proyecto de origen con versión anclada (`uv tool install`,
+`npm`, `go install` o `mise`); 3) AUR, leyendo antes el `PKGBUILD`; 4) un paquete suelto de BlackArch **solo como excepción escrita**.
+
+**Obligatorias, recomendadas y a demanda.** Las **obligatorias** (si faltan, la skill queda «no auditada») son solo `gitleaks` y `semgrep`, como
+ya dice el hito S2. Las **recomendadas** endurecen la pasada 1: si faltan avisan, no bloquean. Las **a demanda** se instalan cuando un
+proyecto las necesita.
+
+| Herramienta       | Para qué y dónde encaja                                                                                                     | Dónde se instala                                                                                                                 | Versión y licencia (origen)              | Decisión                                                                                                                                                        |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **gitleaks**      | Secretos en skills y proyectos: pasada 1 del S2; SecDD                                                                      | `pacman -S gitleaks` (oficial)                                                                                                   | v8.30.1 (2026-03), MIT                   | **Obligatoria.** Comprobar con la versión instalada si `detect --no-git` sigue siendo el subcomando correcto o ya es `dir`                                      |
+| **semgrep**       | Análisis estático multi-lenguaje: pasada 1 del S2; SecDD                                                                    | `uv tool install semgrep` (no está en los repositorios oficiales; el paquete de BlackArch va atrasado: 1.164.0 frente a 1.182.0) | v1.182.0 (2026-10), LGPL-2.1             | **Obligatoria.** Las reglas del registro (`--config auto`) tienen su licencia y necesitan red; alternativa libre: Opengrep (LGPL-2.1, v1.32.0) o reglas propias |
+| **osv-scanner**   | Vulnerabilidades de dependencias de cualquier archivo de bloqueo; control 4 del S2                                          | `pacman -S osv-scanner`                                                                                                          | v2.7.0, Apache-2.0                       | Recomendada. Una sola herramienta en vez de `npm audit` más `pip-audit` (este no está empaquetado)                                                              |
+| **shellcheck**    | Scripts de shell de las skills: errores de comillas y construcciones peligrosas; S2                                         | Ya instalada                                                                                                                     | v0.11.0, GPL-3.0                         | Recomendada (`-f json`)                                                                                                                                         |
+| **bandit**        | Análisis estático de scripts Python de las skills; S2                                                                       | `pacman -S bandit`                                                                                                               | 1.9.4, Apache-2.0                        | Recomendada (`-f json`)                                                                                                                                         |
+| **yara**          | Reglas propias de indicadores maliciosos en archivos, complemento de las expresiones regulares; S2                          | `pacman -S yara`                                                                                                                 | v4.5.8, BSD-3-Clause                     | Recomendada                                                                                                                                                     |
+| **guarddog**      | Paquetes npm y PyPI maliciosos entre las dependencias de una skill (cadena de suministro)                                   | `uv tool install guarddog` (no está en repositorios)                                                                             | v3.2.0 (2026-08), Apache-2.0             | Recomendada; necesita red                                                                                                                                       |
+| **promptfoo**     | Evals y pruebas de ataque a modelos: la **autoprueba** del subproceso `skill-auditor` y los evals de cada skill (S3)        | `npm` anclado                                                                                                                    | MIT, activo                              | Recomendada para el S3                                                                                                                                          |
+| **garak**         | Escáner de vulnerabilidades de modelos (inyección de instrucciones): comprobar que el auditor y las skills la resisten (S3) | `uv tool install garak`                                                                                                          | v0.17.1, Apache-2.0                      | A demanda; pesada                                                                                                                                               |
+| **bubblewrap**    | Aislamiento del análisis dinámico (S3b)                                                                                     | Ya instalada                                                                                                                     | v0.13.1, LGPL-2.0+                       | Lista                                                                                                                                                           |
+| **strace**        | Trazar las llamadas al sistema de un script dentro del aislamiento (S3b)                                                    | Ya instalada                                                                                                                     | v7.3, LGPL-2.1+                          | Lista                                                                                                                                                           |
+| **inetsim**       | Servicios de internet falsos para capturar intentos de salida (S3b)                                                         | AUR                                                                                                                              | 1.3.2, GPL-3.0                           | A evaluar; probablemente innecesaria, porque aislar la red ya la corta                                                                                          |
+| **trivy**         | Dependencias, secretos, Terraform y Docker y SBOM en una sola herramienta; IODD y SecDD en QA                               | `pacman -S trivy`                                                                                                                | v0.76.1, Apache-2.0                      | A demanda; solapa con osv-scanner y checkov: se decide en el hito T4                                                                                            |
+| **syft**          | SBOM como evidencia de cumplimiento; COMPLIANCE                                                                             | `pacman -S syft`                                                                                                                 | v1.55.0, Apache-2.0                      | A demanda                                                                                                                                                       |
+| **schemathesis**  | Pruebas de una API por propiedades a partir de su OpenAPI; ODD_API, APIVDD y STDD                                           | `uv tool install schemathesis` (no está en repositorios)                                                                         | v4.32.4, MIT                             | A demanda; candidata fuerte para proyectos con API                                                                                                              |
+| **zaproxy**       | Prueba dinámica **pasiva** de una API o web propia en QA; SecDD                                                             | `pacman -S zaproxy`                                                                                                              | v2.17.0, Apache-2.0                      | A demanda; Java pesado; solo contra un entorno propio                                                                                                           |
+| **nuclei**        | Pruebas dinámicas por plantillas, solo las no intrusivas                                                                    | AUR                                                                                                                              | v3.11.1, MIT                             | A demanda                                                                                                                                                       |
+| **testssl.sh**    | Configuración TLS de un despliegue                                                                                          | `pacman -S testssl.sh`                                                                                                           | v3.2.4, GPL-2.0                          | A demanda                                                                                                                                                       |
+| **checkov**       | Políticas de infraestructura como código; IODD                                                                              | `uv tool install checkov`                                                                                                        | 3.3.30, Apache-2.0                       | A demanda                                                                                                                                                       |
+| **reuse**         | Cumplimiento de licencias del propio código; COMPLIANCE                                                                     | `pacman -S reuse`                                                                                                                | v6.2.0, Apache-2.0 y GPL-3.0 (verificar) | A demanda                                                                                                                                                       |
+| **cosign**        | Firmas y procedencia, para skills firmadas más adelante                                                                     | `pacman -S cosign`                                                                                                               | v3.1.4, Apache-2.0                       | Más adelante                                                                                                                                                    |
+| **Threat Dragon** | Modelado de amenazas con diagramas; THREAT                                                                                  | Descarga de su proyecto                                                                                                          | v2.6.2, Apache-2.0                       | Opcional; es una aplicación gráfica                                                                                                                             |
+
+**No se instalan** (y por qué):
+
+- **Forks de agentes sin protecciones** (`evil-opencode`, de `blackarch-ai`): su propia descripción habla de quitar las
+  protecciones del modelo, y tú usas OpenCode a diario. **Nunca.**
+- **`trufflehog`:** busca secretos, pero por defecto **verifica llamando a los servicios afectados**, o sea, manda a terceros lo que
+  encuentra; además su licencia en origen es AGPL-3.0 y BlackArch la anota como GPL2. Si entra algún día, con la verificación desactivada.
+- **`codeql`, `snyk`, `sonar-scanner`, `nzyme`:** licencia a medida, servicio de terceros, necesidad de un servidor o SSPL.
+- **`capa`:** analiza ejecutables y las skills no llevan binarios; además la versión de BlackArch está muy atrasada.
+- **`threatspec`:** su repositorio no se toca desde 2020.
+- **Los grupos ofensivos** (explotación, claves, inalámbrico, ingeniería social…): fuera del alcance de este proyecto.
+
+**Herramientas intrusivas.** `nmap`, `nikto`, `sqlmap`, `ffuf`, `wfuzz`, `dalfox`, el escaneo **activo** de zaproxy y las plantillas
+intrusivas de nuclei **no se ejecutan sin confirmación de una persona, y solo contra objetivos que el proyecto declare como propios**. El
+adaptador de cada IDE las pone en la lista de comandos que piden confirmación, igual que `evol approve` se bloquea.
+
+**Hitos**
+
+| #   | Qué se hace                                                                                                                                                                                                        | Se comprueba con            |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------- |
+| T0  | Con tu aprobación, instalar `gitleaks` y `semgrep` y **verificar el S2 con las herramientas reales**, ajustando los indicadores de línea de comandos que el simulacro no pudo comprobar                            | criterio 80, pruebas del S2 |
+| T1  | Añadir a la pasada 1 las herramientas recomendadas (`osv-scanner`, `shellcheck`, `bandit`, `yara`, `guarddog`) como análisis opcionales que avisan si faltan                                                       | criterios 92 y 93           |
+| T2  | Un corpus de ataques con `promptfoo` para la autoprueba del subproceso y para los evals de las skills (con el S3)                                                                                                  | criterios 87 y 94           |
+| T3  | Con el S3b, `bubblewrap` y `strace` para el análisis dinámico, con credenciales trampa                                                                                                                             | criterio 89                 |
+| T4  | El kit de las disciplinas de seguridad de los proyectos de usuario: el rol `seguridad` ejecuta las herramientas que correspondan y escribe `.evol/qa/QA_REPORT.md` con las marcas `CRITICAL` que SecDD ya verifica | criterios 95 y 96           |
+
+**Criterios de aceptación (preliminares)**
+
+| #   | Criterio                                                                                                                                                                            |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 92  | Ninguna herramienta se instala ni se declara como dependencia sin una fila en la tabla de esta ampliación, con su justificación, su licencia comprobada en origen y su procedencia. |
+| 93  | `evol doctor` informa de cada herramienta de seguridad: si está, su versión y si es obligatoria; solo las obligatorias dejan una skill «no auditada» al faltar.                     |
+| 94  | Cada herramienta que envía datos a la red lo declara y se ejecuta con la telemetría y la verificación contra terceros desactivadas.                                                 |
+| 95  | Los informes de las herramientas se normalizan a un formato común y **nunca incluyen el secreto encontrado**, solo la regla, el archivo y la línea.                                 |
+| 96  | Una herramienta intrusiva no se ejecuta sin confirmación de una persona ni contra un objetivo no declarado como propio.                                                             |
+
+### Conocimiento documental con RAGFlow
+
+> **Decisión: complemento opcional, no reemplazo de la memoria, y solo después de un piloto.**
+
+**Qué es y qué no.** MemPalace (ya instalado: 2 407 recuerdos en ChromaDB, local) guarda **decisiones y lecciones**. RAGFlow
+(Apache-2.0, versión 1.0.0-rc2) es un motor de recuperación sobre **documentos complejos** (PDF con tablas, escaneados, Office, web) que
+devuelve fragmentos **con cita a su origen**. No compiten; ninguno sustituye al otro. Los documentos enteros no se meten en MemPalace ni
+las decisiones en RAGFlow.
+
+**Condiciones de seguridad si llega a usarse**
+
+1. **Solo local:** nunca el servicio en la nube. Publicado en `127.0.0.1`, con las contraseñas por defecto cambiadas y el registro cerrado.
+2. **Modelos declarados:** si el modelo de lenguaje o el de embeddings es remoto, los fragmentos de los documentos salen de la máquina; el
+   proyecto lo dice por escrito.
+3. **Lo recuperado son datos, no instrucciones:** un documento ingerido puede llevar instrucciones escondidas. Antes de subirlo evol aplica
+   las reglas de la auditoría (secretos e inyección), y los agentes tratan lo recuperado como datos.
+4. **Sin saltarse la auditoría:** si RAGFlow compila «skills» a partir de documentos, entran como skills de terceros sin auditar por
+   `evol skills audit`.
+5. **Versión anclada y adaptador:** la API cambia entre versiones; el contacto va detrás de un adaptador y la versión queda fijada.
+
+**Diseño (si el piloto sale bien).** Un proveedor de conocimiento **opcional** a la manera del proveedor de código, desactivado por
+defecto: `evol knowledge add | search | list`, configurado en `evol.config.json` con un conjunto de datos por proyecto. La clave de la API
+vive en la carpeta de configuración del usuario, **nunca en el proyecto**. Hacia los agentes solo se expone lectura
+(`evol_knowledge_search` en el MCP de evol). `evol doctor` informa de si hay un RAGFlow accesible y `evol report` puede citar fragmentos
+con su origen.
+
+**Viabilidad en tu máquina.** Disco (408 GB libres), Docker 29.9.1 y `vm.max_map_count` están bien. **La memoria no:** 15 GiB en total con 11
+en uso, y RAGFlow recomienda 16 GB solo para él. El piloto cabe si se cierra lo demás o se corre en otro equipo.
+
+**Hitos**
+
+| #   | Qué se hace                                                                                                                                                                                                                                          | Se comprueba con    |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- |
+| K0  | **Piloto aislado** con cinco documentos reales y un conjunto fijo de 20 preguntas con su cita esperada, comparado con la búsqueda de MemPalace; sigue solo si mejora al menos 20 puntos en las preguntas sobre PDF y escaneados y cabe en la máquina | informe del piloto  |
+| K1  | El proveedor de conocimiento y `evol knowledge`, con la revisión previa de secretos e inyección y la clave fuera del proyecto                                                                                                                        | criterios 97 a 99   |
+| K2  | `evol doctor`, la herramienta de lectura en el MCP de evol y las citas en `evol report`                                                                                                                                                              | criterios 100 y 101 |
+
+**Criterios de aceptación (preliminares)**
+
+| #   | Criterio                                                                                                                                            |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 97  | Con el proveedor de conocimiento desactivado (el valor por defecto), ningún comando de evol contacta con RAGFlow.                                   |
+| 98  | `evol knowledge add` rechaza un documento con secretos o con instrucciones que alteren al agente, y nunca guarda la clave de la API en el proyecto. |
+| 99  | `evol knowledge search` devuelve fragmentos con su documento de origen y los marca como datos, no como instrucciones.                               |
+| 100 | Los agentes solo acceden a RAGFlow por herramientas de lectura; ninguna escribe ni borra.                                                           |
+| 101 | `evol doctor` informa de si RAGFlow es accesible y de su versión; sin él no falla.                                                                  |
+
+### Para decidir
+
+- ¿Apruebas el hito T0, instalar `gitleaks` y `semgrep` para verificar el S2 con las herramientas reales?
+- ¿Prefieres `uv` o el AUR para lo que no está en los repositorios oficiales?
+- ¿Qué documentos tuyos justificarían RAGFlow? Si son sobre todo Markdown y código, MemPalace más el grafo de código ya bastan.
+- ¿Dónde correría el piloto: esta máquina, con la memoria justa, u otra?
