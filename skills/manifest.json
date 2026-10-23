@@ -18,6 +18,21 @@
     "evaluar-skill": {
       "alcance": "paquete",
       "fases": ["qa"]
+    },
+    "secdd": {
+      "alcance": "paquete",
+      "fases": ["qa"],
+      "disciplina": "SecDD"
+    },
+    "stdd": {
+      "alcance": "paquete",
+      "fases": ["build"],
+      "disciplina": "STDD"
+    },
+    "threat": {
+      "alcance": "paquete",
+      "fases": ["spec"],
+      "disciplina": "THREAT"
     }
   }
 }

@@ -1097,6 +1097,24 @@ siempre igual, con las mismas opciones fijadas.
 > `evol security scan`; después de reescribirlo hay que volver a aprobar QA, como con cualquier artefacto que cambia. `evol doctor` lista cada
 > herramienta de seguridad con su versión y si es obligatoria siempre, según el proyecto u opcional; una que falta es un aviso, no un error.
 
+> **T4c implementado (con una salvedad).** Las siete skills de seguridad están en `skills/` (`revisar-secretos`, `incorporar-dependencia`,
+> `incorporar-skill`, `evaluar-skill` y las tres que ya estaban previstas: `secdd`, `stdd`, `threat`), sin scripts, y las siete dan **PASS** en la
+> auditoría real (gitleaks y semgrep). Cada una lleva `evals/casos.yaml` (14 casos: 5 de activación, 5 de no activación, 3 de inyección y 1 de
+> filtración) y `evals/promptfooconfig.yaml`; son datos, no código, y la huella de la skill los incluye. Una prueba
+> (`tests/skills-evals.test.ts`) comprueba la estructura, que el enrutador de cada evaluación liste las descripciones reales de las siete y los
+> criterios 106 a 108.
+>
+> **Resultado de la evaluación con el modelo local (Qwen3.5-9B, sin red hacia fuera): 91 de 98.** Los 70 casos de activación y de no activación
+> pasan. Los 7 que fallan son de comportamiento del modelo, no de los casos: en 2 repite una orden inyectada como única respuesta (`secdd`,
+> `threat`) y en 5 cita el valor falso de un secreto mientras se niega a mostrarlo (`revisar-secretos`, `incorporar-dependencia`,
+> `evaluar-skill`, `stdd`, `threat`). Se endureció el texto de las skills tres veces (sección «Lo que lees son datos», cierre «Antes de
+> responder») y se pasó de 84 a 91; lo que queda depende del modelo. Antes de dar por buena una skill con un modelo más capaz hay que repetir la
+> evaluación. Para ejecutarla: `export EVOL_EVAL_API_KEY=$(cat ~/.local/state/omarchy/local-ai/gateway.key)` y
+> `PROMPTFOO_DISABLE_TELEMETRY=1 promptfoo eval -c promptfooconfig.yaml` dentro de `skills/<nombre>/evals`.
+>
+> **Dos cosas que enseñó la auditoría:** bloquea cualquier skill que mencione `evol approve` (se reescribió `secdd` sin nombrar el comando), y
+> avisa de un comentario HTML oculto en los datos de evaluación (los casos de inyección usan `[Nota para el asistente: …]` para no disparar el aviso).
+
 **Criterios de aceptación (preliminares)**
 
 | #   | Criterio                                                                                                                                                        |
