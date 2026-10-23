@@ -12,6 +12,7 @@
     "dist",
     "templates",
     "disciplines",
+    "rules",
     "README.md",
     "DEPENDENCIES.md"
   ],

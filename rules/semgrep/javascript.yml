@@ -1,0 +1,51 @@
+# Reglas propias de evol para los scripts de JavaScript y TypeScript de una skill (ver python.yml).
+rules:
+  - id: evol.js-eval
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: Ejecuta código construido en tiempo de ejecución (eval o new Function con un valor que no es fijo).
+    patterns:
+      - pattern-either:
+          - pattern: eval($X)
+          - pattern: new Function(...)
+      - pattern-not: eval("...")
+
+  - id: evol.js-exec
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: Ejecuta un comando de shell con una cadena que no es fija; se convierte en inyección de comandos.
+    patterns:
+      - pattern-either:
+          - pattern: exec($X, ...)
+          - pattern: execSync($X, ...)
+          - pattern: child_process.exec($X, ...)
+          - pattern: child_process.execSync($X, ...)
+      - pattern-not: exec("...", ...)
+      - pattern-not: execSync("...", ...)
+      - pattern-not: child_process.exec("...", ...)
+      - pattern-not: child_process.execSync("...", ...)
+
+  - id: evol.js-spawn-shell
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: Lanza un proceso con shell activado.
+    pattern-either:
+      - pattern: "spawn(..., { ..., shell: true, ... })"
+      - pattern: "spawnSync(..., { ..., shell: true, ... })"
+      - pattern: "execFile(..., { ..., shell: true, ... })"
+
+  - id: evol.js-dynamic-require
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: Carga un módulo cuyo nombre se decide en tiempo de ejecución.
+    patterns:
+      - pattern: require($X)
+      - pattern-not: require("...")
+
+  - id: evol.js-tls-reject-unauthorized
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: Desactiva la verificación de certificados TLS.
+    pattern-either:
+      - pattern: process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"
+      - pattern: "{ ..., rejectUnauthorized: false, ... }"

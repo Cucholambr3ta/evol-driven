@@ -1,0 +1,63 @@
+# Reglas propias de evol para los scripts de Python de una skill. Se ejecutan sin red y sin las
+# reglas del registro de semgrep: lo que revisan es lo que dice este archivo. Se prueban con
+# `semgrep --test rules/semgrep` (los comentarios ruleid/ok de python.py).
+rules:
+  - id: evol.py-shell-true
+    languages: [python]
+    severity: ERROR
+    message: Ejecuta un comando con shell=True; una cadena construida a mano se convierte en inyección de comandos.
+    pattern: subprocess.$F(..., shell=True, ...)
+
+  - id: evol.py-os-system
+    languages: [python]
+    severity: ERROR
+    message: os.system con un argumento que no es una cadena fija.
+    patterns:
+      - pattern: os.system($X)
+      - pattern-not: os.system("...")
+
+  - id: evol.py-eval-exec
+    languages: [python]
+    severity: ERROR
+    message: Ejecuta código construido en tiempo de ejecución (eval o exec con un valor que no es fijo).
+    patterns:
+      - pattern-either:
+          - pattern: eval($X)
+          - pattern: exec($X)
+      - pattern-not: eval("...")
+      - pattern-not: exec("...")
+
+  - id: evol.py-pickle
+    languages: [python]
+    severity: WARNING
+    message: Deserializar con pickle o marshal ejecuta código arbitrario si los datos no son de confianza.
+    pattern-either:
+      - pattern: pickle.loads(...)
+      - pattern: pickle.load(...)
+      - pattern: marshal.loads(...)
+
+  - id: evol.py-yaml-load
+    languages: [python]
+    severity: WARNING
+    message: yaml.load sin un cargador seguro puede construir objetos arbitrarios; usa yaml.safe_load.
+    patterns:
+      - pattern: yaml.load(...)
+      - pattern-not: yaml.load(..., Loader=yaml.SafeLoader)
+      - pattern-not: yaml.load(..., Loader=SafeLoader)
+
+  - id: evol.py-tls-verify-false
+    languages: [python]
+    severity: WARNING
+    message: Desactiva la verificación de certificados TLS.
+    pattern: requests.$F(..., verify=False, ...)
+
+  - id: evol.py-dynamic-import
+    languages: [python]
+    severity: WARNING
+    message: Importa un módulo cuyo nombre se decide en tiempo de ejecución.
+    patterns:
+      - pattern-either:
+          - pattern: __import__($X)
+          - pattern: importlib.import_module($X)
+      - pattern-not: __import__("...")
+      - pattern-not: importlib.import_module("...")

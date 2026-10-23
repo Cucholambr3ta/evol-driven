@@ -1,7 +1,18 @@
 import { spawnSync } from "node:child_process";
-import { accessSync, constants, mkdtempSync, readFileSync, rmSync } from "node:fs";
+import {
+  accessSync,
+  constants,
+  cpSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
-import { delimiter, join, relative } from "node:path";
+import { delimiter, join, relative, resolve } from "node:path";
+import { packageRoot } from "../core/paths.js";
 import type { Entry } from "./inventory.js";
 import type { AuditFinding, ToolReport } from "./report.js";
 import type { Ecosystem } from "./analyze.js";
@@ -110,57 +121,129 @@ export function runGitleaks(dir: string): ToolRun {
   }
 }
 
+/** Languages the local rules cover: every file of these that semgrep does not report as scanned is a gap. */
+const SEMGREP_FILES = /\.(py|js|jsx|mjs|cjs|ts|tsx|mts|cts)$/i;
+
+/** evol's own rules: semgrep runs with exactly these, offline, instead of the registry's («--config auto» needs the network and sends data). */
+export function semgrepRulesDir(): string {
+  return join(packageRoot(), "rules", "semgrep");
+}
+
+function filesUnder(dir: string, base = ""): string[] {
+  return readdirSync(join(dir, base)).flatMap((name) => {
+    const rel = base ? `${base}/${name}` : name;
+    return statSync(join(dir, rel)).isDirectory() ? filesUnder(dir, rel) : [rel];
+  });
+}
+
+/**
+ * Static analysis of the scripts with evol's local rules. Two traps are closed on purpose:
+ * semgrep skips folders such as `tests/` unless the scanned folder carries its own `.semgrepignore`
+ * (so it scans a temporary copy with an empty one, and the audited copy stays untouched), and it
+ * reports which files it really read, so any script it did not read is a failure, not a pass.
+ * EVOL_SEMGREP_CONFIG adds more rule sets (for example `p/security-audit`), at the price of the network.
+ */
 export function runSemgrep(dir: string): ToolRun {
   const bin = toolPath("semgrep");
   if (!bin) return { report: missing("semgrep"), findings: [] };
   const version = versionOf(bin, ["--version"]);
-  const r = spawnSync(
-    bin,
-    [
-      "scan",
-      "--config",
-      "auto",
-      "--json",
-      "--quiet",
-      "--metrics",
-      "off",
-      "--disable-version-check",
-      dir,
-    ],
-    { encoding: "utf8", timeout: 300_000, maxBuffer: 64 * 1024 * 1024 },
-  );
-  if (r.error) return { report: failed(r.error.message, version), findings: [] };
-  let parsed: {
-    results?: {
-      check_id?: string;
-      path?: string;
-      start?: { line?: number };
-      extra?: { severity?: string; message?: string };
-    }[];
-  };
+  const work = mkdtempSync(join(tmpdir(), "evol-semgrep-"));
   try {
-    parsed = JSON.parse(r.stdout) as typeof parsed;
-  } catch {
-    return {
-      report: failed(
-        `no devolvió un informe legible (código ${r.status}); semgrep necesita red para bajar sus reglas`,
-        version,
-      ),
-      findings: [],
+    const scan = join(work, "skill");
+    cpSync(dir, scan, { recursive: true, verbatimSymlinks: true });
+    writeFileSync(join(scan, ".semgrepignore"), "");
+    const extra = (process.env["EVOL_SEMGREP_CONFIG"] ?? "")
+      .split(",")
+      .map((c) => c.trim())
+      .filter((c) => c !== "");
+    const configs = [semgrepRulesDir(), ...extra].flatMap((c) => ["--config", c]);
+    const r = spawnSync(
+      bin,
+      [
+        "scan",
+        ...configs,
+        "--json",
+        "--quiet",
+        "--metrics",
+        "off",
+        "--disable-version-check",
+        scan,
+      ],
+      {
+        encoding: "utf8",
+        timeout: 300_000,
+        maxBuffer: 64 * 1024 * 1024,
+        env: { ...process.env, SEMGREP_SEND_METRICS: "off", SEMGREP_ENABLE_VERSION_CHECK: "0" },
+      },
+    );
+    if (r.error) return { report: failed(r.error.message, version), findings: [] };
+    let parsed: {
+      results?: {
+        check_id?: string;
+        path?: string;
+        start?: { line?: number };
+        extra?: { severity?: string; message?: string };
+      }[];
+      errors?: { level?: string; message?: string; path?: string }[];
+      paths?: { scanned?: string[] };
     };
+    try {
+      parsed = JSON.parse(r.stdout) as typeof parsed;
+    } catch {
+      return {
+        report: failed(
+          `no devolvió un informe legible (código ${r.status}): ${r.stderr.trim().split("\n")[0] ?? ""}`,
+          version,
+        ),
+        findings: [],
+      };
+    }
+    const broken = (parsed.errors ?? []).filter(
+      (e) => e.level === "error" || e.level === undefined,
+    );
+    if (broken.length > 0) {
+      return {
+        report: failed(
+          `semgrep no pudo analizar ${broken
+            .map(
+              (e) =>
+                (e.path ? relative(scan, resolve(e.path)) : (e.message ?? "una regla")).split(
+                  "\n",
+                )[0],
+            )
+            .slice(0, 3)
+            .join(", ")}`,
+          version,
+        ),
+        findings: [],
+      };
+    }
+    const scanned = new Set((parsed.paths?.scanned ?? []).map((p) => relative(scan, resolve(p))));
+    const unread = filesUnder(scan).filter((f) => SEMGREP_FILES.test(f) && !scanned.has(f));
+    if (unread.length > 0) {
+      return {
+        report: failed(
+          `semgrep no revisó ${unread.length} script(s): ${unread.slice(0, 3).join(", ")}`,
+          version,
+        ),
+        findings: [],
+      };
+    }
+    const findings: AuditFinding[] = [];
+    for (const hit of parsed.results ?? []) {
+      const severity = (hit.extra?.severity ?? "").toUpperCase();
+      if (severity === "INFO") continue;
+      findings.push({
+        regla: "semgrep",
+        nivel: severity === "ERROR" ? "bloqueo" : "aviso",
+        texto: `semgrep (${(hit.check_id ?? "regla").replace(/^.*\./, "")}): ${(hit.extra?.message ?? "").split("\n")[0]?.slice(0, 160) ?? ""}`,
+        archivo: relative(scan, resolve(hit.path ?? "")) || (hit.path ?? ""),
+      });
+    }
+    return { report: { estado: "ok", ...(version ? { version } : {}) }, findings };
+  } finally {
+    rmSync(work, { recursive: true, force: true });
   }
-  const findings: AuditFinding[] = [];
-  for (const hit of parsed.results ?? []) {
-    const severity = (hit.extra?.severity ?? "").toUpperCase();
-    if (severity === "INFO") continue;
-    findings.push({
-      regla: "semgrep",
-      nivel: severity === "ERROR" ? "bloqueo" : "aviso",
-      texto: `semgrep (${hit.check_id ?? "regla"}): ${(hit.extra?.message ?? "").split("\n")[0]?.slice(0, 160) ?? ""}`,
-      archivo: relative(dir, hit.path ?? "") || (hit.path ?? ""),
-    });
-  }
-  return { report: { estado: "ok", ...(version ? { version } : {}) }, findings };
 }
 
 const NODE_AUDITABLE = /(^|\/)(package-lock\.json|npm-shrinkwrap\.json)$/;

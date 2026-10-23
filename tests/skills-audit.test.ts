@@ -16,8 +16,12 @@ import { parseRemote } from "../src/skills/remote.js";
 import type { AuditReport } from "../src/skills/report.js";
 import { huellaDe, readSkill } from "../src/skills/skill.js";
 import { verifySnapshot } from "../src/skills/snapshot.js";
+import { toolPath } from "../src/skills/tools.js";
 import { writeZip } from "../src/skills/zip.js";
 import { cli, isolateUserConfig, tempDir, write } from "./helpers.js";
+
+/** Resolved before any test points a tool at a stand-in, so it is the one really installed (or null). */
+const REAL_SEMGREP = toolPath("semgrep");
 
 let userConfig: string;
 beforeAll(() => {
@@ -51,11 +55,18 @@ while [ $# -gt 0 ]; do
 done
 echo '[{"RuleID":"aws-access-token","File":"'"$SRC"'/${file}","StartLine":3}]' > "$OUT"
 exit 2`;
+/** A semgrep stand-in: it reports `results` and, like the real one, which files it read. */
 const semgrep = (
-  json: string,
+  results = "[]",
   code = 0,
-): string => `case "$1" in --version) echo 1.99.0; exit 0;; esac
-echo '${json}'
+  scanAll = true,
+): string => String.raw`case "$1" in --version) echo 1.99.0; exit 0;; esac
+for a; do last="$a"; done
+SCANNED="[]"
+if [ "${scanAll}" = "true" ]; then
+  SCANNED=$(cd "$last" && find . -type f \( -name '*.py' -o -name '*.js' -o -name '*.mjs' -o -name '*.cjs' -o -name '*.ts' \) | sed 's|^\./||' | awk -v d="$last" 'BEGIN{ORS=""; printf "["} {printf "%s\"%s/%s\"", (NR>1?",":""), d, $0} END{printf "]"}')
+fi
+printf '{"results":${results},"errors":[],"paths":{"scanned":%s}}' "$SCANNED"
 exit ${code}`;
 const NPM_CLEAN = `case "$1" in --version) echo 11.0.0; exit 0;; esac
 echo '{"vulnerabilities":{}}'`;
@@ -72,7 +83,7 @@ function useTools(
 ): Record<string, string> {
   const set: Record<string, string> = {
     EVOL_TOOL_GITLEAKS: stub("gitleaks", GITLEAKS_CLEAN),
-    EVOL_TOOL_SEMGREP: stub("semgrep", semgrep('{"results":[]}')),
+    EVOL_TOOL_SEMGREP: stub("semgrep", semgrep()),
     EVOL_TOOL_NPM: stub("npm", NPM_CLEAN),
     EVOL_TOOL_PIP_AUDIT: "",
     EVOL_TOOL_OSV_SCANNER: "",
@@ -515,7 +526,7 @@ describe("auditoría: herramientas externas (criterio 80)", () => {
 
   it("los hallazgos de semgrep: ERROR bloquea, WARNING avisa e INFO se ignora", () => {
     const json =
-      '{"results":[{"check_id":"a","path":"x","extra":{"severity":"ERROR","message":"malo"}},{"check_id":"b","path":"y","extra":{"severity":"WARNING","message":"dudoso"}},{"check_id":"c","path":"z","extra":{"severity":"INFO","message":"nota"}}]}';
+      '[{"check_id":"a","path":"x","extra":{"severity":"ERROR","message":"malo"}},{"check_id":"b","path":"y","extra":{"severity":"WARNING","message":"dudoso"}},{"check_id":"c","path":"z","extra":{"severity":"INFO","message":"nota"}}]';
     useTools({ EVOL_TOOL_SEMGREP: stub("semgrep", semgrep(json)) });
     const { report } = auditSkill(folder());
     expect(
@@ -782,5 +793,59 @@ describe("lo ambiguo avisa y no bloquea (medido con skills reales)", () => {
     });
     expect(r.status).toBe(0);
     expect(r.stdout).toContain("recurso binario");
+  });
+});
+
+describe("semgrep: cobertura y reglas propias", () => {
+  it("un script que semgrep no revisó deja la skill «no auditada»", () => {
+    useTools({ EVOL_TOOL_SEMGREP: stub("semgrep", semgrep("[]", 0, false)) });
+    const { report } = auditSkill(folder({ "scripts/run.py": "print(1)\n" }), { propia: true });
+    expect(report.veredicto).toBe("no-auditada");
+    expect(report.herramientas["semgrep"]?.estado).toBe("fallo");
+    expect(report.herramientas["semgrep"]?.detalle).toContain("no revisó");
+  });
+
+  it("sin scripts no hay nada que revisar y no falla", () => {
+    useTools({ EVOL_TOOL_SEMGREP: stub("semgrep", semgrep("[]", 0, false)) });
+    expect(auditSkill(folder()).report.veredicto).toBe("pass");
+  });
+
+  // These two use the real semgrep when it is installed (a visible skip otherwise): the stand-ins
+  // cannot tell whether evol calls it correctly, and the first version of the command was wrong.
+  const real = REAL_SEMGREP !== null;
+  const realEnv = (): void => {
+    useTools();
+    process.env["EVOL_TOOL_SEMGREP"] = REAL_SEMGREP ?? "";
+  };
+
+  it.skipIf(!real)(
+    "semgrep real: las reglas propias detectan un script peligroso, también dentro de tests/",
+    () => {
+      realEnv();
+      for (const where of ["scripts/run.py", "tests/escondido.py"]) {
+        const { report } = auditSkill(folder({ [where]: "import os\nos.system(input())\n" }), {
+          propia: true,
+        });
+        expect(report.herramientas["semgrep"]?.estado, where).toBe("ok");
+        expect(report.veredicto, where).toBe("block");
+        expect(
+          report.hallazgos.some((h) => h.regla === "semgrep" && h.archivo === where),
+          where,
+        ).toBe(true);
+      }
+    },
+  );
+
+  it.skipIf(!real)("semgrep real: un script limpio pasa y la auditoría no necesita red", () => {
+    realEnv();
+    const { report } = auditSkill(
+      folder({
+        "scripts/ok.py": 'import subprocess\nsubprocess.run(["ls"])\n',
+        "scripts/ok.mjs": "export const x = 1;\n",
+      }),
+      { propia: true },
+    );
+    expect(report.herramientas["semgrep"]?.estado).toBe("ok");
+    expect(report.hallazgos.filter((h) => h.regla === "semgrep")).toEqual([]);
   });
 });

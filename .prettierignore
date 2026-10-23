@@ -11,3 +11,7 @@ docs/design/mockups-src
 
 # Consultas a los agentes de cada IDE y sus respuestas literales: son evidencia, no se reformatean
 docs/design/consultas
+
+# Pruebas de las reglas de semgrep: código malo a propósito
+rules/semgrep/*.py
+rules/semgrep/*.js

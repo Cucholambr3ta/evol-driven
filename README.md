@@ -233,7 +233,7 @@ evol skills audit ./ajena --capacidades confirmadas.json  # con la declaración 
 revisa con reglas fijas y deja ahí un `informe.json`. **No aprueba nada ni la instala**: eso lo hace una persona en
 el siguiente paso. El veredicto es `PASS`, `WARN`, `BLOCK` o `NO AUDITADA`. La auditoría **falla cerrada**: sin
 `gitleaks` y `semgrep` (y, si la skill trae dependencias, la herramienta que las analiza) toda skill queda «no
-auditada» y no puede aprobarse. `evol doctor` dice si están instaladas.
+auditada» y no puede aprobarse. `evol doctor` dice si están instaladas. `semgrep` corre sin red, con las reglas propias de `rules/semgrep/`.
 
 Una skill remota solo se acepta fijada a un commit completo (`…/repo@<40 caracteres>`): una rama o una etiqueta
 puede apuntar a otro lado mañana. Un script de una skill de terceros debe declarar qué hace (red, escrituras,
