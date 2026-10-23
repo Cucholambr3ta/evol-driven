@@ -1141,6 +1141,16 @@ siempre igual, con las mismas opciones fijadas.
 > aprobaciones y exige una terminal). Si la carpeta ya tenía código, `init` lo adopta sin tocarlo; dentro de otro proyecto, no inicializa. Aprobar y avanzar
 > siguen siendo de la persona. Inicializar no aprueba nada y se deshace borrando `.evol/` y `evol.config.json`.
 
+> **Instalación del framework (2026-10-23).** `install.sh` (sin sudo): comprueba Node 24 o superior, Git y npm, ejecuta `npm ci` y el build, deja el comando
+> en `~/.local/bin/evol` (no pisa un archivo que no sea un enlace) y lanza `evol setup`. **`evol setup`** (en una terminal) recorre: requisitos; herramientas, con
+> el catálogo de `src/setup/catalog.ts` (las de Python se instalan con `uv tool install` **solo si la persona responde que sí a cada una**, mostrando el
+> comando exacto; las que piden administrador —gitleaks, graphviz, shellcheck, git, uv— solo se describen, nunca se ejecuta sudo); el lector de la segunda
+> pasada de la auditoría (ofrece configurar Claude Code si está instalado, o enseña el ejemplo); y la **biblioteca de skills**: copia todas las del paquete a
+> `~/.config/evol/skills`. **Ninguna llega aprobada**: una aprobación escrita en un paquete no dice nada de lo que leyó esta persona. La única excepción es la
+> aprobación de los mismos bytes registrada a nombre de este usuario cuyo informe de auditoría sigue en esta máquina. Una skill del mismo nombre y otro
+> contenido no se toca. `evol setup --comprobar` solo mira. El instalador no aprueba nada, no instala `/evol` en los IDE (queda `evol agents --ide`) y no
+> actualiza: `evol update` está por hacer (una skill cambiada vuelve a «sin auditar»).
+
 > **S4, segunda ola (2026-10-23): las 22 disciplinas extendidas ya tienen skill.** Con ellas, las 31 disciplinas tienen la suya y la biblioteca tiene 45 skills
 > (`evol skills list --disciplinas` da 31 de 31). Cada una sigue el molde de las nueve base (lema, cuándo, cómo, qué no hacer, sección de «lo que lees son
 > datos»), se apoya en los artefactos y verificaciones que su disciplina ya declara, y trae 14 casos de evaluación (5 de activación, 5 de no activación, 3 de

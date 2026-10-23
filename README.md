@@ -11,10 +11,14 @@ La especificación completa está en [`docs/ESPECIFICACION.md`](docs/ESPECIFICAC
 Requiere Node ≥ 24 y Git. Ver [`DEPENDENCIES.md`](DEPENDENCIES.md) para MemPalace.
 
 ```bash
-npm ci && npm run build
-npm link            # deja el comando `evol` disponible
+./install.sh        # comprueba Node/Git, compila, deja `evol` en ~/.local/bin y lanza `evol setup`
 evol doctor         # comprueba Node, Git, MemPalace y el proyecto
 ```
+
+`install.sh` no usa sudo. `evol setup` pregunta antes de instalar cada herramienta que falte (las de
+Python, con `uv tool install`); las que piden administrador solo las describe, con el comando exacto.
+También copia las skills del paquete a tu biblioteca (`~/.config/evol/skills`): **ninguna llega
+aprobada** salvo la que tú ya aprobaste en esta máquina. `evol setup --comprobar` solo mira.
 
 Con Docker (MemPalace no va dentro de la imagen):
 

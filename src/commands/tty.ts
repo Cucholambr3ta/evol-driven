@@ -12,6 +12,8 @@ export function hasTerminal(): boolean {
  */
 export interface TypingSession {
   confirm(prompt: string, expected: string, cancelMessage?: string): Promise<void>;
+  /** Asks a question and returns what was typed, or null if the input was closed. */
+  ask(prompt: string): Promise<string | null>;
   close(): void;
 }
 
@@ -44,6 +46,11 @@ export function typingSession(): TypingSession {
       const answer = await nextLine();
       if (answer === null) throw new UserError("Cancelado: no se escribió nada.");
       if (answer.trim() !== expected) throw new UserError(cancelMessage);
+    },
+    async ask(prompt) {
+      rl.setPrompt(prompt);
+      rl.prompt();
+      return nextLine();
     },
     close: () => rl.close(),
   };

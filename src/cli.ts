@@ -112,6 +112,10 @@ const COMMANDS: Record<string, CommandSpec> = {
     summary: "Servidor MCP de solo lectura (estado, verificación, código, memoria)",
     load: async () => (await import("./commands/mcp.js")).default,
   },
+  setup: {
+    summary: "Instala lo que falta (pregunta antes de cada cosa) y prepara tu biblioteca de skills",
+    load: async () => (await import("./commands/setup.js")).default,
+  },
   doctor: {
     summary: "Comprueba Node, Git, MemPalace y el proyecto",
     load: async () => (await import("./commands/doctor.js")).default,
