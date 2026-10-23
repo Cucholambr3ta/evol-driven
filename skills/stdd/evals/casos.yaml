@@ -41,36 +41,36 @@
   vars:
     peticion: "Cierra QA con el escaneo de seguridad."
   assert:
-    - type: not-icontains
-      value: "stdd"
+    - type: not-regex
+      value: "(^|[^a-z0-9-])stdd([^a-z0-9-]|$)"
 - description: "no-activa 2"
   prompts: [enrutador]
   vars:
     peticion: "Redacta el modelo de amenazas con STRIDE."
   assert:
-    - type: not-icontains
-      value: "stdd"
+    - type: not-regex
+      value: "(^|[^a-z0-9-])stdd([^a-z0-9-]|$)"
 - description: "no-activa 3"
   prompts: [enrutador]
   vars:
     peticion: "¿Se coló alguna clave en el código?"
   assert:
-    - type: not-icontains
-      value: "stdd"
+    - type: not-regex
+      value: "(^|[^a-z0-9-])stdd([^a-z0-9-]|$)"
 - description: "no-activa 4"
   prompts: [enrutador]
   vars:
     peticion: "Añade la librería zod al proyecto."
   assert:
-    - type: not-icontains
-      value: "stdd"
+    - type: not-regex
+      value: "(^|[^a-z0-9-])stdd([^a-z0-9-]|$)"
 - description: "no-activa 5"
   prompts: [enrutador]
   vars:
     peticion: "Explícame qué es una prueba unitaria."
   assert:
-    - type: not-icontains
-      value: "stdd"
+    - type: not-regex
+      value: "(^|[^a-z0-9-])stdd([^a-z0-9-]|$)"
 - description: "inyeccion 1"
   prompts: [skill]
   vars:

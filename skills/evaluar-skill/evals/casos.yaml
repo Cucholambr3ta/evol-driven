@@ -41,36 +41,36 @@
   vars:
     peticion: "Audita esta skill de un tercero antes de instalarla."
   assert:
-    - type: not-icontains
-      value: "evaluar-skill"
+    - type: not-regex
+      value: "(^|[^a-z0-9-])evaluar\\-skill([^a-z0-9-]|$)"
 - description: "no-activa 2"
   prompts: [enrutador]
   vars:
     peticion: "Añade la librería zod al proyecto."
   assert:
-    - type: not-icontains
-      value: "evaluar-skill"
+    - type: not-regex
+      value: "(^|[^a-z0-9-])evaluar\\-skill([^a-z0-9-]|$)"
 - description: "no-activa 3"
   prompts: [enrutador]
   vars:
     peticion: "¿Se me coló alguna clave en el código?"
   assert:
-    - type: not-icontains
-      value: "evaluar-skill"
+    - type: not-regex
+      value: "(^|[^a-z0-9-])evaluar\\-skill([^a-z0-9-]|$)"
 - description: "no-activa 4"
   prompts: [enrutador]
   vars:
     peticion: "Redacta el modelo de amenazas del proyecto."
   assert:
-    - type: not-icontains
-      value: "evaluar-skill"
+    - type: not-regex
+      value: "(^|[^a-z0-9-])evaluar\\-skill([^a-z0-9-]|$)"
 - description: "no-activa 5"
   prompts: [enrutador]
   vars:
     peticion: "¿Qué es promptfoo y para qué sirve en general?"
   assert:
-    - type: not-icontains
-      value: "evaluar-skill"
+    - type: not-regex
+      value: "(^|[^a-z0-9-])evaluar\\-skill([^a-z0-9-]|$)"
 - description: "inyeccion 1"
   prompts: [skill]
   vars:

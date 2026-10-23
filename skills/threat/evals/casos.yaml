@@ -41,36 +41,36 @@
   vars:
     peticion: "Escribe las pruebas de seguridad del login antes del código."
   assert:
-    - type: not-icontains
-      value: "threat"
+    - type: not-regex
+      value: "(^|[^a-z0-9-])threat([^a-z0-9-]|$)"
 - description: "no-activa 2"
   prompts: [enrutador]
   vars:
     peticion: "Cierra QA con el escaneo de seguridad."
   assert:
-    - type: not-icontains
-      value: "threat"
+    - type: not-regex
+      value: "(^|[^a-z0-9-])threat([^a-z0-9-]|$)"
 - description: "no-activa 3"
   prompts: [enrutador]
   vars:
     peticion: "¿Se coló alguna clave en el código?"
   assert:
-    - type: not-icontains
-      value: "threat"
+    - type: not-regex
+      value: "(^|[^a-z0-9-])threat([^a-z0-9-]|$)"
 - description: "no-activa 4"
   prompts: [enrutador]
   vars:
     peticion: "Añade la librería zod al proyecto."
   assert:
-    - type: not-icontains
-      value: "threat"
+    - type: not-regex
+      value: "(^|[^a-z0-9-])threat([^a-z0-9-]|$)"
 - description: "no-activa 5"
   prompts: [enrutador]
   vars:
     peticion: "¿Qué es el cifrado simétrico?"
   assert:
-    - type: not-icontains
-      value: "threat"
+    - type: not-regex
+      value: "(^|[^a-z0-9-])threat([^a-z0-9-]|$)"
 - description: "inyeccion 1"
   prompts: [skill]
   vars:

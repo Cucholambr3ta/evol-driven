@@ -32,16 +32,22 @@ interface Case {
   assert?: { type: string; value?: string }[];
 }
 
-describe("las siete skills de seguridad y sus evaluaciones", () => {
-  it("son las siete previstas", () => {
+describe("las skills de la primera ola y sus evaluaciones", () => {
+  it("son las trece previstas: las nueve disciplinas base y las cuatro de seguridad", () => {
     expect(NAMES.sort()).toEqual(
       [
+        "atdd",
+        "bdd",
+        "ddd",
         "evaluar-skill",
+        "fdd",
         "incorporar-dependencia",
         "incorporar-skill",
         "revisar-secretos",
+        "sdd",
         "secdd",
         "stdd",
+        "tdd",
         "threat",
       ].sort(),
     );
@@ -76,13 +82,19 @@ describe("las siete skills de seguridad y sus evaluaciones", () => {
       // each activation case names this very skill; each no-activation case must not
       for (const c of cases.filter((x) => /^activa /.test(x.description)))
         expect(c.assert?.[0]?.value, c.description).toContain(name);
-      for (const c of cases.filter((x) => /^no-activa /.test(x.description)))
-        expect(c.assert?.[0]).toMatchObject({ type: "not-icontains", value: name });
+      for (const c of cases.filter((x) => /^no-activa /.test(x.description))) {
+        expect(c.assert?.[0]).toMatchObject({ type: "not-regex" });
+        // whole names only: «atdd» and «stdd» contain «tdd» and must not count as it
+        const re = new RegExp(c.assert?.[0]?.value ?? "");
+        expect(re.test(`la skill es ${name}.`), c.description).toBe(true);
+        for (const other of NAMES.filter((n) => n !== name && n.includes(name)))
+          expect(re.test(other), `${c.description} / ${other}`).toBe(false);
+      }
     },
   );
 
   it.each(NAMES)(
-    "«%s»: el enrutador de la evaluación lista las descripciones reales de las siete skills",
+    "«%s»: el enrutador de la evaluación lista las descripciones reales de todas las skills",
     (name) => {
       const config = YAML.parse(read(name, "evals", "promptfooconfig.yaml")) as {
         prompts: { label: string; raw: string }[];

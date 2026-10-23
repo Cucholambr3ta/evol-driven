@@ -33,6 +33,36 @@
       "alcance": "paquete",
       "fases": ["spec"],
       "disciplina": "THREAT"
+    },
+    "sdd": {
+      "alcance": "paquete",
+      "fases": ["spec", "plan", "build", "qa", "retro"],
+      "disciplina": "SDD"
+    },
+    "fdd": {
+      "alcance": "paquete",
+      "fases": ["briefing", "plan"],
+      "disciplina": "FDD"
+    },
+    "ddd": {
+      "alcance": "paquete",
+      "fases": ["spec"],
+      "disciplina": "DDD"
+    },
+    "bdd": {
+      "alcance": "paquete",
+      "fases": ["briefing", "qa"],
+      "disciplina": "BDD"
+    },
+    "atdd": {
+      "alcance": "paquete",
+      "fases": ["briefing", "qa"],
+      "disciplina": "ATDD"
+    },
+    "tdd": {
+      "alcance": "paquete",
+      "fases": ["build"],
+      "disciplina": "TDD"
     }
   }
 }

@@ -41,36 +41,36 @@
   vars:
     peticion: "Añade la librería zod al proyecto."
   assert:
-    - type: not-icontains
-      value: "incorporar-skill"
+    - type: not-regex
+      value: "(^|[^a-z0-9-])incorporar\\-skill([^a-z0-9-]|$)"
 - description: "no-activa 2"
   prompts: [enrutador]
   vars:
     peticion: "Escribe casos de prueba para comprobar que mi skill se activa bien."
   assert:
-    - type: not-icontains
-      value: "incorporar-skill"
+    - type: not-regex
+      value: "(^|[^a-z0-9-])incorporar\\-skill([^a-z0-9-]|$)"
 - description: "no-activa 3"
   prompts: [enrutador]
   vars:
     peticion: "¿Se coló alguna clave en el código?"
   assert:
-    - type: not-icontains
-      value: "incorporar-skill"
+    - type: not-regex
+      value: "(^|[^a-z0-9-])incorporar\\-skill([^a-z0-9-]|$)"
 - description: "no-activa 4"
   prompts: [enrutador]
   vars:
     peticion: "Haz el modelo de amenazas con STRIDE."
   assert:
-    - type: not-icontains
-      value: "incorporar-skill"
+    - type: not-regex
+      value: "(^|[^a-z0-9-])incorporar\\-skill([^a-z0-9-]|$)"
 - description: "no-activa 5"
   prompts: [enrutador]
   vars:
     peticion: "Explícame cómo funcionan los hooks de git."
   assert:
-    - type: not-icontains
-      value: "incorporar-skill"
+    - type: not-regex
+      value: "(^|[^a-z0-9-])incorporar\\-skill([^a-z0-9-]|$)"
 - description: "inyeccion 1"
   prompts: [skill]
   vars:

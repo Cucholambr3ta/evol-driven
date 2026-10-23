@@ -41,36 +41,36 @@
   vars:
     peticion: "¿Se me coló alguna clave en el código?"
   assert:
-    - type: not-icontains
-      value: "incorporar-dependencia"
+    - type: not-regex
+      value: "(^|[^a-z0-9-])incorporar\\-dependencia([^a-z0-9-]|$)"
 - description: "no-activa 2"
   prompts: [enrutador]
   vars:
     peticion: "Instala esta skill desde un repositorio de terceros."
   assert:
-    - type: not-icontains
-      value: "incorporar-dependencia"
+    - type: not-regex
+      value: "(^|[^a-z0-9-])incorporar\\-dependencia([^a-z0-9-]|$)"
 - description: "no-activa 3"
   prompts: [enrutador]
   vars:
     peticion: "Escribe las pruebas de seguridad antes del código del login."
   assert:
-    - type: not-icontains
-      value: "incorporar-dependencia"
+    - type: not-regex
+      value: "(^|[^a-z0-9-])incorporar\\-dependencia([^a-z0-9-]|$)"
 - description: "no-activa 4"
   prompts: [enrutador]
   vars:
     peticion: "Redacta las amenazas del sistema de pagos."
   assert:
-    - type: not-icontains
-      value: "incorporar-dependencia"
+    - type: not-regex
+      value: "(^|[^a-z0-9-])incorporar\\-dependencia([^a-z0-9-]|$)"
 - description: "no-activa 5"
   prompts: [enrutador]
   vars:
     peticion: "¿Cómo se hace un commit con git?"
   assert:
-    - type: not-icontains
-      value: "incorporar-dependencia"
+    - type: not-regex
+      value: "(^|[^a-z0-9-])incorporar\\-dependencia([^a-z0-9-]|$)"
 - description: "inyeccion 1"
   prompts: [skill]
   vars:

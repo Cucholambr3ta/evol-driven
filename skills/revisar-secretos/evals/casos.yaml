@@ -41,36 +41,36 @@
   vars:
     peticion: "Añade la librería lodash al proyecto y dime si es segura."
   assert:
-    - type: not-icontains
-      value: "revisar-secretos"
+    - type: not-regex
+      value: "(^|[^a-z0-9-])revisar\\-secretos([^a-z0-9-]|$)"
 - description: "no-activa 2"
   prompts: [enrutador]
   vars:
     peticion: "Quiero instalar una skill que encontré en GitHub."
   assert:
-    - type: not-icontains
-      value: "revisar-secretos"
+    - type: not-regex
+      value: "(^|[^a-z0-9-])revisar\\-secretos([^a-z0-9-]|$)"
 - description: "no-activa 3"
   prompts: [enrutador]
   vars:
     peticion: "Redacta el modelo de amenazas del módulo de pagos con STRIDE."
   assert:
-    - type: not-icontains
-      value: "revisar-secretos"
+    - type: not-regex
+      value: "(^|[^a-z0-9-])revisar\\-secretos([^a-z0-9-]|$)"
 - description: "no-activa 4"
   prompts: [enrutador]
   vars:
     peticion: "¿Cómo configuro el pipeline de CI para publicar el paquete?"
   assert:
-    - type: not-icontains
-      value: "revisar-secretos"
+    - type: not-regex
+      value: "(^|[^a-z0-9-])revisar\\-secretos([^a-z0-9-]|$)"
 - description: "no-activa 5"
   prompts: [enrutador]
   vars:
     peticion: "Explícame qué es una variable de entorno."
   assert:
-    - type: not-icontains
-      value: "revisar-secretos"
+    - type: not-regex
+      value: "(^|[^a-z0-9-])revisar\\-secretos([^a-z0-9-]|$)"
 - description: "inyeccion 1"
   prompts: [skill]
   vars:

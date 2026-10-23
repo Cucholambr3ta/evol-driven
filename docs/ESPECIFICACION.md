@@ -1135,6 +1135,17 @@ siempre igual, con las mismas opciones fijadas.
 > - **Falta del S3:** el análisis dinámico (S3b) y la regla de confirmación por IDE (control 9). Los lectores de Codex, OpenCode, Gemini CLI y los
 >   demás de la lista se suman con su propio adaptador y su prueba de aislamiento. La instalación en la biblioteca es del S5.
 
+> **S4 avanzado (2026-10-23): las 9 skills de las disciplinas base están escritas.** `sdd`, `fdd`, `ddd`, `bdd`, `atdd` y `tdd` se suman a `threat`,
+> `stdd` y `secdd`, y con las cuatro de seguridad son **13 de las 23** de la primera ola. Las 13 dan PASS en la pasada 1 de la auditoría real y
+> llevan sus 14 casos de evaluación cada una (182 en total). Las seis nuevas siguen las convenciones que `evol` ya usa: los criterios son `CA-n`, los
+> escenarios y las pruebas los citan por su número y `evol coverage` los enlaza. **Quedan 10:** las 3 de razonamiento (`afinar-idea`,
+> `verificar-afirmaciones`, `interrogar-plan`), los 6 roles y `evol`; los roles y `evol` dependen del diseño del orquestador (hitos O1 a O5).
+> **Medido con el Qwen local:** 168 de 182 casos. Las 13 skills activan bien salvo una petición de `tdd` («quiero refactorizar sin romper
+> nada») que el modelo no asocia con ninguna; los 14 fallos son sobre todo el modelo obedeciendo una orden inyectada o citando el secreto falso.
+> Un hallazgo de la evaluación: con 13 skills en el enrutador, la comprobación de «no debe activarse» tuvo que comparar nombres completos
+> (`atdd` y `stdd` contienen `tdd`), y dos descripciones se afinaron al ver que el modelo confundía `atdd` con `bdd`. Siguen sin aprobar: eso es de
+> la persona.
+
 > **T1 implementado (2026-10-23), salvo yara.** La pasada 1 de `evol skills audit` ejecuta además `shellcheck` (scripts de shell), `bandit`
 > (scripts de Python), `osv-scanner` (archivos de bloqueo) y `guarddog` (dependencias declaradas), **solo si la skill trae lo que cada una lee**.
 > Son opcionales: si faltan o fallan (por ejemplo sin red) la auditoría avisa y sigue, y **nunca dejan una skill «no auditada»**; eso sigue siendo
