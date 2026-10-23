@@ -1,9 +1,11 @@
-import { existsSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { parseArgs } from "node:util";
 import { loadDisciplines } from "../core/disciplines.js";
 import { UserError } from "../core/errors.js";
 import { exportSkill } from "../skills/archive.js";
+import { auditSkill, parseDeclaration } from "../skills/audit.js";
+import { VEREDICTO_LABEL } from "../skills/report.js";
 import { checkSkill } from "../skills/check.js";
 import type { CheckResult, Level } from "../skills/check.js";
 import { disciplineSkills, findSkill, listSkills, resolveSkillsDir } from "../skills/library.js";
@@ -11,7 +13,7 @@ import { AUDIT_LABEL, auditState, readManifest } from "../skills/manifest.js";
 import { out } from "./shared.js";
 
 const USAGE =
-  "Uso: evol skills <list|check|export> [nombre] [--dir <carpeta>] [--json] [--disciplinas] [--salida <archivo.zip>]";
+  "Uso: evol skills <list|check|export|audit> [nombre|origen] [--dir <carpeta>] [--json] [--disciplinas] [--salida <archivo.zip>] [--propia] [--capacidades <archivo.json>]";
 
 const MARK: Record<Level, string> = { ok: "✓", aviso: "!", error: "×" };
 
@@ -120,6 +122,54 @@ function exportOne(dir: string, name: string | undefined, target: string | undef
   return 0;
 }
 
+function audit(
+  origin: string | undefined,
+  propia: boolean,
+  capabilitiesFile: string | undefined,
+  json: boolean,
+): number {
+  if (!origin)
+    throw new UserError(
+      "Indica qué auditar: una carpeta, un .zip o https://…/repo@<sha de 40 caracteres>.",
+    );
+  const capacidades = capabilitiesFile
+    ? parseDeclaration(readFileSync(resolve(capabilitiesFile), "utf8"), capabilitiesFile)
+    : undefined;
+  const { report, informe, cuarentena } = auditSkill(origin, {
+    propia,
+    ...(capacidades ? { capacidades } : {}),
+  });
+  if (json) {
+    out(JSON.stringify({ ...report, informe, cuarentena }, null, 2));
+  } else {
+    out(
+      `Auditoría de «${report.skill}» (${report.origen.tipo}${report.origen.propia ? ", propia" : ", de terceros"})`,
+    );
+    if (report.huella) out(`Huella: ${report.huella}`);
+    out(`Veredicto: ${VEREDICTO_LABEL[report.veredicto]}`);
+    for (const h of report.hallazgos)
+      out(`  ${h.nivel === "bloqueo" ? "×" : "!"} ${h.texto}${h.archivo ? ` (${h.archivo})` : ""}`);
+    const tools = Object.entries(report.herramientas).map(
+      ([n, r]) => `${n} ${r.estado === "ok" ? "✓" : r.estado === "no-aplica" ? "–" : "✗"}`,
+    );
+    if (tools.length > 0) out(`Herramientas: ${tools.join(" · ")}`);
+    if (report.capacidades.propuesta) {
+      out(
+        "Capacidades propuestas (confírmalas y vuelve a auditar con --capacidades <archivo.json>):",
+      );
+      out(JSON.stringify({ version: 1, scripts: report.capacidades.propuesta }, null, 2));
+    }
+    if (informe) out(`Informe: ${informe}`);
+    if (cuarentena) out(`Cuarentena: ${cuarentena}`);
+    out("Pasada 2 (subproceso): pendiente; llega con evol skills approve.");
+    if (report.veredicto === "no-auditada")
+      out(
+        "Una skill «no auditada» no puede aprobarse. Instala las herramientas que faltan y vuelve a ejecutar la auditoría.",
+      );
+  }
+  return report.veredicto === "pass" || report.veredicto === "warn" ? 0 : 1;
+}
+
 export default async function run(argv: string[]): Promise<number> {
   const { values, positionals } = parseArgs({
     args: argv,
@@ -129,6 +179,8 @@ export default async function run(argv: string[]): Promise<number> {
       json: { type: "boolean" },
       disciplinas: { type: "boolean" },
       salida: { type: "string" },
+      propia: { type: "boolean" },
+      capacidades: { type: "string" },
     },
   });
   const [action, name] = positionals;
@@ -140,6 +192,8 @@ export default async function run(argv: string[]): Promise<number> {
       return check(dir, name, values.json === true);
     case "export":
       return exportOne(dir, name, values.salida);
+    case "audit":
+      return audit(name, values.propia === true, values.capacidades, values.json === true);
     default:
       throw new UserError(USAGE);
   }

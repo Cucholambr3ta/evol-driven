@@ -223,13 +223,31 @@ evol skills check [nombre]         # frontmatter, name, description, claves, scr
 evol skills export <nombre>        # un .zip con toda la carpeta y su huella SHA-256
 ```
 
+```bash
+evol skills audit <carpeta|.zip|https://…/repo@<sha>>   # revisa una skill en cuarentena (no ejecuta nada)
+evol skills audit ./mi-skill --propia                     # es tuya: sus scripts no tienen que declarar capacidades
+evol skills audit ./ajena --capacidades confirmadas.json  # con la declaración que tú confirmaste
+```
+
+`audit` copia la skill a `~/.config/evol/quarantine/<huella>/` (de solo lectura y sin permiso de ejecución), la
+revisa con reglas fijas y deja ahí un `informe.json`. **No aprueba nada ni la instala**: eso lo hace una persona en
+el siguiente paso. El veredicto es `PASS`, `WARN`, `BLOCK` o `NO AUDITADA`. La auditoría **falla cerrada**: sin
+`gitleaks` y `semgrep` (y, si la skill trae dependencias, la herramienta que las analiza) toda skill queda «no
+auditada» y no puede aprobarse. `evol doctor` dice si están instaladas.
+
+Una skill remota solo se acepta fijada a un commit completo (`…/repo@<40 caracteres>`): una rama o una etiqueta
+puede apuntar a otro lado mañana. Un script de una skill de terceros debe declarar qué hace (red, escrituras,
+comandos y variables de entorno) en un `capacidades.json`; si no lo trae, el informe propone una declaración que
+tú confirmas y pasas con `--capacidades`. Se admiten imágenes y fuentes (con aviso); un binario que no se puede
+leer, un `.zip` anidado, código minificado u ofuscado, un enlace simbólico o una ruta con `..` son `BLOCK`.
+
 `--dir <carpeta>` trabaja sobre otra carpeta de skills (por ejemplo `skills/` de un repositorio) y
 `--json` da la salida para máquinas. `check` termina con error si alguna skill tiene errores.
 
 Una skill con el frontmatter roto **no desaparece**: se lista con el nombre y la descripción que se
 pudieron recuperar y el error de YAML. La huella de una skill depende solo de sus archivos, y una
 auditoría solo vale para los bytes que se auditaron: si la carpeta cambia después, vuelve a figurar
-«sin auditar». Agregar skills (`audit`, `approve`) llega en los siguientes hitos.
+«sin auditar». Aprobar e instalar (`approve`) y la segunda pasada con un subproceso llegan en los siguientes hitos.
 
 ### Trazabilidad, riesgo y datos del proyecto
 

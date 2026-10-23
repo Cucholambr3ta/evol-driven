@@ -669,6 +669,32 @@ S6), el 65 (la regla de herencia está en `check`; el BLOCK de `audit` es S2), e
   entonces toda skill figura «sin auditar» y sin fase.
 - **`--dir <carpeta>`** permite revisar una carpeta de skills distinta de la biblioteca, por ejemplo `skills/` de un repositorio.
 
+**S2 está hecho** (`src/skills/audit.ts` y compañía, `tests/skills-audit.test.ts`, 52 pruebas): `evol skills audit <carpeta|.zip|https://…@sha>`
+con `--propia` y `--capacidades`. Cubre los criterios 59, 65, 77, 78, 79, 80, 81, 82 y 83. Lo que hace y lo que no:
+
+- **Hace:** lee la skill en memoria, escribe una copia **de solo lectura y sin permiso de ejecución** en `~/.config/evol/quarantine/<huella>/`,
+  aplica las reglas de la decisión 3 y los controles 1 a 5, 8 y 11, y deja un `informe.json` junto a la copia. Veredictos: `pass`, `warn`, `block` y
+  `no-auditada`; esta última cuando falta o falla una herramienta requerida. No ejecuta nada de la skill.
+- **No hace todavía:** aprobar ni instalar (S3), la pasada 2 con el subproceso (S3), las dos lecturas ni el análisis dinámico (S3b). El informe
+  lo dice: `pasadas.subproceso: "pendiente"`.
+- **Falla cerrada de verdad:** en esta máquina `gitleaks` y `semgrep` no están instalados, así que toda auditoría real termina «no auditada»
+  hasta que se instalen. `evol doctor` lo avisa. Las herramientas externas se probaron con **simulacros**, no con los binarios reales: el
+  formato exacto de sus salidas (`gitleaks detect --no-git --report-format json`, `semgrep scan --config auto --json`) está por verificar contra
+  las herramientas instaladas.
+
+**Calibración con skills reales.** Las primeras reglas se midieron contra las 80 skills que hay instaladas en los agentes de esta máquina
+(sin las herramientas externas): 34 salían bloqueadas y 0 limpias. Casi todo eran falsos positivos de las reglas, no skills peligrosas:
+documentación que menciona `--yolo` o `bypassPermissions`, `re.compile(...)` o la palabra «eval» en un docstring, imágenes y fuentes,
+`curl` con el token de su propia API, un `setup.py` que no es de empaquetado, ejemplos de claves y espacios de nombres XML contados
+como dominios. Se corrigieron y cada caso quedó como prueba. Tras el ajuste, **el único motivo de bloqueo en las 80 es «el script no
+declara sus capacidades»**, que es el comportamiento diseñado. Principios que salieron de ahí:
+
+- **`BLOCK` solo para lo inequívoco** (descargar y ejecutar en un script, credenciales, ocultarle algo a la persona, ignorar instrucciones
+  sin una advertencia al lado, claves reales, binarios ilegibles). Lo ambiguo es **`WARN`**: una persona lo lee y lo acepta. Como un `BLOCK`
+  no se puede anular, mezclar ambos haría inservible la herramienta con skills legítimas.
+- **La inferencia de capacidades es una heurística:** puede equivocarse a favor o en contra, y por eso la declaración la confirma una persona.
+- Se admiten **imágenes y fuentes** cuyo contenido coincide con su extensión (con aviso); el criterio 77 rechaza los binarios que no se pueden leer.
+
 **Riesgo a decidir.** Si S4 se hace antes que S2 y S3, las primeras skills entran **sin** auditoría independiente.
 
 **Decidido:** el subproceso puede usar cualquiera de los CLI soportados (con dos lecturas para scripts), bubblewrap es una dependencia
@@ -852,34 +878,34 @@ Los cinco IDE de la primera entrega admiten subagentes, así que **todos funcion
 
 ### Criterios de aceptación (preliminares)
 
-| #   | Criterio                                                                                                                                                                                                                      |
-| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 66  | `/evol` sin argumentos muestra el estado y propone el siguiente paso sin modificar nada.                                                                                                                                      |
-| 67  | `evol agents --ide <id>` instala `/evol` en cada IDE de la matriz de forma idempotente y sin pisar archivos del usuario.                                                                                                      |
-| 68  | En un IDE sin subagentes, `/evol` ejecuta los roles en línea y produce los mismos artefactos que con subagentes.                                                                                                              |
-| 69  | `/evol` nunca ejecuta `evol approve` ni `evol next`; aprobar y avanzar exige una persona en una terminal. Donde el IDE lo permite, el adaptador instala la regla que bloquea esos comandos; donde no, `evol doctor` lo avisa. |
-| 70  | Si falta un artefacto de la fase anterior, `/evol` se detiene y nombra el artefacto.                                                                                                                                          |
-| 71  | `evol approve plan` falla si el plan no se interrogó (marca con su hash); la anulación explícita queda registrada.                                                                                                            |
-| 72  | `evol doctor` informa de los IDE detectados y del nivel (A, B o C) de cada uno.                                                                                                                                               |
-| 73  | Cada rol existe como skill; su envoltorio de subagente se genera a partir de ella y no contiene instrucciones propias.                                                                                                        |
-| 74  | `verificador` y `seguridad` se delegan como subagentes de solo lectura donde el IDE lo permite; el subproceso `skill-auditor` no tiene acceso al shell.                                                                       |
-| 75  | Cada skill declara en el manifiesto la fase o fases a las que pertenece; `evol skills check` marca la que no esté ligada a ninguna.                                                                                           |
-| 76  | Cada una de las 31 disciplinas es aplicada por exactamente un rol, y la suma de las de los seis roles es 31.                                                                                                                  |
-| 77  | Se rechaza (BLOCK) una skill con binarios, código minificado u ofuscado, enlaces simbólicos que salen de su carpeta o rutas con `..`; los scripts se instalan sin permiso de ejecución.                                       |
-| 78  | Un script de terceros no entra sin una declaración de capacidades confirmada (la del autor, o la propuesta por evol y confirmada por la persona); si el análisis estático detecta más de lo declarado, es BLOCK.              |
-| 79  | Una skill con dependencias exige archivo de bloqueo con versiones fijas, sin ganchos de instalación.                                                                                                                          |
-| 80  | Si falta una herramienta de auditoría requerida (gitleaks, semgrep), la skill queda «no auditada» y no puede aprobarse.                                                                                                       |
-| 81  | Una skill de terceros remota solo se acepta fijada con `@sha`; las ramas y etiquetas móviles se rechazan.                                                                                                                     |
-| 82  | Lo instalado es idéntico, por hash, a la instantánea auditada; si un archivo cambia, la skill vuelve a «sin auditar».                                                                                                         |
-| 83  | La auditoría no ejecuta ningún script de la skill; solo el análisis dinámico (criterio 89) lo hace, con permiso y en sandbox.                                                                                                 |
-| 84  | El subproceso `skill-auditor` corre en solo lectura, sin shell ni red, con configuración limpia, y recibe la skill como datos en archivos renombrados.                                                                        |
-| 85  | El subproceso nunca convierte un BLOCK en PASS; los hallazgos cuya cita no existe en el archivo se descartan.                                                                                                                 |
-| 86  | Si el CLI del subproceso falta, expira o devuelve una salida inválida, la skill queda «no auditada».                                                                                                                          |
-| 87  | `evol skills audit --autoprueba` detecta una skill hostil conocida; si no la detecta, el auditor se declara no fiable.                                                                                                        |
-| 88  | `evol skills approve` de una skill con scripts muestra capacidades, hallazgos y diferencia de scripts, y exige escribir el nombre de la skill; una versión nueva repite la aprobación.                                        |
-| 89  | El análisis dinámico corre sin red y con credenciales trampa en un sandbox; cualquier intento de usarlas o de abrir la red es BLOCK.                                                                                          |
-| 90  | Un CLI solo se usa como asistente del subproceso si supera la prueba de aislamiento: no puede escribir fuera de la carpeta, ejecutar comandos ni abrir conexiones.                                                            |
-| 91  | Para una skill con scripts se piden dos lecturas con asistentes distintos y elegibles; con uno solo queda un WARN que la persona acepta por escrito.                                                                          |
+| #   | Criterio                                                                                                                                                                                                                                    |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 66  | `/evol` sin argumentos muestra el estado y propone el siguiente paso sin modificar nada.                                                                                                                                                    |
+| 67  | `evol agents --ide <id>` instala `/evol` en cada IDE de la matriz de forma idempotente y sin pisar archivos del usuario.                                                                                                                    |
+| 68  | En un IDE sin subagentes, `/evol` ejecuta los roles en línea y produce los mismos artefactos que con subagentes.                                                                                                                            |
+| 69  | `/evol` nunca ejecuta `evol approve` ni `evol next`; aprobar y avanzar exige una persona en una terminal. Donde el IDE lo permite, el adaptador instala la regla que bloquea esos comandos; donde no, `evol doctor` lo avisa.               |
+| 70  | Si falta un artefacto de la fase anterior, `/evol` se detiene y nombra el artefacto.                                                                                                                                                        |
+| 71  | `evol approve plan` falla si el plan no se interrogó (marca con su hash); la anulación explícita queda registrada.                                                                                                                          |
+| 72  | `evol doctor` informa de los IDE detectados y del nivel (A, B o C) de cada uno.                                                                                                                                                             |
+| 73  | Cada rol existe como skill; su envoltorio de subagente se genera a partir de ella y no contiene instrucciones propias.                                                                                                                      |
+| 74  | `verificador` y `seguridad` se delegan como subagentes de solo lectura donde el IDE lo permite; el subproceso `skill-auditor` no tiene acceso al shell.                                                                                     |
+| 75  | Cada skill declara en el manifiesto la fase o fases a las que pertenece; `evol skills check` marca la que no esté ligada a ninguna.                                                                                                         |
+| 76  | Cada una de las 31 disciplinas es aplicada por exactamente un rol, y la suma de las de los seis roles es 31.                                                                                                                                |
+| 77  | Se rechaza (BLOCK) una skill con binarios ilegibles (las imágenes y fuentes de verdad avisan), código minificado u ofuscado, enlaces simbólicos que salen de su carpeta o rutas con `..`; los scripts se instalan sin permiso de ejecución. |
+| 78  | Un script de terceros no entra sin una declaración de capacidades confirmada (la del autor, o la propuesta por evol y confirmada por la persona); si el análisis estático detecta más de lo declarado, es BLOCK.                            |
+| 79  | Una skill con dependencias exige archivo de bloqueo con versiones fijas, sin ganchos de instalación.                                                                                                                                        |
+| 80  | Si falta una herramienta de auditoría requerida (gitleaks, semgrep), la skill queda «no auditada» y no puede aprobarse.                                                                                                                     |
+| 81  | Una skill de terceros remota solo se acepta fijada con `@sha`; las ramas y etiquetas móviles se rechazan.                                                                                                                                   |
+| 82  | Lo instalado es idéntico, por hash, a la instantánea auditada; si un archivo cambia, la skill vuelve a «sin auditar».                                                                                                                       |
+| 83  | La auditoría no ejecuta ningún script de la skill; solo el análisis dinámico (criterio 89) lo hace, con permiso y en sandbox.                                                                                                               |
+| 84  | El subproceso `skill-auditor` corre en solo lectura, sin shell ni red, con configuración limpia, y recibe la skill como datos en archivos renombrados.                                                                                      |
+| 85  | El subproceso nunca convierte un BLOCK en PASS; los hallazgos cuya cita no existe en el archivo se descartan.                                                                                                                               |
+| 86  | Si el CLI del subproceso falta, expira o devuelve una salida inválida, la skill queda «no auditada».                                                                                                                                        |
+| 87  | `evol skills audit --autoprueba` detecta una skill hostil conocida; si no la detecta, el auditor se declara no fiable.                                                                                                                      |
+| 88  | `evol skills approve` de una skill con scripts muestra capacidades, hallazgos y diferencia de scripts, y exige escribir el nombre de la skill; una versión nueva repite la aprobación.                                                      |
+| 89  | El análisis dinámico corre sin red y con credenciales trampa en un sandbox; cualquier intento de usarlas o de abrir la red es BLOCK.                                                                                                        |
+| 90  | Un CLI solo se usa como asistente del subproceso si supera la prueba de aislamiento: no puede escribir fuera de la carpeta, ejecutar comandos ni abrir conexiones.                                                                          |
+| 91  | Para una skill con scripts se piden dos lecturas con asistentes distintos y elegibles; con uno solo queda un WARN que la persona acepta por escrito.                                                                                        |
 
 ### Preguntas abiertas
 

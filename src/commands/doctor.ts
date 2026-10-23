@@ -8,6 +8,7 @@ import { loadState } from "../core/state.js";
 import { agentFilesComplete } from "../agents/files.js";
 import { GitNexusProvider } from "../codeintel/gitnexus.js";
 import { withMemPalace } from "../memory/mempalace.js";
+import { INSTALL_HINT, toolPath } from "../skills/tools.js";
 import { out } from "./shared.js";
 
 type Level = "ok" | "aviso" | "error";
@@ -111,6 +112,17 @@ export default async function run(): Promise<number> {
       memoryEnabled ? "error" : "aviso",
       "MemPalace",
       `${detail} — instálalo con «uv tool install mempalace»`,
+    );
+  }
+
+  // Needed only to audit skills; without them `evol skills audit` leaves every skill «no auditada».
+  const audit = (["gitleaks", "semgrep"] as const).map((name) => [name, toolPath(name)] as const);
+  for (const [name, path] of audit) {
+    add(
+      path ? "ok" : "aviso",
+      `Auditoría de skills: ${name}`,
+      path ??
+        `no instalado: ${INSTALL_HINT[name]}; sin él evol skills audit deja toda skill «no auditada»`,
     );
   }
 

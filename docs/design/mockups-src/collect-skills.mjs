@@ -325,7 +325,7 @@ const auditoria = {
     ["De terceros, con scripts", "Todos los controles de scripts, dos lecturas del subproceso con CLI distintos, aprobación reforzada y confirmación al ejecutar."],
   ],
   scripts: [
-    ["Inventario y límites", "Solo texto en shell, Python, JavaScript o TypeScript. Se rechazan binarios, comprimidos, código minificado u ofuscado, enlaces que salen de la carpeta y rutas con «..». Se quita el permiso de ejecución."],
+    ["Inventario y límites", "Solo texto en shell, Python, JavaScript o TypeScript. Se rechazan binarios ilegibles (las imágenes y fuentes avisan), comprimidos, código minificado u ofuscado, enlaces que salen de la carpeta y rutas con «..». Se quita el permiso de ejecución."],
     ["Capacidades declaradas", "Cada script declara qué red usa, qué escribe, qué comandos lanza y qué variables lee. Si el análisis detecta más, o no declara nada, es BLOCK."],
     ["Análisis estático", "Patrones peligrosos (descarga y ejecución, eval, sudo, credenciales) y semgrep; falla cerrada si falta la herramienta."],
     ["Dependencias", "Archivo de bloqueo con versiones fijas, sin ganchos de instalación, y análisis de vulnerabilidades."],

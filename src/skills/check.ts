@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { ManifestEntry } from "./manifest.js";
+import { binaryKind } from "./inventory.js";
 import { MAX_FILES } from "./skill.js";
 import type { Skill, SkillFile } from "./skill.js";
 
@@ -24,7 +25,14 @@ const SCRIPT = /\.(sh|bash|zsh|py|js|mjs|cjs|ts|rb|pl|ps1)$/i;
 const MAX_TEXT_BYTES = 512_000;
 
 const SECRET =
-  /(AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{30,}|sk-[A-Za-z0-9]{32,}|(api[_-]?key|secret|token|password)\s*[:=]\s*['"][A-Za-z0-9_\-/+=]{16,}['"])/i;
+  /(AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{30,}|sk-[A-Za-z0-9]{32,}|(api[_-]?key|secret|token|password)\s*[:=]\s*['"][A-Za-z0-9_\-/+=]{16,}['"])/gi;
+/** Documentation is full of «token: "your_token_here"»: a value that says it is an example is not a secret. */
+const PLACEHOLDER =
+  /example|your|xxx|placeholder|changeme|replace|ejemplo|tu[_-]|\*{3,}|\.{3}|(.)\1{7,}/i;
+
+export function hasSecret(body: string): boolean {
+  return [...body.matchAll(SECRET)].some((m) => !PLACEHOLDER.test(m[0]));
+}
 const NETWORK = /\b(curl|wget|ncat?)\s|fetch\(|requests\.|urllib|http\.client|axios|https?:\/\//i;
 /** A skill of evol-driven carries nothing from the previous evol system: names, paths or commands. */
 const LEGACY =
@@ -127,14 +135,27 @@ export function checkSkill(skill: Skill, entry?: ManifestEntry): CheckResult {
   }
   const contents = readContents(skill);
   for (const c of contents) {
-    if (c.binary)
-      add("binarios", "error", "Es un archivo binario: una skill solo lleva texto.", c.file.ruta);
-    else if (c.text === null)
+    if (c.binary) {
+      if (binaryKind(c.file.ruta, readFileSync(join(skill.dir, c.file.ruta))) === "recurso")
+        add(
+          "recursos",
+          "aviso",
+          "Es un recurso binario (imagen o fuente): no se puede leer, comprueba que lo necesita.",
+          c.file.ruta,
+        );
+      else
+        add(
+          "binarios",
+          "error",
+          "Es un archivo binario que no se puede leer: una skill solo lleva texto, imágenes y fuentes.",
+          c.file.ruta,
+        );
+    } else if (c.text === null)
       add("tamano", "aviso", "Es demasiado grande para revisarlo (más de 500 KB).", c.file.ruta);
   }
 
   // 4. Secrets, scripts, network and inheritance
-  const leaked = contents.filter((c) => c.text !== null && SECRET.test(c.text));
+  const leaked = contents.filter((c) => c.text !== null && hasSecret(c.text));
   for (const c of leaked)
     add("secretos", "error", "Parece contener una clave o un token escrito en claro.", c.file.ruta);
   if (leaked.length === 0) add("secretos", "ok", "No se encontraron claves en los archivos.");
