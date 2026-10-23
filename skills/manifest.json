@@ -63,6 +63,18 @@
       "alcance": "paquete",
       "fases": ["build"],
       "disciplina": "TDD"
+    },
+    "afinar-idea": {
+      "alcance": "paquete",
+      "fases": ["briefing"]
+    },
+    "interrogar-plan": {
+      "alcance": "paquete",
+      "fases": ["plan"]
+    },
+    "verificar-afirmaciones": {
+      "alcance": "paquete",
+      "fases": ["spec", "qa"]
     }
   }
 }

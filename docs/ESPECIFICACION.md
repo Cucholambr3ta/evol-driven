@@ -1135,16 +1135,17 @@ siempre igual, con las mismas opciones fijadas.
 > - **Falta del S3:** el análisis dinámico (S3b) y la regla de confirmación por IDE (control 9). Los lectores de Codex, OpenCode, Gemini CLI y los
 >   demás de la lista se suman con su propio adaptador y su prueba de aislamiento. La instalación en la biblioteca es del S5.
 
-> **S4 avanzado (2026-10-23): las 9 skills de las disciplinas base están escritas.** `sdd`, `fdd`, `ddd`, `bdd`, `atdd` y `tdd` se suman a `threat`,
-> `stdd` y `secdd`, y con las cuatro de seguridad son **13 de las 23** de la primera ola. Las 13 dan PASS en la pasada 1 de la auditoría real y
-> llevan sus 14 casos de evaluación cada una (182 en total). Las seis nuevas siguen las convenciones que `evol` ya usa: los criterios son `CA-n`, los
-> escenarios y las pruebas los citan por su número y `evol coverage` los enlaza. **Quedan 10:** las 3 de razonamiento (`afinar-idea`,
-> `verificar-afirmaciones`, `interrogar-plan`), los 6 roles y `evol`; los roles y `evol` dependen del diseño del orquestador (hitos O1 a O5).
-> **Medido con el Qwen local:** 168 de 182 casos. Las 13 skills activan bien salvo una petición de `tdd` («quiero refactorizar sin romper
-> nada») que el modelo no asocia con ninguna; los 14 fallos son sobre todo el modelo obedeciendo una orden inyectada o citando el secreto falso.
-> Un hallazgo de la evaluación: con 13 skills en el enrutador, la comprobación de «no debe activarse» tuvo que comparar nombres completos
-> (`atdd` y `stdd` contienen `tdd`), y dos descripciones se afinaron al ver que el modelo confundía `atdd` con `bdd`. Siguen sin aprobar: eso es de
-> la persona.
+> **S4 avanzado (2026-10-23): 16 de las 23 skills de la primera ola están escritas.** Las 9 de las disciplinas base (`sdd`, `fdd`, `ddd`, `bdd`, `atdd`,
+> `tdd`, `threat`, `stdd`, `secdd`), las 3 de razonamiento (`afinar-idea`, `interrogar-plan`, `verificar-afirmaciones`) y las 4 de seguridad. Las 16
+> dan PASS en la pasada 1 de la auditoría real y llevan sus 14 casos de evaluación (224 en total). Las convenciones de `evol` se respetan: los
+> criterios son `CA-n`, los escenarios y las pruebas los citan por su número y `evol coverage` los enlaza. **Quedan 7:** los 6 roles y `evol`, que
+> dependen del diseño del orquestador (hitos O1 a O5). **Dos supuestos que conviene confirmar:** que las skills de razonamiento entran en la
+> biblioteca inicial (es una de las preguntas abiertas de la ampliación 4) y sus nombres, que el hito O3 puede cambiar.
+> **Medido con el Qwen local:** 205 de 224 casos. Casi todos los fallos son el modelo obedeciendo una orden inyectada o citando el secreto falso. En
+> activación hay tres peticiones que el enrutador de 16 skills no asigna a su skill: una de `tdd` («quiero refactorizar sin romper nada») que el modelo
+> no asocia con ninguna, y dos que se van a `verificar-afirmaciones`, que es la descripción más amplia (una de `atdd` y una de `incorporar-dependencia`,
+> esta última discutible). Un hallazgo de la evaluación: con 16 skills en el enrutador, «no debe activarse» tuvo que comparar nombres completos
+> (`atdd` y `stdd` contienen `tdd`). Siguen sin aprobar: eso es de la persona.
 
 > **T1 implementado (2026-10-23), salvo yara.** La pasada 1 de `evol skills audit` ejecuta además `shellcheck` (scripts de shell), `bandit`
 > (scripts de Python), `osv-scanner` (archivos de bloqueo) y `guarddog` (dependencias declaradas), **solo si la skill trae lo que cada una lee**.
