@@ -1,5 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
+import { orchestratorBody } from "./orchestrator.js";
 
 export interface AgentReport {
   created: string[];
@@ -71,6 +72,24 @@ herramienta \`evol_memory_add\`). Las lecciones también se escriben en \`leccio
 retro exige. No guardes secretos.
 `,
 };
+
+/** The command files for Claude Code: the fixed helpers plus `/evol`, generated from the orchestrator skill. */
+function commandFiles(): Record<string, string> {
+  return {
+    "evol.md": `---
+description: Orquesta el proyecto: lee el estado, propone el siguiente paso, reparte el trabajo y se detiene ante cada aprobación
+argument-hint: [qué quieres hacer, o nada para ver el estado]
+---
+
+${GENERATED}
+
+${orchestratorBody()}
+
+Lo que la persona pide ahora: $ARGUMENTS
+`,
+    ...COMMANDS,
+  };
+}
 
 function claudeBlock(): string {
   return `${BEGIN}
@@ -170,7 +189,7 @@ function hasHook(settings: Record<string, unknown>): boolean {
 export function writeAgentFiles(root: string): AgentReport {
   const report: AgentReport = { created: [], updated: [], unchanged: [], skipped: [] };
 
-  for (const [name, content] of Object.entries(COMMANDS)) {
+  for (const [name, content] of Object.entries(commandFiles())) {
     const rel = `.claude/commands/${name}`;
     const file = join(root, rel);
     if (existsSync(file) && !readFileSync(file, "utf8").includes(GENERATED)) {
@@ -224,7 +243,7 @@ export function writeAgentFiles(root: string): AgentReport {
 /** True when everything `writeAgentFiles` manages is already in place. */
 export function agentFilesComplete(root: string): { ok: boolean; missing: string[] } {
   const missing: string[] = [];
-  for (const name of Object.keys(COMMANDS)) {
+  for (const name of Object.keys(commandFiles())) {
     if (!existsSync(join(root, ".claude", "commands", name)))
       missing.push(`.claude/commands/${name}`);
   }

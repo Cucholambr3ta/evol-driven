@@ -8,8 +8,9 @@ import { UserError } from "../core/errors.js";
 import { findProjectRoot, packageVersion } from "../core/paths.js";
 import { loadContext, verifyPhase } from "../core/pipeline.js";
 import type { PipelineContext } from "../core/pipeline.js";
-import { statusReport } from "../core/status.js";
-import type { StatusReport } from "../core/status.js";
+import { statusForAgents, statusReport } from "../core/status.js";
+import { lessonsOf, phaseDisciplines, prerequisites } from "../core/orchestration.js";
+import { PHASES } from "../core/phases.js";
 import { appendLesson, remember } from "../memory/events.js";
 import type { MemoryKind } from "../memory/events.js";
 import { withMemPalace } from "../memory/mempalace.js";
@@ -18,6 +19,9 @@ import { withMemPalace } from "../memory/mempalace.js";
 export const TOOL_NAMES = [
   "evol_status",
   "evol_verify",
+  "evol_prerequisites",
+  "evol_disciplines",
+  "evol_lessons",
   "evol_find_symbol",
   "evol_impact",
   "evol_trace",
@@ -31,23 +35,6 @@ type Reply = { content: { type: "text"; text: string }[]; isError?: boolean };
 const json = (value: unknown): Reply => ({
   content: [{ type: "text", text: JSON.stringify(value, null, 2) }],
 });
-
-/** The agent-facing shape of the status: same Spanish keys as the other tools. */
-export function statusForAgents(report: StatusReport): Record<string, unknown> {
-  return {
-    proyecto: report.project,
-    fase: report.phase,
-    completadas: report.completed,
-    adoptadas: report.adopted,
-    disciplinas: report.disciplines.map((d) => ({
-      modulo: d.module,
-      id: d.id,
-      nombre: d.nombre,
-      artefactos: d.artefactos,
-    })),
-    aprobacion: { estado: report.approval.state, detalle: report.approval.detail ?? null },
-  };
-}
 
 export function createServer(projectArg?: string): McpServer {
   const server = new McpServer({ name: "evol", version: packageVersion() });
@@ -102,6 +89,44 @@ export function createServer(projectArg?: string): McpServer {
         nota: "Si no hay problemas, la persona debe ejecutar `evol approve` y luego `evol next`.",
       });
     }),
+  );
+
+  const phaseArg = {
+    fase: z.enum(PHASES).optional().describe("Una fase del pipeline; por defecto, la actual"),
+  };
+
+  server.registerTool(
+    "evol_prerequisites",
+    {
+      description:
+        "Lo que la fase anterior debería haber dejado y falta: artefactos que no existen o que siguen con [[COMPLETAR]]. Si falta algo, el orquestador se detiene y lo nombra. No ejecuta nada.",
+      inputSchema: phaseArg,
+    },
+    guard(({ fase }: { fase?: (typeof PHASES)[number] }) =>
+      json(prerequisites(context().ctx, fase)),
+    ),
+  );
+
+  server.registerTool(
+    "evol_disciplines",
+    {
+      description:
+        "Disciplinas activas en una fase, con la skill que las aplica, los artefactos que esperan y cómo se verifica cada una. No ejecuta nada.",
+      inputSchema: phaseArg,
+    },
+    guard(({ fase }: { fase?: (typeof PHASES)[number] }) =>
+      json(phaseDisciplines(context().ctx, fase)),
+    ),
+  );
+
+  server.registerTool(
+    "evol_lessons",
+    {
+      description:
+        "Lecciones que el proyecto tiene escritas en lecciones.md, con su fecha; con `buscar`, solo las que mencionan todas esas palabras. No ejecuta nada.",
+      inputSchema: { buscar: z.string().optional().describe("Palabras que debe mencionar") },
+    },
+    guard(({ buscar }: { buscar?: string }) => json(lessonsOf(context().root, buscar))),
   );
 
   const symbolArgs = {

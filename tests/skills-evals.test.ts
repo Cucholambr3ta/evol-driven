@@ -33,7 +33,7 @@ interface Case {
 }
 
 describe("las skills de la primera ola y sus evaluaciones", () => {
-  it("son las dieciséis previstas: las nueve disciplinas base, las tres de razonamiento y las cuatro de seguridad", () => {
+  it("son las diecisiete previstas: las nueve disciplinas base, las tres de razonamiento, las cuatro de seguridad y el orquestador", () => {
     expect(NAMES.sort()).toEqual(
       [
         "afinar-idea",
@@ -41,6 +41,7 @@ describe("las skills de la primera ola y sus evaluaciones", () => {
         "bdd",
         "ddd",
         "evaluar-skill",
+        "evol",
         "fdd",
         "incorporar-dependencia",
         "incorporar-skill",

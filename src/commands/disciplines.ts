@@ -3,6 +3,8 @@ import { parseArgs } from "node:util";
 import { changeDisciplines, planChange } from "../core/disciplines-change.js";
 import type { ChangeSummary, ConfirmChange } from "../core/disciplines-change.js";
 import { NotInteractiveError, UserError } from "../core/errors.js";
+import { phaseDisciplines } from "../core/orchestration.js";
+import { isPhase } from "../core/phases.js";
 import { loadContext } from "../core/pipeline.js";
 import type { PipelineContext } from "../core/pipeline.js";
 import { PROFILES } from "../core/profiles.js";
@@ -12,7 +14,7 @@ import { out, requireProject, warn } from "./shared.js";
 import { confirmByTyping, hasTerminal } from "./tty.js";
 
 const USAGE =
-  "Uso: evol disciplines <list|profiles|suggest|enable|disable> [ID...] [--modulo <nombre>] [--json]";
+  "Uso: evol disciplines <list|active|profiles|suggest|enable|disable> [ID...] [--modulo <nombre>] [--fase <fase>] [--json]";
 
 function describeChange(s: ChangeSummary): string[] {
   const lines = [`Módulo «${s.module}»:`];
@@ -92,7 +94,7 @@ export default async function run(argv: string[]): Promise<number> {
   const { values, positionals } = parseArgs({
     args: argv,
     allowPositionals: true,
-    options: { modulo: { type: "string" }, json: { type: "boolean" } },
+    options: { modulo: { type: "string" }, fase: { type: "string" }, json: { type: "boolean" } },
   });
   const [action, ...ids] = positionals;
 
@@ -122,6 +124,23 @@ export default async function run(argv: string[]): Promise<number> {
     out(
       `Listo. ${summary.rewoundTo ? `El pipeline está en «${summary.rewoundTo}».` : "El pipeline sigue en su fase."}`,
     );
+    return 0;
+  }
+
+  if (action === "active") {
+    if (values.fase !== undefined && !isPhase(values.fase))
+      throw new UserError(`«${values.fase}» no es una fase.`);
+    const report = phaseDisciplines(loadContext(requireProject()), values.fase);
+    if (values.json) out(JSON.stringify(report, null, 2));
+    else {
+      out(`Disciplinas activas en «${report.fase}»:`);
+      if (report.disciplinas.length === 0) out("  (ninguna)");
+      for (const d of report.disciplinas) {
+        out(`  [${d.modulo}] ${d.id} — ${d.nombre}${d.skill ? `  (skill: ${d.skill})` : ""}`);
+        for (const a of d.artefactos) out(`      artefacto: ${a.patron} (≥${a.min})`);
+        for (const v of d.verificaciones) out(`      verifica: ${v}`);
+      }
+    }
     return 0;
   }
 

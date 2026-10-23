@@ -213,34 +213,34 @@ export interface PhaseOverview {
   }[];
 }
 
-/** Read-only summary: nothing is executed. */
+/** Read-only summary of one phase: nothing is executed. */
+export function describePhase(ctx: PipelineContext, phase: Phase): PhaseOverview["disciplines"] {
+  return activeDisciplines(ctx, phase).map(({ module, discipline }) => ({
+    module: module.name,
+    id: discipline.id,
+    nombre: discipline.nombre,
+    artefactos: discipline.artefactos.map((a) => {
+      const files = matchFiles(a.patron, moduleRoot(ctx, module));
+      return {
+        patron: a.patron,
+        encontrados: files.length,
+        min: a.min,
+        pendientes: files.filter((f) =>
+          readFileSync(join(moduleRoot(ctx, module), f), "utf8").includes("[[COMPLETAR]]"),
+        ).length,
+      };
+    }),
+  }));
+}
+
+/** Read-only summary of the current phase: nothing is executed. */
 export function describe(ctx: PipelineContext): PhaseOverview {
   const phase = ctx.state.currentPhase;
-  const overview: PhaseOverview = {
+  return {
     phase,
     completed: ctx.state.completed.map((c) => c.phase),
-    disciplines: [],
+    disciplines: phase === "done" ? [] : describePhase(ctx, phase),
   };
-  if (phase === "done") return overview;
-  for (const { module, discipline } of activeDisciplines(ctx, phase)) {
-    overview.disciplines.push({
-      module: module.name,
-      id: discipline.id,
-      nombre: discipline.nombre,
-      artefactos: discipline.artefactos.map((a) => {
-        const files = matchFiles(a.patron, moduleRoot(ctx, module));
-        return {
-          patron: a.patron,
-          encontrados: files.length,
-          min: a.min,
-          pendientes: files.filter((f) =>
-            readFileSync(join(moduleRoot(ctx, module), f), "utf8").includes("[[COMPLETAR]]"),
-          ).length,
-        };
-      }),
-    });
-  }
-  return overview;
 }
 
 export { NotInteractiveError };

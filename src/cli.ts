@@ -24,6 +24,10 @@ const COMMANDS: Record<string, CommandSpec> = {
     summary: "Avanza de fase si está verificada y aprobada",
     load: async () => (await import("./commands/next.js")).default,
   },
+  prerequisites: {
+    summary: "Lo que falta de la fase anterior antes de trabajar en una fase (--fase, --json)",
+    load: async () => (await import("./commands/prerequisites.js")).default,
+  },
   approve: {
     summary: "Registra la aprobación humana de una fase",
     load: async () => (await import("./commands/approve.js")).default,

@@ -1135,6 +1135,31 @@ siempre igual, con las mismas opciones fijadas.
 > - **Falta del S3:** el análisis dinámico (S3b) y la regla de confirmación por IDE (control 9). Los lectores de Codex, OpenCode, Gemini CLI y los
 >   demás de la lista se suman con su propio adaptador y su prueba de aislamiento. La instalación en la biblioteca es del S5.
 
+> **O1 implementado (2026-10-23): el contrato del orquestador.** Una sola fuente para `/evol`: la skill `evol` (`skills/evol/SKILL.md`), con los siete
+> pasos (arrancar, clasificar, comprobar, dividir, repartir, verificar, parar) y lo que no hace. Es **una skill como las demás**: pasa la auditoría,
+> lleva sus 14 casos de evaluación (14 de 14 con el Qwen local) y cuenta como la skill 17. El comando `/evol` de Claude Code
+> (`.claude/commands/evol.md`) **se genera de esa misma fuente** al ejecutar `evol agents`, y no pisa uno que la persona ya tenga; los demás IDE
+> reutilizarán `orchestratorBody()` en O2. Las consultas que le faltaban, con las dos formas equivalentes de la decisión 7 (la CLI primero con
+> `--json`, y el MCP como acelerador), todas de solo lectura:
+>
+> | Consulta                        | CLI                                         | MCP                  |
+> | ------------------------------- | ------------------------------------------- | -------------------- |
+> | Estado                          | `evol status --json`                        | `evol_status`        |
+> | Qué falta de la fase anterior   | `evol prerequisites [--fase] [--json]`      | `evol_prerequisites` |
+> | Disciplinas activas de una fase | `evol disciplines active [--fase] [--json]` | `evol_disciplines`   |
+> | Lecciones del proyecto          | `evol lessons list [--buscar] [--json]`     | `evol_lessons`       |
+>
+> `evol prerequisites` sale con 1 y **nombra el artefacto** que falta o que conserva `[[COMPLETAR]]`, con su módulo y su disciplina (criterio 70).
+> Las pruebas comprueban que consultar no cambia el estado, el registro de aprobaciones ni los archivos, que el contrato nunca nombra `evol approve`
+> ni `evol next` (una skill no puede pedirlo; la regla de la auditoría lo bloquea), y que **todo lo que el contrato menciona existe**: cada
+> herramienta del MCP y cada comando de la CLI, de modo que si uno cambia de nombre la prueba falla. `package.json` incluye ahora `skills` (sin
+> `evals`) en los archivos publicados; antes el paquete no llevaba las skills y un adaptador no habría podido leerlas.
+> **Decisiones de las preguntas abiertas, tomadas para poder avanzar y por confirmar contigo:** las skills de razonamiento entran en la biblioteca
+> inicial; los subagentes de Hermes que crea por su cuenta son skills de terceros que solo entran por el auditor (ya lo hace la regla actual);
+> y el tope de concurrencia **lo fija cada proyecto** en `evol.config.json` con un valor por defecto de 3 que nunca supera el del propio IDE (no
+> construido: es de O3, cuando haya delegación). **No hace todavía:** los roles (O3), la marca de «plan interrogado» (O4), los adaptadores para los
+> demás IDE (O2) ni el nivel A, B o C en `evol doctor`.
+
 > **S4 avanzado (2026-10-23): 16 de las 23 skills de la primera ola están escritas.** Las 9 de las disciplinas base (`sdd`, `fdd`, `ddd`, `bdd`, `atdd`,
 > `tdd`, `threat`, `stdd`, `secdd`), las 3 de razonamiento (`afinar-idea`, `interrogar-plan`, `verificar-afirmaciones`) y las 4 de seguridad. Las 16
 > dan PASS en la pasada 1 de la auditoría real y llevan sus 14 casos de evaluación (224 en total). Las convenciones de `evol` se respetan: los

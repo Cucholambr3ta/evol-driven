@@ -25,6 +25,7 @@ beforeAll(() => {
 
 const env = (): Record<string, string> => ({ EVOL_CONFIG_DIR: userConfig });
 const ALL = [
+  ".claude/commands/evol.md",
   ".claude/commands/evol-status.md",
   ".claude/commands/evol-fase.md",
   ".claude/commands/evol-impacto.md",

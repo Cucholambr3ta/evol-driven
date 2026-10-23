@@ -8,10 +8,12 @@ import {
   readLessons,
   renderLessonCheck,
 } from "../core/lessons.js";
+import { lessonsOf } from "../core/orchestration.js";
 import { withMemPalace } from "../memory/mempalace.js";
 import { out, requireProject } from "./shared.js";
 
-const USAGE = "Uso: evol lessons check [--umbral 0-1] [--estricto] [--json]";
+const USAGE =
+  "Uso: evol lessons check [--umbral 0-1] [--estricto] [--json]   |   evol lessons list [--buscar <palabras>] [--json]";
 
 export default async function run(argv: string[]): Promise<number> {
   const { values, positionals } = parseArgs({
@@ -21,8 +23,21 @@ export default async function run(argv: string[]): Promise<number> {
       umbral: { type: "string" },
       estricto: { type: "boolean" },
       json: { type: "boolean" },
+      buscar: { type: "string" },
     },
   });
+  if (positionals[0] === "list") {
+    const found = lessonsOf(requireProject(), values.buscar);
+    if (values.json) out(JSON.stringify(found, null, 2));
+    else if (found.lecciones.length === 0)
+      out(
+        found.total === 0
+          ? "El proyecto no tiene lecciones escritas."
+          : "Ninguna lección coincide.",
+      );
+    else for (const l of found.lecciones) out(`- ${l.titulo}${l.fecha ? ` (${l.fecha})` : ""}`);
+    return 0;
+  }
   if (positionals[0] !== "check") throw new UserError(USAGE);
   const threshold = values.umbral === undefined ? DEFAULT_THRESHOLD : Number(values.umbral);
   if (!Number.isFinite(threshold) || threshold < 0 || threshold > 1) {

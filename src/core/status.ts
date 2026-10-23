@@ -91,3 +91,20 @@ export function renderStatus(report: StatusReport): string[] {
   );
   return lines;
 }
+
+/** The agent-facing shape of the status: same Spanish keys as the other tools. */
+export function statusForAgents(report: StatusReport): Record<string, unknown> {
+  return {
+    proyecto: report.project,
+    fase: report.phase,
+    completadas: report.completed,
+    adoptadas: report.adopted,
+    disciplinas: report.disciplines.map((d) => ({
+      modulo: d.module,
+      id: d.id,
+      nombre: d.nombre,
+      artefactos: d.artefactos,
+    })),
+    aprobacion: { estado: report.approval.state, detalle: report.approval.detail ?? null },
+  };
+}

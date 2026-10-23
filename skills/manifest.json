@@ -75,6 +75,10 @@
     "verificar-afirmaciones": {
       "alcance": "paquete",
       "fases": ["spec", "qa"]
+    },
+    "evol": {
+      "alcance": "paquete",
+      "fases": ["briefing", "spec", "plan", "build", "qa", "retro"]
     }
   }
 }
