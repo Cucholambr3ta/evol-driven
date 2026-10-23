@@ -17,7 +17,7 @@ Cada dependencia es código de otra persona que se ejecuta con tus permisos. La 
 3. **¿Está vivo?** Última versión, mantenedores, si sigue publicándose. Un paquete abandonado es una deuda.
 4. **¿Qué licencia tiene?** Debe ser compatible con la del proyecto. Una licencia ausente es un no.
 5. **¿Tiene vulnerabilidades conocidas?** Ejecuta `osv-scanner` sobre el archivo de bloqueo. Una vulnerabilidad alta o crítica sin arreglo bloquea la entrada.
-6. **¿Es malicioso?** Para npm y PyPI ejecuta `guarddog npm verify <paquete>` o `guarddog pypi verify <paquete>`. Un aviso hay que leerlo, no descartarlo.
+6. **¿Es malicioso?** Para npm y PyPI ejecuta `guarddog npm scan <paquete>` o `guarddog pypi scan <paquete>` (`verify` revisa una carpeta local, no un nombre de paquete). Si el paquete ya está descargado, `guarddog pypi verify <carpeta>`. Un aviso hay que leerlo, no descartarlo.
 7. **¿Quedó fijada?** Versión exacta y archivo de bloqueo en el repositorio. Sin esas dos cosas no entra.
 
 ## Resultado
