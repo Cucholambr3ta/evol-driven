@@ -1,5 +1,12 @@
 import { spawnSync } from "node:child_process";
-import { existsSync, readdirSync, readFileSync, symlinkSync } from "node:fs";
+import {
+  chmodSync,
+  existsSync,
+  readdirSync,
+  readFileSync,
+  symlinkSync,
+  writeFileSync,
+} from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { buildExport } from "../src/core/export.js";
@@ -278,7 +285,12 @@ describe("evol report sin las herramientas (criterio 29)", () => {
 
   it("sin Graphviz falla con un mensaje claro, también en Markdown, y no escribe nada", () => {
     const root = makeProject(["SDD"]);
-    const only = pathWith("wordcraft-cli", "vectorcraft-cli");
+    // stand-ins for the two tools, so the test does not depend on them being installed (a bare container has neither)
+    const only = tempDir("evol-path-");
+    for (const c of ["wordcraft-cli", "vectorcraft-cli"]) {
+      writeFileSync(join(only, c), "#!/bin/sh\nexit 0\n");
+      chmodSync(join(only, c), 0o755);
+    }
     for (const args of [["report"], ["report", "--formato", "md"]]) {
       const r = cli(args, { cwd: root, env: { ...env(), PATH: only } });
       expect(r.status, args.join(" ")).toBe(1);

@@ -21,7 +21,7 @@ import { approveSkill } from "../skills/approve.js";
 import type { ApproveConfirm } from "../skills/approve.js";
 import { hasTerminal, typingSession } from "./tty.js";
 import type { TypingSession } from "./tty.js";
-import { AGENT_IDS, installSkill, installedSkills } from "../skills/install.js";
+import { AGENT_IDS, installSkill, installedSkills, uninstallSkill } from "../skills/install.js";
 import type { AgentId, Scope } from "../skills/install.js";
 import { findProjectRoot } from "../core/paths.js";
 import type { AuditReport } from "../skills/report.js";
@@ -31,7 +31,7 @@ import { dirname, join } from "node:path";
 import { out } from "./shared.js";
 
 const USAGE =
-  "Uso: evol skills <list|check|export|audit|approve|incorporar|install> [nombre|origen] [--dir <carpeta>] [--json] [--disciplinas] [--salida <archivo.zip>] [--propia] [--capacidades <archivo.json>] [--subproceso] [--autoprueba] [--lector <id>] [--agente <id|all>] [--global] [--reemplazar] [--estado]";
+  "Uso: evol skills <list|check|export|audit|approve|incorporar|install|uninstall> [nombre|origen] [--dir <carpeta>] [--json] [--disciplinas] [--salida <archivo.zip>] [--propia] [--capacidades <archivo.json>] [--subproceso] [--autoprueba] [--lector <id>] [--agente <id|all>] [--global] [--reemplazar] [--estado]";
 
 const MARK: Record<Level, string> = { ok: "✓", aviso: "!", error: "×" };
 
@@ -334,6 +334,34 @@ async function incorporar(
   return 0;
 }
 
+function uninstall(
+  dir: string,
+  name: string | undefined,
+  v: { agente?: string; global?: boolean; json?: boolean },
+): number {
+  if (!name)
+    throw new UserError(
+      "Indica qué skill quitar: evol skills uninstall <nombre> --agente <id|all> [--global]",
+    );
+  const choice = v.agente ?? "claude-code";
+  if (choice !== "all" && !AGENT_IDS.includes(choice as AgentId))
+    throw new UserError(`Agente desconocido «${choice}». Uno de: ${AGENT_IDS.join(", ")}, all.`);
+  const outcomes = uninstallSkill({
+    libraryDir: dir,
+    name,
+    agents: choice === "all" ? AGENT_IDS : [choice as AgentId],
+    scope: v.global === true ? "global" : "proyecto",
+    projectRoot: findProjectRoot() ?? null,
+  });
+  if (v.json === true) out(JSON.stringify(outcomes, null, 2));
+  else
+    for (const o of outcomes)
+      out(
+        `  ${o.resultado === "quitada" ? "-" : "="} ${o.agente}: ${o.resultado}${o.carpeta ? ` (${o.carpeta})` : ""}${o.detalle ? ` — ${o.detalle}` : ""}`,
+      );
+  return outcomes.some((o) => o.resultado === "ajena") ? 1 : 0;
+}
+
 function install(
   dir: string,
   name: string | undefined,
@@ -431,6 +459,8 @@ export default async function run(argv: string[]): Promise<number> {
       return incorporar(dir, name, values);
     case "install":
       return install(dir, name, values);
+    case "uninstall":
+      return uninstall(dir, name, values);
     default:
       throw new UserError(USAGE);
   }

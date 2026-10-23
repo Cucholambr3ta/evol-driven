@@ -188,3 +188,72 @@ export function installedSkills(
   }
   return rows;
 }
+
+export interface UninstallOutcome {
+  agente: AgentId;
+  carpeta: string;
+  resultado: "quitada" | "no-instalada" | "ajena" | "no-aplica";
+  detalle?: string;
+}
+
+export interface UninstallOptions {
+  libraryDir: string;
+  name: string;
+  agents: AgentId[];
+  scope: Scope;
+  projectRoot: string | null;
+  home?: string;
+}
+
+/**
+ * Removes the link `install` made. It only ever removes a symbolic link that points into the
+ * library: a real folder, or a link somebody else made, is left exactly as it is.
+ */
+export function uninstallSkill(opts: UninstallOptions): UninstallOutcome[] {
+  const outcomes: UninstallOutcome[] = [];
+  const done = new Set<string>();
+  for (const agent of opts.agents) {
+    const folder = skillsFolder(agent, opts.scope, opts.projectRoot, opts.home);
+    if (folder === null) {
+      outcomes.push({ agente: agent, carpeta: "", resultado: "no-aplica" });
+      continue;
+    }
+    if (done.has(folder)) {
+      outcomes.push({
+        agente: agent,
+        carpeta: folder,
+        resultado: "no-instalada",
+        detalle: "misma carpeta que otro agente",
+      });
+      continue;
+    }
+    done.add(folder);
+    const link = join(folder, opts.name);
+    const target = linkTarget(link);
+    if (target === null) {
+      outcomes.push(
+        existsSync(link)
+          ? {
+              agente: agent,
+              carpeta: folder,
+              resultado: "ajena",
+              detalle: `${link} no es un enlace de evol; no se tocó`,
+            }
+          : { agente: agent, carpeta: folder, resultado: "no-instalada" },
+      );
+      continue;
+    }
+    if (dirname(target) !== resolve(opts.libraryDir)) {
+      outcomes.push({
+        agente: agent,
+        carpeta: folder,
+        resultado: "ajena",
+        detalle: `${link} apunta fuera de la biblioteca; no se tocó`,
+      });
+      continue;
+    }
+    rmSync(link);
+    outcomes.push({ agente: agent, carpeta: folder, resultado: "quitada" });
+  }
+  return outcomes;
+}

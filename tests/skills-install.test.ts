@@ -11,7 +11,12 @@ import { join } from "node:path";
 import { beforeAll, describe, expect, it } from "vitest";
 import { readSkill } from "../src/skills/skill.js";
 import { readManifest, writeManifest } from "../src/skills/manifest.js";
-import { installedSkills, installSkill, skillsFolder } from "../src/skills/install.js";
+import {
+  installedSkills,
+  installSkill,
+  skillsFolder,
+  uninstallSkill,
+} from "../src/skills/install.js";
 import { cli, isolateUserConfig, makeProject, tempDir, write } from "./helpers.js";
 
 let userConfig: string;
@@ -270,5 +275,50 @@ describe("evol skills install", () => {
       env: env(),
     });
     expect(e.stderr).toContain("Agente desconocido «emacs»");
+  });
+});
+
+describe("quitar una skill instalada", () => {
+  const base = (root: string, lib: string) => ({
+    libraryDir: lib,
+    name: "demo",
+    agents: ["claude-code" as const],
+    scope: "proyecto" as const,
+    projectRoot: root,
+  });
+
+  it("quita el enlace que puso install y deja intacta la skill de la biblioteca", () => {
+    const lib = library();
+    const root = tempDir();
+    installSkill(base(root, lib));
+    expect(uninstallSkill(base(root, lib))[0]?.resultado).toBe("quitada");
+    expect(existsSync(join(root, ".claude/skills/demo"))).toBe(false);
+    expect(existsSync(join(lib, "demo/SKILL.md"))).toBe(true);
+    expect(uninstallSkill(base(root, lib))[0]?.resultado).toBe("no-instalada");
+  });
+
+  it("no toca una carpeta real ni un enlace que apunta a otra parte", () => {
+    const lib = library();
+    const root = tempDir();
+    write(root, ".claude/skills/demo/SKILL.md", "la mía\n");
+    expect(uninstallSkill(base(root, lib))[0]?.resultado).toBe("ajena");
+    expect(existsSync(join(root, ".claude/skills/demo/SKILL.md"))).toBe(true);
+    const root2 = tempDir();
+    mkdirSync(join(root2, ".claude/skills"), { recursive: true });
+    symlinkSync(tempDir(), join(root2, ".claude/skills/demo"), "dir");
+    expect(uninstallSkill(base(root2, lib))[0]?.resultado).toBe("ajena");
+    expect(lstatSync(join(root2, ".claude/skills/demo")).isSymbolicLink()).toBe(true);
+  });
+
+  it("evol skills uninstall: sale 0 al quitar y 1 si lo que hay no es de evol", () => {
+    const lib = library();
+    const root = makeProject(["FDD"]);
+    const env = { EVOL_CONFIG_DIR: userConfig };
+    cli(["skills", "install", "demo", "--dir", lib], { cwd: root, env });
+    const ok = cli(["skills", "uninstall", "demo", "--dir", lib], { cwd: root, env });
+    expect(ok.status, ok.stderr).toBe(0);
+    expect(ok.stdout).toContain("- claude-code: quitada");
+    write(root, ".claude/skills/demo/SKILL.md", "la mía\n");
+    expect(cli(["skills", "uninstall", "demo", "--dir", lib], { cwd: root, env }).status).toBe(1);
   });
 });
