@@ -1,5 +1,5 @@
 import { spawnSync } from "node:child_process";
-import { cpSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { chmodSync, cpSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { afterAll } from "vitest";
@@ -172,4 +172,46 @@ export function legacyProject(): string {
     '{ "permissions": { "allow": ["Bash(npm test)"] }, "hooks": { "SessionStart": [{ "hooks": [{ "type": "command", "command": "echo hola" }] }] } }\n',
   );
   return root;
+}
+
+/**
+ * Stand-ins for the security tools that find nothing, so a test that goes through SecDD does not
+ * depend on which tools (or which network) the machine has. Pass the result in a command's `env`.
+ */
+export function cleanSecurityTools(): Record<string, string> {
+  const dir = tempDir("evol-clean-tools-");
+  const make = (name: string, body: string): string => {
+    const file = join(dir, name);
+    writeFileSync(file, `#!/bin/sh\n${body}\n`, { mode: 0o755 });
+    chmodSync(file, 0o755);
+    return file;
+  };
+  return {
+    EVOL_TOOL_GITLEAKS: make(
+      "gitleaks",
+      `case "$1" in version) echo 8.99.0; exit 0;; esac
+while [ $# -gt 0 ]; do if [ "$1" = "--report-path" ]; then shift; echo "[]" > "$1"; fi; shift; done`,
+    ),
+    EVOL_TOOL_SEMGREP: make(
+      "semgrep",
+      `case "$1" in --version) echo 1.99.0; exit 0;; esac
+echo '{"results":[],"errors":[]}'`,
+    ),
+    EVOL_TOOL_BANDIT: make(
+      "bandit",
+      `case "$1" in --version) echo "bandit 1.9.4"; exit 0;; esac
+echo '{"errors":[],"results":[]}'`,
+    ),
+    EVOL_TOOL_SHELLCHECK: make(
+      "shellcheck",
+      `case "$1" in --version) echo "version: 0.11.0"; exit 0;; esac
+echo '[]'`,
+    ),
+    EVOL_TOOL_OSV_SCANNER: make(
+      "osv-scanner",
+      `case "$1" in --version) echo "osv-scanner version: 2.7.0"; exit 0;; esac
+echo '{"results":[]}'`,
+    ),
+    EVOL_TOOL_GUARDDOG: "",
+  };
 }

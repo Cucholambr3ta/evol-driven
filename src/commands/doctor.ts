@@ -8,7 +8,7 @@ import { loadState } from "../core/state.js";
 import { agentFilesComplete } from "../agents/files.js";
 import { GitNexusProvider } from "../codeintel/gitnexus.js";
 import { withMemPalace } from "../memory/mempalace.js";
-import { INSTALL_HINT, toolPath } from "../skills/tools.js";
+import { securityToolStatus } from "../security/tools.js";
 import { out } from "./shared.js";
 
 type Level = "ok" | "aviso" | "error";
@@ -115,16 +115,10 @@ export default async function run(): Promise<number> {
     );
   }
 
-  // Needed only to audit skills; without them `evol skills audit` leaves every skill «no auditada».
-  const audit = (["gitleaks", "semgrep"] as const).map((name) => [name, toolPath(name)] as const);
-  for (const [name, path] of audit) {
-    add(
-      path ? "ok" : "aviso",
-      `Auditoría de skills: ${name}`,
-      path ??
-        `no instalado: ${INSTALL_HINT[name]}; sin él evol skills audit deja toda skill «no auditada»`,
-    );
-  }
+  // `evol security scan` and `evol skills audit` lean on these; a missing one is a warning here,
+  // and it is what makes the scan fail with --ci or leaves every skill «no auditada».
+  for (const t of securityToolStatus())
+    add(t.instalada ? "ok" : "aviso", `Seguridad: ${t.tool}`, t.detalle);
 
   if (!root || !existsSync(CONFIG_FILE)) {
     const nexus = await new GitNexusProvider().available();

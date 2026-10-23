@@ -12,7 +12,7 @@ import {
 } from "../src/core/pipeline.js";
 import type { Confirm, PipelineContext } from "../src/core/pipeline.js";
 import { loadState } from "../src/core/state.js";
-import type { CommandRunner } from "../src/core/verify.js";
+import type { CommandRunner, SecurityScanner } from "../src/core/verify.js";
 import { isolateUserConfig, makeProject, write, writeValidArtifacts } from "./helpers.js";
 
 beforeAll(() => {
@@ -22,8 +22,10 @@ beforeAll(() => {
 const yes: Confirm = () => Promise.resolve({ approver: "ana" });
 const passing: CommandRunner = () => ({ ok: true, output: "" });
 
+const noBlockers: SecurityScanner = () => [];
+
 function ctxFor(root: string, run: CommandRunner = passing): PipelineContext {
-  return loadContext(root, { run });
+  return loadContext(root, { run, securityScan: noBlockers });
 }
 
 describe("approve + next (criterios 2, 4 y 5)", () => {

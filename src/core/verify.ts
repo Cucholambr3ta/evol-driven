@@ -5,6 +5,7 @@ import YAML from "yaml";
 import type { Artifact, Discipline, Format } from "./disciplines.js";
 import { appliesIn, verificationAppliesIn } from "./disciplines.js";
 import type { Phase } from "./phases.js";
+import { blockers, scan } from "../security/scan.js";
 
 export interface Finding {
   modulo: string;
@@ -30,12 +31,22 @@ export const defaultRunner: CommandRunner = (command, cwd) => {
   return { ok: result.status === 0, output };
 };
 
+/** Runs the security scan on a module and says what blocks it (nothing: it passes). */
+export type SecurityScanner = (moduleRoot: string) => string[];
+
+/**
+ * Read-only on purpose: a verification must not touch the files an approval is pinned to, or
+ * checking a phase would invalidate its own approval. `evol security scan` is what writes the report.
+ */
+export const defaultSecurityScan: SecurityScanner = (moduleRoot) => blockers(scan(moduleRoot));
+
 export interface VerifyContext {
   moduleName: string;
   /** Absolute root of the module; artifact paths are relative to it. */
   moduleRoot: string;
   phase: Phase;
   run?: CommandRunner;
+  securityScan?: SecurityScanner;
 }
 
 /** Files matching `pattern` (relative to `cwd`), never descending into node_modules. */
@@ -157,6 +168,12 @@ export function verifyDiscipline(d: Discipline, ctx: VerifyContext): Finding[] {
         if (existsSync(file) && CRITICAL_OPEN.test(readFileSync(file, "utf8"))) {
           findings.push(finding(`«${v.archivo}» tiene hallazgos críticos abiertos`));
         }
+        break;
+      }
+      case "escaneoSeguridad": {
+        // in this process, not through a shell: `evol` does not have to be on the PATH
+        for (const reason of (ctx.securityScan ?? defaultSecurityScan)(ctx.moduleRoot))
+          findings.push(finding(`escaneo de seguridad: ${reason}`));
         break;
       }
       case "comando": {

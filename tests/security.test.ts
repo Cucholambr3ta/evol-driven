@@ -4,7 +4,10 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { reviewIgnores } from "../src/security/ignore.js";
 import { ruleId } from "../src/security/runners.js";
 import { toolPath } from "../src/skills/tools.js";
-import { cli, isolateUserConfig, tempDir, write } from "./helpers.js";
+import { loadDisciplines } from "../src/core/disciplines.js";
+import type { Discipline } from "../src/core/disciplines.js";
+import { verifyDiscipline } from "../src/core/verify.js";
+import { cleanSecurityTools, cli, isolateUserConfig, tempDir, write } from "./helpers.js";
 
 /** Resolved before any test points a tool at a stand-in, so it is the one really installed (or null). */
 const REAL_GITLEAKS = toolPath("gitleaks");
@@ -387,6 +390,85 @@ echo '{"results":[{"check_id":"evol.js-dynamic-require","path":"src/b.js","start
     });
     // no Python or shell outside those folders, so bandit and shellcheck do not apply and do not block
     expect(cli(["security", "scan", "--ci"], { cwd: root, env: tools({}) }).status).toBe(0);
+  });
+});
+
+describe("evol doctor y las herramientas de seguridad (criterio 93)", () => {
+  const doctor = (env: Record<string, string>) =>
+    cli(["doctor"], { cwd: project(), env: { ...env, EVOL_TOOL_GUARDDOG: "" } }).stdout;
+
+  it("informa de cada una: si está, su versión y si es obligatoria", () => {
+    const out = doctor(
+      tools({
+        EVOL_TOOL_GITLEAKS: stub("gitleaks", GITLEAKS_CLEAN),
+        EVOL_TOOL_SEMGREP: stub("semgrep", SEMGREP_CLEAN),
+        EVOL_TOOL_BANDIT: stub("bandit", BANDIT_CLEAN),
+        EVOL_TOOL_SHELLCHECK: stub("shellcheck", SHELLCHECK_HIT),
+        EVOL_TOOL_OSV_SCANNER: stub("osv-scanner", OSV_CLEAN),
+      }),
+    );
+    expect(out).toMatch(
+      /✓ Seguridad: gitleaks: 8\.99\.0 — secretos; obligatoria; sin ella toda skill/,
+    );
+    expect(out).toMatch(
+      /✓ Seguridad: semgrep: 1\.99\.0 — código; obligatoria; sin ella toda skill/,
+    );
+    expect(out).toMatch(
+      /✓ Seguridad: bandit: 1\.9\.4 — código Python; obligatoria si el proyecto lo necesita/,
+    );
+    expect(out).toContain("✓ Seguridad: shellcheck: 0.11.0 — scripts de shell");
+    expect(out).toContain("✓ Seguridad: osv-scanner: 2.7.0 — dependencias (usa red)");
+    expect(out).toMatch(
+      /! Seguridad: guarddog: no instalada: .* — paquetes maliciosos \(usa red\); opcional/,
+    );
+  });
+
+  it("solo avisa cuando falta una: doctor no falla por eso", () => {
+    const r = cli(["doctor"], {
+      cwd: project(),
+      env: tools({ EVOL_TOOL_GITLEAKS: "", EVOL_TOOL_SEMGREP: "" }),
+    });
+    expect(r.stdout).toMatch(
+      /! Seguridad: gitleaks: no instalada: .*obligatoria; sin ella toda skill/,
+    );
+    expect(r.stdout).toMatch(/! Seguridad: semgrep: no instalada/);
+    expect(r.stdout).not.toMatch(/✗ Seguridad/);
+  });
+});
+
+describe("SecDD y el escaneo (criterio 105)", () => {
+  const secdd = loadDisciplines().get("SecDD") as Discipline;
+  const verify = (root: string, env: Record<string, string>) => {
+    const saved = { ...process.env };
+    Object.assign(process.env, env);
+    try {
+      return verifyDiscipline(secdd, { moduleName: "app", moduleRoot: root, phase: "qa" });
+    } finally {
+      for (const key of Object.keys(env)) {
+        if (saved[key] === undefined) delete process.env[key];
+        else process.env[key] = saved[key];
+      }
+    }
+  };
+
+  it("no toca ningún archivo: comprobar la fase no puede invalidar su propia aprobación", () => {
+    const root = project({ ".evol/qa/QA_REPORT.md": "# QA\n\nSin cambios.\n" });
+    const before = readFileSync(join(root, ".evol/qa/QA_REPORT.md"), "utf8");
+    expect(verify(root, cleanSecurityTools())).toEqual([]);
+    expect(readFileSync(join(root, ".evol/qa/QA_REPORT.md"), "utf8")).toBe(before);
+    expect(existsSync(join(root, ".evol/qa/security"))).toBe(false);
+  });
+
+  it("bloquea por un CRITICAL sin ignorar o por una herramienta obligatoria que falta", () => {
+    const root = project({ ".evol/qa/QA_REPORT.md": "# QA\n", "scripts/run.sh": "#!/bin/bash\n" });
+    const leak = { ...cleanSecurityTools(), EVOL_TOOL_GITLEAKS: stub("gitleaks", GITLEAKS_LEAK) };
+    expect(verify(root, leak).map((f) => f.mensaje)).toContain(
+      "escaneo de seguridad: 1 hallazgo(s) CRITICAL sin ignorar",
+    );
+    const noSemgrep = { ...cleanSecurityTools(), EVOL_TOOL_SEMGREP: "" };
+    expect(verify(root, noSemgrep).map((f) => f.mensaje)).toContain(
+      "escaneo de seguridad: falta semgrep, que es obligatoria",
+    );
   });
 });
 

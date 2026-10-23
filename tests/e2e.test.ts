@@ -2,14 +2,16 @@ import { spawnSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { beforeAll, describe, expect, it } from "vitest";
-import { CLI, cli, isolateUserConfig, tempDir } from "./helpers.js";
+import { CLI, cleanSecurityTools, cli, isolateUserConfig, tempDir } from "./helpers.js";
 
 let userConfig: string;
+let securityTools: Record<string, string>;
 beforeAll(() => {
   userConfig = isolateUserConfig();
+  securityTools = cleanSecurityTools();
 });
 
-const env = (): Record<string, string> => ({ EVOL_CONFIG_DIR: userConfig });
+const env = (): Record<string, string> => ({ EVOL_CONFIG_DIR: userConfig, ...securityTools });
 const hasScript = spawnSync("script", ["--version"], { encoding: "utf8" }).status === 0;
 
 function run(command: string, args: string[], cwd: string) {

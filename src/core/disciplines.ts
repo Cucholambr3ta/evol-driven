@@ -45,6 +45,7 @@ const VerificationSchema = z.discriminatedUnion("tipo", [
   z.object({ tipo: z.literal("escenarios"), ...optionalPhases }),
   z.object({ tipo: z.literal("sqlPar"), base: z.string().min(1), ...optionalPhases }),
   z.object({ tipo: z.literal("sinCriticos"), archivo: z.string().min(1), ...optionalPhases }),
+  z.object({ tipo: z.literal("escaneoSeguridad"), ...optionalPhases }),
   z.object({ tipo: z.literal("comando"), comando: z.string().min(1), ...optionalPhases }),
 ]);
 

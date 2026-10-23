@@ -12,8 +12,9 @@ import {
 import { tmpdir } from "node:os";
 import { isAbsolute, join, relative } from "node:path";
 import { evolPath, packageRoot } from "../core/paths.js";
-import { INSTALL_HINT, toolPath, versionOf } from "../skills/tools.js";
+import { INSTALL_HINT, toolPath } from "../skills/tools.js";
 import type { ToolName } from "../skills/tools.js";
+import { securityToolVersion } from "./tools.js";
 import type { Area, RunResult, SecFinding, Severity, ToolOutcome } from "./model.js";
 
 /** Folders that are never the project's own code: dependencies, build output and evol's own state. */
@@ -101,7 +102,7 @@ const GITLEAKS: Spec = { tool: "gitleaks", area: "secretos", obligatoria: true, 
 export function runGitleaks(root: string): RunResult {
   const bin = toolPath("gitleaks");
   if (!bin) return missingRun(GITLEAKS);
-  const version = versionOf(bin, ["version"]);
+  const version = securityToolVersion("gitleaks", bin);
   const work = mkdtempSync(join(tmpdir(), "evol-sec-gitleaks-"));
   try {
     const report = join(work, "report.json");
@@ -210,7 +211,7 @@ const isSeverity = (s: string): s is Severity => ["CRITICAL", "HIGH", "MEDIUM", 
 export function runSemgrep(root: string): RunResult {
   const bin = toolPath("semgrep");
   if (!bin) return missingRun(SEMGREP);
-  const version = versionOf(bin, ["--version"]);
+  const version = securityToolVersion("semgrep", bin);
   const rules = [join(packageRoot(), "rules", "semgrep")];
   if (existsSync(evolPath(root, "semgrep"))) rules.push(evolPath(root, "semgrep"));
   const r = spawnSync(
@@ -289,7 +290,7 @@ export function runBandit(root: string, files: string[]): RunResult {
   if (!files.some((f) => f.endsWith(".py"))) return notApplicable(BANDIT, "sin archivos Python");
   const bin = toolPath("bandit");
   if (!bin) return missingRun(BANDIT);
-  const version = versionOf(bin, ["--version"])?.replace(/^bandit\s+/i, "");
+  const version = securityToolVersion("bandit", bin);
   const r = spawnSync(
     bin,
     [
@@ -351,9 +352,7 @@ export function runShellcheck(root: string, files: string[]): RunResult {
   if (scripts.length === 0) return notApplicable(SHELLCHECK, "sin scripts de shell");
   const bin = toolPath("shellcheck");
   if (!bin) return missingRun(SHELLCHECK);
-  const version = /version:\s*(\S+)/i.exec(
-    spawnSync(bin, ["--version"], { encoding: "utf8", timeout: 20_000 }).stdout,
-  )?.[1];
+  const version = securityToolVersion("shellcheck", bin);
   const findings: SecFinding[] = [];
   for (let i = 0; i < scripts.length; i += 100) {
     const r = spawnSync(bin, ["--norc", "-f", "json", ...scripts.slice(i, i + 100)], {
@@ -422,7 +421,7 @@ export function runOsvScanner(root: string, files: string[]): RunResult {
   if (locks.length === 0) return notApplicable(OSV, "sin archivos de bloqueo");
   const bin = toolPath("osv-scanner");
   if (!bin) return missingRun(OSV);
-  const version = versionOf(bin, ["--version"])?.replace(/^osv-scanner version:\s*/i, "");
+  const version = securityToolVersion("osv-scanner", bin);
   const r = spawnSync(
     bin,
     ["scan", "source", "--format", "json", ...locks.flatMap((l) => ["-L", join(root, l)])],
@@ -492,7 +491,7 @@ export function runGuarddog(root: string, files: string[]): RunResult {
   if (targets.length === 0) return notApplicable(GUARDDOG, "sin dependencias declaradas");
   const bin = toolPath("guarddog");
   if (!bin) return missingRun(GUARDDOG);
-  const version = versionOf(bin, ["--version"]);
+  const version = securityToolVersion("guarddog", bin);
   const findings: SecFinding[] = [];
   const problems: string[] = [];
   for (const manifest of targets) {

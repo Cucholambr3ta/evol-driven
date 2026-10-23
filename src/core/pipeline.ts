@@ -20,7 +20,7 @@ import type { Phase } from "./phases.js";
 import { loadState, markCompleted, saveState } from "./state.js";
 import type { PipelineState } from "./state.js";
 import { artifactFiles, matchFiles, verifyDiscipline } from "./verify.js";
-import type { CommandRunner, Finding } from "./verify.js";
+import type { CommandRunner, Finding, SecurityScanner } from "./verify.js";
 
 export type Recorder = (type: string, data: Record<string, unknown>) => void | Promise<void>;
 
@@ -30,6 +30,7 @@ export interface PipelineContext {
   registry: DisciplineRegistry;
   state: PipelineState;
   run?: CommandRunner;
+  securityScan?: SecurityScanner;
   record?: Recorder;
 }
 
@@ -91,6 +92,7 @@ export async function verifyPhase(ctx: PipelineContext, phase: Phase): Promise<F
         moduleRoot: moduleRoot(ctx, module),
         phase,
         ...(ctx.run ? { run: ctx.run } : {}),
+        ...(ctx.securityScan ? { securityScan: ctx.securityScan } : {}),
       }),
     );
   }

@@ -1088,7 +1088,14 @@ siempre igual, con las mismas opciones fijadas.
 >   `metadata.evol_severity`; bandit y shellcheck nunca llegan a CRITICAL por sí solos; osv-scanner por puntaje CVSS (≥9 CRITICAL, ≥7 HIGH, ≥4 MEDIUM).
 > - **Un escaneo que no corrió no es un visto bueno:** con `--ci`, una herramienta obligatoria que falta o falla (por ejemplo osv-scanner sin red)
 >   hace fallar el comando.
-> - **Pendiente:** guarddog tarda (descarga cada paquete); `evol doctor` aún no informa de estas herramientas (T4b).
+> - **Pendiente:** guarddog tarda (descarga cada paquete).
+
+> **T4b implementado.** SecDD tiene una verificación nueva, `escaneoSeguridad`, que ejecuta el escaneo **dentro del mismo proceso** (no por una
+> shell, así que `evol` no tiene que estar en el `PATH`) y bloquea la fase de QA por cualquier CRITICAL o HIGH sin ignorar o por una herramienta
+> obligatoria que no corrió. **No escribe nada**: si reescribiera `QA_REPORT.md` al verificar, cambiaría el archivo al que está fijada la
+> aprobación y cada `evol next` invalidaría su propia aprobación (lo detectó el recorrido completo del pipeline). El informe lo escribe solo
+> `evol security scan`; después de reescribirlo hay que volver a aprobar QA, como con cualquier artefacto que cambia. `evol doctor` lista cada
+> herramienta de seguridad con su versión y si es obligatoria siempre, según el proyecto u opcional; una que falta es un aviso, no un error.
 
 **Criterios de aceptación (preliminares)**
 

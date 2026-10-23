@@ -5,15 +5,21 @@ import { appliesIn, DisciplineSchema, loadDisciplines } from "../src/core/discip
 import type { Discipline } from "../src/core/disciplines.js";
 import type { Phase } from "../src/core/phases.js";
 import { validateFormat, verifyDiscipline } from "../src/core/verify.js";
-import type { CommandRunner } from "../src/core/verify.js";
+import type { CommandRunner, SecurityScanner } from "../src/core/verify.js";
 import { REPO, tempDir, write, writeValidArtifacts } from "./helpers.js";
 
 const registry = loadDisciplines();
 const ok: CommandRunner = () => ({ ok: true, output: "" });
 const fail: CommandRunner = () => ({ ok: false, output: "boom" });
 
-function verify(d: Discipline, root: string, phase: Phase, run: CommandRunner = ok) {
-  return verifyDiscipline(d, { moduleName: "app", moduleRoot: root, phase, run });
+function verify(
+  d: Discipline,
+  root: string,
+  phase: Phase,
+  run: CommandRunner = ok,
+  securityScan: SecurityScanner = () => [],
+) {
+  return verifyDiscipline(d, { moduleName: "app", moduleRoot: root, phase, run, securityScan });
 }
 
 describe("registro de disciplinas (criterio 6)", () => {
@@ -177,6 +183,26 @@ describe("tipos de verificación (criterio 7): cada uno falla con un artefacto i
       "# QA\n\n- [x] CRITICAL: inyección SQL\n- [ ] MEDIUM: algo menor\n",
     );
     expect(verify(sec, root, "qa")).toEqual([]);
+  });
+
+  it("SecDD ejecuta el escaneo de seguridad y bloquea con lo que este devuelva", () => {
+    const sec = registry.get("SecDD") as Discipline;
+    const root = tempDir();
+    write(root, ".evol/qa/QA_REPORT.md", "# QA\n");
+    const calls: string[] = [];
+    const scanner: SecurityScanner = (moduleRoot) => {
+      calls.push(moduleRoot);
+      return ["1 hallazgo(s) CRITICAL sin ignorar", "falta gitleaks, que es obligatoria"];
+    };
+    const findings = verify(sec, root, "qa", ok, scanner).map((f) => f.mensaje);
+    expect(findings).toEqual([
+      "escaneo de seguridad: 1 hallazgo(s) CRITICAL sin ignorar",
+      "escaneo de seguridad: falta gitleaks, que es obligatoria",
+    ]);
+    expect(calls).toEqual([root]);
+    // it only runs in QA
+    expect(verify(sec, root, "build", ok, scanner)).toEqual([]);
+    expect(calls).toHaveLength(1);
   });
 
   it("comando que pasa o falla", () => {

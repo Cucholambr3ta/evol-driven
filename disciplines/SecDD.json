@@ -13,6 +13,9 @@
   ],
   "verificaciones": [
     {
+      "tipo": "escaneoSeguridad"
+    },
+    {
       "tipo": "sinCriticos",
       "archivo": ".evol/qa/QA_REPORT.md"
     }
