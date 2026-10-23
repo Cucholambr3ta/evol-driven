@@ -1135,6 +1135,21 @@ siempre igual, con las mismas opciones fijadas.
 > - **Falta del S3:** el análisis dinámico (S3b) y la regla de confirmación por IDE (control 9). Los lectores de Codex, OpenCode, Gemini CLI y los
 >   demás de la lista se suman con su propio adaptador y su prueba de aislamiento. La instalación en la biblioteca es del S5.
 
+> **`/evol` en una carpeta vacía (2026-10-23).** La skill `evol` ya no supone que el proyecto existe: si `evol status` dice que no hay proyecto, entiende el
+> pedido (con una o dos preguntas como máximo), elige un perfil (`base`, `api`, `web`, `erp` o `lib`), **propone y espera el «sí» de la persona en el chat**,
+> y entonces ejecuta `evol init --perfil <perfil> --name <nombre>` sin más opciones (siempre en briefing; nada de `--fase`, que adopta a media marcha sin
+> aprobaciones y exige una terminal). Si la carpeta ya tenía código, `init` lo adopta sin tocarlo; dentro de otro proyecto, no inicializa. Aprobar y avanzar
+> siguen siendo de la persona. Inicializar no aprueba nada y se deshace borrando `.evol/` y `evol.config.json`.
+
+> **Incorporar una skill en un paso (2026-10-23).** `evol skills incorporar <origen> [--propia] [--capacidades <archivo>] [--lector <id>]` audita con la segunda
+> pasada, y si el veredicto es PASS o WARN copia a la biblioteca **la copia auditada** (no la carpeta de origen, que puede cambiar) y pide la aprobación en
+> la misma terminal: el nombre de la skill, y los avisos aceptados por escrito. Si ya hay otra skill con ese nombre, no la pisa sin escribir `reemplazar
+<nombre>`, y la anterior se aparta como `.<nombre>.previa-<fecha>`. Exige terminal, como toda aprobación. En el IDE se lanza con `! evol skills incorporar
+<origen>`, sin salir de la sesión; el agente no lo ejecuta. Después, la skill `incorporar-skill` hace que el agente compruebe que figura como auditada y, con el
+> «sí» de la persona en el chat, la instale con `evol skills install`. **Decisión: la aprobación por chat se descartó** (una skill maliciosa podría
+> afirmar que la persona ya aprobó); lo que se acorta es el recorrido, no la barrera. Queda abierta la opción de aprobar por chat solo las skills propias, sin
+> scripts y con PASS limpio.
+
 > **S5 implementado (2026-10-23): instalar skills en los IDE.**
 >
 > - `evol skills install <nombre> [--agente <id|all>] [--global] [--reemplazar]` pone un **enlace simbólico** a la skill de la biblioteca en la carpeta que

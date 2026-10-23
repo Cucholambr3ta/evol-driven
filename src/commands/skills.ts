@@ -24,10 +24,14 @@ import type { TypingSession } from "./tty.js";
 import { AGENT_IDS, installSkill, installedSkills } from "../skills/install.js";
 import type { AgentId, Scope } from "../skills/install.js";
 import { findProjectRoot } from "../core/paths.js";
+import type { AuditReport } from "../skills/report.js";
+import { snapshotBase, verifySnapshot } from "../skills/snapshot.js";
+import { cpSync, mkdirSync, renameSync } from "node:fs";
+import { dirname, join } from "node:path";
 import { out } from "./shared.js";
 
 const USAGE =
-  "Uso: evol skills <list|check|export|audit|approve|install> [nombre|origen] [--dir <carpeta>] [--json] [--disciplinas] [--salida <archivo.zip>] [--propia] [--capacidades <archivo.json>] [--subproceso] [--autoprueba] [--lector <id>] [--agente <id|all>] [--global] [--reemplazar] [--estado]";
+  "Uso: evol skills <list|check|export|audit|approve|incorporar|install> [nombre|origen] [--dir <carpeta>] [--json] [--disciplinas] [--salida <archivo.zip>] [--propia] [--capacidades <archivo.json>] [--subproceso] [--autoprueba] [--lector <id>] [--agente <id|all>] [--global] [--reemplazar] [--estado]";
 
 const MARK: Record<Level, string> = { ok: "✓", aviso: "!", error: "×" };
 
@@ -144,6 +148,17 @@ async function audit(
   subprocess: boolean,
   readerId?: string,
 ): Promise<number> {
+  return (await auditReport(origin, propia, capabilitiesFile, json, subprocess, readerId)).code;
+}
+
+async function auditReport(
+  origin: string | undefined,
+  propia: boolean,
+  capabilitiesFile: string | undefined,
+  json: boolean,
+  subprocess: boolean,
+  readerId?: string,
+): Promise<{ code: number; report: AuditReport }> {
   if (!origin)
     throw new UserError(
       "Indica qué auditar: una carpeta, un .zip o https://…/repo@<sha de 40 caracteres>.",
@@ -194,7 +209,7 @@ async function audit(
         "Una skill «no auditada» no puede aprobarse. Instala las herramientas que faltan y vuelve a ejecutar la auditoría.",
       );
   }
-  return report.veredicto === "pass" || report.veredicto === "warn" ? 0 : 1;
+  return { code: report.veredicto === "pass" || report.veredicto === "warn" ? 0 : 1, report };
 }
 
 /** All the configured readers, or only the one asked for with --lector. */
@@ -248,6 +263,70 @@ async function approve(dir: string, name: string | undefined): Promise<number> {
     const result = await approveSkill(dir, name, ttyApprove(session), out);
     out(
       `Skill «${name}» ${result.estado === "aprobada" ? "aprobada" : "aprobada con avisos aceptados"} (huella ${result.huella.slice(0, 16)}…).`,
+    );
+  } finally {
+    session.close();
+  }
+  return 0;
+}
+
+/**
+ * Audit, copy and approve in one go, for a person at a terminal. What is copied is the audited
+ * snapshot (never the folder the origin points to, which can change), and nothing is replaced
+ * without typing so.
+ */
+async function incorporar(
+  dir: string,
+  origin: string | undefined,
+  v: { propia?: boolean; capacidades?: string; lector?: string },
+): Promise<number> {
+  if (!hasTerminal()) throw new NotInteractiveError();
+  const { code, report } = await auditReport(
+    origin,
+    v.propia === true,
+    v.capacidades,
+    false,
+    true,
+    v.lector,
+  );
+  if (code !== 0 || !report.huella) {
+    out("No se incorpora: la auditoría no dio PASS ni WARN.");
+    return 1;
+  }
+  const name = report.skill;
+  if (!/^[A-Za-z0-9._-]+$/.test(name))
+    throw new UserError(`El nombre «${name}» no es válido para la biblioteca.`);
+  const session = typingSession();
+  try {
+    const target = join(dir, name);
+    const alreadyThere = origin !== undefined && resolve(origin) === target;
+    if (!alreadyThere) {
+      const source = join(snapshotBase(report.huella), "skill");
+      if (!verifySnapshot(source, report.huella))
+        throw new UserError("La copia auditada cambió en la cuarentena: audítala otra vez.");
+      if (existsSync(target)) {
+        const same = findSkill(dir, name).huella === report.huella;
+        if (!same) {
+          out(`Ya hay una skill distinta llamada «${name}» en ${dir}.`);
+          await session.confirm(
+            `Para apartarla y poner esta escribe «reemplazar ${name}»: `,
+            `reemplazar ${name}`,
+            "Incorporación cancelada: no se reemplazó nada.",
+          );
+          renameSync(target, join(dir, `.${name}.previa-${Date.now()}`));
+        }
+      }
+      if (!existsSync(target)) {
+        mkdirSync(dirname(target), { recursive: true });
+        cpSync(source, target, { recursive: true });
+      }
+    }
+    const result = await approveSkill(dir, name, ttyApprove(session), out);
+    out(
+      `Skill «${name}» ${result.estado === "aprobada" ? "aprobada" : "aprobada con avisos aceptados"} y en la biblioteca (huella ${result.huella.slice(0, 16)}…).`,
+    );
+    out(
+      `Vuelve al chat y di que ya está lista: se instala con evol skills install ${name} --agente <id|all>.`,
     );
   } finally {
     session.close();
@@ -348,6 +427,8 @@ export default async function run(argv: string[]): Promise<number> {
       );
     case "approve":
       return approve(dir, name);
+    case "incorporar":
+      return incorporar(dir, name, values);
     case "install":
       return install(dir, name, values);
     default:

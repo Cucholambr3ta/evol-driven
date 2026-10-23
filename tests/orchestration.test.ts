@@ -335,3 +335,38 @@ describe("el contrato del orquestador: una sola fuente (criterios 66 y 69)", () 
     expect(pkg.files).toContain("!skills/*/evals");
   });
 });
+
+describe("/evol en una carpeta que aún no es un proyecto", () => {
+  const skill = readFileSync(join(process.cwd(), "skills", "evol", "SKILL.md"), "utf8");
+
+  it("la skill pide confirmación en el chat antes de inicializar, y solo en briefing", () => {
+    expect(skill).toContain("## Si la carpeta aún no es un proyecto de evol");
+    expect(skill).toContain("No inicialices nada hasta que responda que sí en el chat");
+    expect(skill).toContain("evol init --perfil <perfil> --name <nombre>");
+    expect(skill).toContain("nada de `--fase`");
+  });
+
+  it("lo que la skill manda hacer funciona sin terminal: perfiles fuera de un proyecto e init en briefing", () => {
+    const dir = tempDir();
+    const profiles = cli(["disciplines", "profiles"], {
+      cwd: dir,
+      env: { EVOL_CONFIG_DIR: userConfig },
+    });
+    expect(profiles.status, profiles.stderr).toBe(0);
+    for (const p of ["base", "api", "web", "erp", "lib"]) expect(profiles.stdout).toContain(p);
+    const status = cli(["status"], { cwd: dir, env: { EVOL_CONFIG_DIR: userConfig } });
+    expect(status.status).toBe(1);
+    expect(status.stderr + status.stdout).toContain("No estás dentro de un proyecto evol");
+    const init = cli(["init", "--perfil", "api", "--name", "mi-api", "--no-memory"], {
+      cwd: dir,
+      env: { EVOL_CONFIG_DIR: userConfig },
+    });
+    expect(init.status, init.stderr).toBe(0);
+    expect(init.stdout).toContain("fase briefing");
+    expect(
+      JSON.parse(
+        cli(["status", "--json"], { cwd: dir, env: { EVOL_CONFIG_DIR: userConfig } }).stdout,
+      ),
+    ).toMatchObject({ fase: "briefing" });
+  });
+});
