@@ -20,6 +20,8 @@ import type { Phase } from "./phases.js";
 import { loadState, markCompleted, saveState } from "./state.js";
 import type { PipelineState } from "./state.js";
 import { artifactFiles, matchFiles, verifyDiscipline } from "./verify.js";
+import { interrogationState, MIN_OVERRIDE_REASON } from "./interrogation.js";
+import { isBlocking } from "./verify.js";
 import type { CommandRunner, Finding, SecurityScanner } from "./verify.js";
 
 export type Recorder = (type: string, data: Record<string, unknown>) => void | Promise<void>;
@@ -97,6 +99,19 @@ export async function verifyPhase(ctx: PipelineContext, phase: Phase): Promise<F
     );
   }
   if (phase === "retro") findings.push(...lessonFindings(ctx));
+  if (phase === "plan") {
+    const state = interrogationState(ctx);
+    if (state.estado !== "vigente")
+      findings.push({
+        modulo: "-",
+        disciplina: "PLAN",
+        nivel: "aviso",
+        mensaje:
+          state.estado === "falta"
+            ? "el plan todavía no se interrogó: sin esa marca no se puede aprobar (skill interrogar-plan y evol interrogate)"
+            : "el plan cambió después de interrogarlo: hay que volver a interrogarlo",
+      });
+  }
   if (phase === "qa" && ctx.config.qa.requireTestsForChangedSymbols) {
     const { changedSymbolsWithoutTests } = await import("../codeintel/native/changes.js");
     findings.push(...(await changedSymbolsWithoutTests(ctx.root, ctx.config)));
@@ -127,22 +142,43 @@ export interface Confirmation {
 /** Asks a person to confirm. Must throw NotInteractiveError when there is no person to ask. */
 export type Confirm = (phase: Phase) => Promise<Confirmation>;
 
+export interface ApproveOptions {
+  /** Approve the plan without having interrogated it, for this reason; it stays in the signed log. */
+  sinInterrogar?: string;
+}
+
 export async function approvePhase(
   ctx: PipelineContext,
   phase: Phase,
   confirm: Confirm,
-): Promise<{ seq: number; artifacts: number }> {
+  options: ApproveOptions = {},
+): Promise<{ seq: number; artifacts: number; anulacion?: string }> {
   if (ctx.state.currentPhase === "done") throw new UserError("El pipeline ya terminó.");
   if (phase !== ctx.state.currentPhase) {
     throw new UserError(
       `Solo se puede aprobar la fase actual («${ctx.state.currentPhase}»), no «${phase}».`,
     );
   }
-  const findings = await verifyPhase(ctx, phase);
-  if (findings.length > 0) {
+  const blocking = (await verifyPhase(ctx, phase)).filter(isBlocking);
+  if (blocking.length > 0) {
     throw new UserError(
-      `No se puede aprobar «${phase}»: hay ${findings.length} problema(s).\n${formatFindings(findings)}`,
+      `No se puede aprobar «${phase}»: hay ${blocking.length} problema(s).\n${formatFindings(blocking)}`,
     );
+  }
+  let anulacion: string | undefined;
+  if (phase === "plan" && interrogationState(ctx).estado !== "vigente") {
+    const reason = (options.sinInterrogar ?? "").trim();
+    if (reason === "") {
+      throw new UserError(
+        "No se puede aprobar «plan»: el plan no se interrogó, o cambió después de interrogarlo. Interrógalo (skill interrogar-plan), registra el resultado con «evol interrogate <documento>» y vuelve a aprobar. Si hay un motivo para saltarlo, apruébalo con --sin-interrogar «motivo»: queda registrado y firmado.",
+      );
+    }
+    if (reason.length < MIN_OVERRIDE_REASON) {
+      throw new UserError(
+        `El motivo de --sin-interrogar es demasiado corto (mínimo ${MIN_OVERRIDE_REASON} caracteres): dice por qué este plan no se interroga.`,
+      );
+    }
+    anulacion = `plan aprobado sin interrogar: ${reason}`;
   }
   const key = ensureKey(ctx.state.projectId);
   const chain = verifyChain(readLog(ctx.root), key);
@@ -153,14 +189,24 @@ export async function approvePhase(
   }
   const { approver } = await confirm(phase);
   const artifacts = currentArtifacts(ctx, phase);
-  const entry = appendApproval(ctx.root, key, { phase, approver, artifacts });
+  const entry = appendApproval(ctx.root, key, {
+    phase,
+    approver,
+    artifacts,
+    ...(anulacion ? { anulacion } : {}),
+  });
   await ctx.record?.("approved", {
     phase,
     approver,
     seq: entry.seq,
     artifacts: Object.keys(artifacts).length,
+    ...(anulacion ? { anulacion } : {}),
   });
-  return { seq: entry.seq, artifacts: Object.keys(artifacts).length };
+  return {
+    seq: entry.seq,
+    artifacts: Object.keys(artifacts).length,
+    ...(anulacion ? { anulacion } : {}),
+  };
 }
 
 export interface NextResult {
@@ -174,7 +220,7 @@ export async function advance(ctx: PipelineContext): Promise<NextResult> {
   if (phase === "done") return { advanced: false, phase, problems: ["El pipeline ya terminó."] };
 
   const problems: string[] = [];
-  const findings = await verifyPhase(ctx, phase);
+  const findings = (await verifyPhase(ctx, phase)).filter(isBlocking);
   if (findings.length > 0) problems.push(formatFindings(findings));
 
   const key = requireKey(ctx.state.projectId);

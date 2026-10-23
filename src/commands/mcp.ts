@@ -6,10 +6,10 @@ import { createProvider, ProviderUnavailableError } from "../codeintel/index.js"
 import { indexProject } from "../codeintel/native/indexer.js";
 import { UserError } from "../core/errors.js";
 import { findProjectRoot, packageVersion } from "../core/paths.js";
-import { loadContext, verifyPhase } from "../core/pipeline.js";
+import { loadContext } from "../core/pipeline.js";
 import type { PipelineContext } from "../core/pipeline.js";
 import { statusForAgents, statusReport } from "../core/status.js";
-import { lessonsOf, phaseDisciplines, prerequisites } from "../core/orchestration.js";
+import { lessonsOf, phaseDisciplines, prerequisites, verification } from "../core/orchestration.js";
 import { PHASES } from "../core/phases.js";
 import { appendLesson, remember } from "../memory/events.js";
 import type { MemoryKind } from "../memory/events.js";
@@ -73,20 +73,21 @@ export function createServer(projectArg?: string): McpServer {
     "evol_verify",
     {
       description:
-        "Ejecuta las verificaciones de la fase actual (incluye los comandos de prueba) y lista los problemas. No cambia el estado: aprobar y avanzar lo hace una persona.",
-      inputSchema: {},
+        "Veredicto PASS, WARN o BLOCK de la fase actual. Con momento «fin» (por defecto) ejecuta las verificaciones de las disciplinas, pruebas incluidas; con «inicio» comprueba lo que la fase anterior debía dejar. Un aviso no detiene nada; un bloqueo sí. No cambia el estado: aprobar y avanzar lo hace una persona.",
+      inputSchema: {
+        momento: z.enum(["inicio", "fin"]).optional().describe("Por defecto, fin"),
+      },
     },
-    guard(async () => {
+    guard(async ({ momento }: { momento?: "inicio" | "fin" }) => {
       const { ctx } = context();
-      const phase = ctx.state.currentPhase;
-      if (phase === "done") return json({ fase: phase, listo: true, problemas: [] });
-      const problems = await verifyPhase(ctx, phase);
+      const result = await verification(ctx, momento ?? "fin");
+      if (result.fase === "done") return json({ ...result, problemas: [] });
       return json({
-        fase: phase,
-        listo: problems.length === 0,
-        problemas: problems,
+        ...result,
         aprobacion: statusForAgents(statusReport(ctx))["aprobacion"],
-        nota: "Si no hay problemas, la persona debe ejecutar `evol approve` y luego `evol next`.",
+        nota: result.listo
+          ? "Sin bloqueos: la persona debe ejecutar `evol approve` y luego `evol next`, en su terminal."
+          : "Hay bloqueos: se corrigen o se le dicen a la persona antes de pedir la aprobación.",
       });
     }),
   );

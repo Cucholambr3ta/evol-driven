@@ -1,11 +1,14 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { readLessons } from "./lessons.js";
-import { activeDisciplines, describePhase } from "./pipeline.js";
+import { readLog } from "./gate.js";
+import { activeDisciplines, describePhase, verifyPhase } from "./pipeline.js";
 import type { PipelineContext } from "./pipeline.js";
 import { PHASES } from "./phases.js";
 import type { Phase } from "./phases.js";
 import { executionOf } from "./roles.js";
+import { isBlocking, verdictOfFindings } from "./verify.js";
+import type { Finding, Verdict } from "./verify.js";
 import type { RoleId } from "./roles.js";
 
 /**
@@ -166,4 +169,61 @@ export function lessonsOf(
       ? all
       : all.filter((l) => words.every((w) => `${l.titulo} ${l.texto}`.toLowerCase().includes(w)));
   return { total: all.length, lecciones };
+}
+
+export type Momento = "inicio" | "fin";
+
+export interface Verification {
+  fase: Phase | "done";
+  momento: Momento;
+  veredicto: Verdict;
+  /** True when nothing blocks: warnings do not stop anything. */
+  listo: boolean;
+  problemas: Finding[];
+}
+
+/**
+ * The verification at the start of a phase: what the previous phase should have left (a missing
+ * artifact blocks and is named), and what the pipeline carries from before (a plan that was approved
+ * without being interrogated is a warning that stays visible for the rest of the project).
+ */
+export function verifyStart(ctx: PipelineContext): Finding[] {
+  const phase = ctx.state.currentPhase;
+  if (phase === "done") return [];
+  const findings: Finding[] = prerequisites(ctx, phase).faltan.map((m) => ({
+    modulo: m.modulo,
+    disciplina: m.disciplina,
+    nivel: "bloqueo",
+    mensaje: `de «${m.fase}» ${m.problema === "falta" ? "falta" : "está sin completar"} ${m.artefacto}: ${m.detalle}`,
+  }));
+  for (const entry of readLog(ctx.root))
+    if (entry.phase === "plan" && entry.anulacion)
+      findings.push({
+        modulo: "-",
+        disciplina: "PLAN",
+        nivel: "aviso",
+        mensaje: `${entry.anulacion} (${entry.approver}, ${entry.timestamp.slice(0, 10)})`,
+      });
+  return findings;
+}
+
+/**
+ * PASS, WARN or BLOCK for the start or the end of the current phase. Read-only for the pipeline: the
+ * end runs the discipline checks (tests included), exactly what approving would run, and changes nothing.
+ */
+export async function verification(
+  ctx: PipelineContext,
+  momento: Momento = "fin",
+): Promise<Verification> {
+  const phase = ctx.state.currentPhase;
+  if (phase === "done")
+    return { fase: phase, momento, veredicto: "PASS", listo: true, problemas: [] };
+  const problemas = momento === "inicio" ? verifyStart(ctx) : await verifyPhase(ctx, phase);
+  return {
+    fase: phase,
+    momento,
+    veredicto: verdictOfFindings(problemas),
+    listo: !problemas.some(isBlocking),
+    problemas,
+  };
 }

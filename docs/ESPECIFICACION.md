@@ -1135,6 +1135,27 @@ siempre igual, con las mismas opciones fijadas.
 > - **Falta del S3:** el análisis dinámico (S3b) y la regla de confirmación por IDE (control 9). Los lectores de Codex, OpenCode, Gemini CLI y los
 >   demás de la lista se suman con su propio adaptador y su prueba de aislamiento. La instalación en la biblioteca es del S5.
 
+> **O4 implementado (2026-10-23): PASS/WARN/BLOCK y la marca de plan interrogado.**
+>
+> - **Veredicto con tres niveles.** Cada hallazgo de la verificación puede ser un **bloqueo** (el valor por defecto: nada de lo anterior cambia) o un
+>   **aviso**. `evol verify [--inicio] [--json]` y `evol_verify` (con `momento: inicio | fin`) devuelven **PASS, WARN o BLOCK**: solo un BLOCK impide
+>   aprobar y avanzar; un aviso se muestra, se anota y no detiene nada. Al **inicio** de la fase se comprueba lo que la anterior debía dejar (un artefacto
+>   que falta bloquea y se nombra); al **final**, las verificaciones de las disciplinas, pruebas incluidas, que es lo mismo que correría la aprobación. La
+>   herramienta de MCP conserva lo que ya devolvía y añade `veredicto` y `momento`; `evol verify` sale con 1 solo con BLOCK.
+> - **«Un plan que nadie cuestionó no se aprueba» (criterio 71).** Tras interrogar el plan (skill `interrogar-plan`), lo preguntado y lo resuelto se
+>   escribe en un documento con una sección «Interrogado» y se registra con `evol interrogate <documento>`: la marca (`.evol/plan-interrogado.json`)
+>   lleva el **hash del contenido del plan** (los artefactos de la fase de plan y la configuración), el documento, quién y cuándo. **Si el plan cambia
+>   después, la marca ya no vale** y hay que repetirla. No se acepta un documento fuera del proyecto, sin la sección, o con una sección casi vacía
+>   (menos de tres líneas): el comando no decide que las respuestas sean buenas, eso lo lee quien aprueba. `evol approve plan` falla sin una marca
+>   vigente y dice cómo hacerlo y cómo saltarlo; `evol status` muestra «Plan interrogado: sí/no».
+> - **La anulación explícita queda firmada.** `evol approve plan --sin-interrogar "<motivo>"` (mínimo 10 caracteres, solo para el plan, y como toda
+>   aprobación, en una terminal) aprueba igual, pero el motivo se guarda **dentro de la entrada firmada** del registro de aprobaciones: cambiarlo
+>   rompe la cadena. Las entradas anteriores a este campo siguen verificando (el campo se deja fuera de lo firmado cuando no existe). Además, en cada fase
+>   siguiente, la verificación de inicio deja un **aviso permanente** con ese motivo, quién aprobó y cuándo.
+> - **Lo que esto no es:** la marca la puede poner quien ejecute el comando, así que es un freno y un rastro, no una garantía de que alguien cuestionó el
+>   plan; por eso quien aprueba debe leer el documento (el comando se lo recuerda) y la anulación queda a la vista.
+> - **Falta del O4:** más fuentes de avisos que las dos de ahora (el plan sin interrogar y el plan aprobado sin interrogar); se añadirán donde haga falta.
+
 > **O3 implementado (2026-10-23): los seis roles.** `analista`, `arquitecto`, `constructor`, `verificador`, `seguridad` y `operaciones` son skills como
 > las demás (sin scripts, con su entrada en el manifiesto y sus 14 casos de evaluación), con las **23 skills** de la primera ola ya escritas: las 9 de
 > disciplinas base, las 3 de razonamiento, las 4 de seguridad, el orquestador y los 6 roles. Las 23 dan PASS en la pasada 1.
@@ -1157,7 +1178,7 @@ siempre igual, con las mismas opciones fijadas.
 > - **Medido con el Qwen local:** 292 de 322 casos. Con seis roles y las skills de disciplina en el mismo enrutador aparecen solapes de activación
 >   esperables, porque el rol aplica la disciplina (`analista` y `fdd`, `constructor` y `tdd`, `seguridad` y `secdd`); como es el orquestador, y no un
 >   enrutador de texto libre, quien carga el rol según la fase y la disciplina, pesa poco. **Siguen sin aprobar.**
-> - **No hace todavía:** los envoltorios para Codex, Antigravity, OpenCode y Hermes (O2), la marca de «plan interrogado» y el PASS/WARN/BLOCK (O4),
+> - **No hace todavía:** los envoltorios para Codex, Antigravity, OpenCode y Hermes (O2),
 >   la instalación de las skills en `.claude/skills` (S5: instalar es aprobar primero), ni el tope de concurrencia por proyecto.
 
 > **O1 implementado (2026-10-23): el contrato del orquestador.** Una sola fuente para `/evol`: la skill `evol` (`skills/evol/SKILL.md`), con los siete

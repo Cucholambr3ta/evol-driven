@@ -1,4 +1,5 @@
 import { userInfo } from "node:os";
+import { parseArgs } from "node:util";
 import { NotInteractiveError, UserError } from "../core/errors.js";
 import { approvePhase, loadContext } from "../core/pipeline.js";
 import type { Confirm } from "../core/pipeline.js";
@@ -20,17 +21,30 @@ export const ttyConfirm: Confirm = async (phase) => {
 export default async function run(argv: string[]): Promise<number> {
   // Fail before touching anything when nobody is there to approve.
   if (!hasTerminal()) throw new NotInteractiveError();
-  const phase = argv[0];
+  const { values, positionals } = parseArgs({
+    args: argv,
+    allowPositionals: true,
+    options: { "sin-interrogar": { type: "string" } },
+  });
+  const phase = positionals[0];
   if (!phase || !isPhase(phase)) {
-    throw new UserError("Uso: evol approve <fase>   (briefing, spec, plan, build, qa, retro)");
+    throw new UserError(
+      "Uso: evol approve <fase> [--sin-interrogar <motivo>]   (briefing, spec, plan, build, qa, retro)",
+    );
   }
   const root = requireProject();
   const ctx = loadContext(root);
   ctx.record = makeRecorder(root, ctx.config, warn);
-  const result = await approvePhase(ctx, phase, ttyConfirm);
+  const sinInterrogar = values["sin-interrogar"];
+  if (sinInterrogar !== undefined && phase !== "plan")
+    throw new UserError("--sin-interrogar solo vale para aprobar el plan.");
+  const result = await approvePhase(ctx, phase, ttyConfirm, {
+    ...(sinInterrogar !== undefined ? { sinInterrogar } : {}),
+  });
   out(
     `Fase «${phase}» aprobada (entrada ${result.seq}, ${result.artifacts} artefacto(s) firmados).`,
   );
+  if (result.anulacion) out(`Queda registrado en la firma: ${result.anulacion}`);
   out("Ahora puedes ejecutar: evol next");
   return 0;
 }

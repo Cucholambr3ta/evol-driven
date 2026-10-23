@@ -13,7 +13,13 @@ import {
 import type { Confirm, PipelineContext } from "../src/core/pipeline.js";
 import { loadState } from "../src/core/state.js";
 import type { CommandRunner, SecurityScanner } from "../src/core/verify.js";
-import { isolateUserConfig, makeProject, write, writeValidArtifacts } from "./helpers.js";
+import {
+  interrogatePlan,
+  isolateUserConfig,
+  makeProject,
+  write,
+  writeValidArtifacts,
+} from "./helpers.js";
 
 beforeAll(() => {
   isolateUserConfig();
@@ -128,6 +134,7 @@ describe("approve + next (criterios 2, 4 y 5)", () => {
     writeValidArtifacts(root, "TDD");
     // fase build: hay que llegar hasta ahí
     for (const phase of ["briefing", "spec", "plan"] as const) {
+      if (phase === "plan") interrogatePlan(root);
       await approvePhase(ctxFor(root), phase, yes);
       await advance(ctxFor(root));
     }
@@ -163,6 +170,7 @@ describe("recorrido completo y reglas de cada fase", () => {
       const phase = loadState(root).currentPhase;
       if (phase === "done") break;
       seen.push(phase);
+      if (phase === "plan") interrogatePlan(root);
       await approvePhase(ctxFor(root), phase, yes);
       expect((await advance(ctxFor(root))).advanced).toBe(true);
     }
@@ -174,6 +182,7 @@ describe("recorrido completo y reglas de cada fase", () => {
   it("la fase retro exige al menos una lección registrada", async () => {
     const root = makeProject([]);
     for (const phase of ["briefing", "spec", "plan", "build", "qa"] as const) {
+      if (phase === "plan") interrogatePlan(root);
       await approvePhase(ctxFor(root), phase, yes);
       await advance(ctxFor(root));
     }

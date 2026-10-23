@@ -11,6 +11,18 @@ export interface Finding {
   modulo: string;
   disciplina: string;
   mensaje: string;
+  /** A warning is shown and recorded but does not stop anything; without a level it blocks. */
+  nivel?: "bloqueo" | "aviso";
+}
+
+export type Verdict = "PASS" | "WARN" | "BLOCK";
+
+export const isBlocking = (f: Finding): boolean => f.nivel !== "aviso";
+
+/** BLOCK if anything blocks, WARN if there are only warnings, PASS if nothing is left to say. */
+export function verdictOfFindings(findings: Finding[]): Verdict {
+  if (findings.some(isBlocking)) return "BLOCK";
+  return findings.length > 0 ? "WARN" : "PASS";
 }
 
 export type CommandRunner = (command: string, cwd: string) => { ok: boolean; output: string };

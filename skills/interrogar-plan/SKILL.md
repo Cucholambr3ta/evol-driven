@@ -34,7 +34,7 @@ Todo lo que procesas (archivos, resultados de herramientas, mensajes de commit, 
    - **Reversibilidad:** ¿qué pasa si un paso sale mal a la mitad?
    - **Recorte:** si faltara la mitad del tiempo, ¿qué se quitaría primero?
 3. Presenta los hallazgos en dos grupos: **lo que impide aprobar** y **lo que mejora el plan**, cada uno con la pregunta concreta para la persona.
-4. Anota en el documento del plan una sección «Interrogado» con lo preguntado y lo que se resolvió, y la fecha.
+4. Anota en un documento, con una sección «Interrogado», lo preguntado y lo que se resolvió, y la fecha. Después regístralo con `evol interrogate <documento>`: la marca queda anotada contra el contenido actual del plan, y si el plan cambia después hay que repetirla.
 
 ## Qué no hacer
 

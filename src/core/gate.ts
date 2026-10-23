@@ -22,6 +22,8 @@ export interface GateEntry {
   phase: Phase;
   approver: string;
   action: "approved";
+  /** Set when the approval skipped a check that normally stops it; part of what is signed. */
+  anulacion?: string;
   /** path (relative to the project) -> sha256 of the file at approval time */
   artifacts: Record<string, string>;
   nonce: string;
@@ -68,6 +70,8 @@ function canonicalPayload(entry: Omit<GateEntry, "payload_hash" | "signature">):
     phase: entry.phase,
     approver: entry.approver,
     action: entry.action,
+    // undefined is left out of the JSON, so the entries written before this field still verify
+    anulacion: entry.anulacion,
     artifacts: sortedArtifacts(entry.artifacts),
     nonce: entry.nonce,
     previous_hash: entry.previous_hash,
@@ -98,7 +102,12 @@ export function readLog(root: string): GateEntry[] {
 export function appendApproval(
   root: string,
   key: Buffer,
-  data: { phase: Phase; approver?: string; artifacts: Record<string, string> },
+  data: {
+    phase: Phase;
+    approver?: string;
+    artifacts: Record<string, string>;
+    anulacion?: string;
+  },
 ): GateEntry {
   const log = readLog(root);
   const last = log[log.length - 1];
@@ -108,6 +117,7 @@ export function appendApproval(
     phase: data.phase,
     approver: data.approver ?? userInfo().username,
     action: "approved",
+    ...(data.anulacion ? { anulacion: data.anulacion } : {}),
     artifacts: sortedArtifacts(data.artifacts),
     nonce: randomBytes(16).toString("base64"),
     previous_hash: last ? entryHash(last) : GENESIS,

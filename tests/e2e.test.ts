@@ -113,6 +113,18 @@ describe.skipIf(!hasScript)("recorrido completo del pipeline sobre un proyecto g
       const status = cli(["status"], { cwd: project, env: env() });
       expect(status.stdout, phase).toContain(`Fase actual: ${phase}`);
 
+      if (phase === "plan") {
+        // the plan has to be interrogated, and the interrogation recorded, before it can be approved
+        writeFileSync(
+          join(project, "docs", "plan-interrogado.md"),
+          "# Plan\n\n## Interrogado\n\n- ¿Cubre cada criterio? Sí.\n- ¿Qué supuestos hay? Ninguno sin comprobar.\n- ¿Qué se recorta primero? Lo opcional.\n",
+        );
+        const marked = cli(["interrogate", "docs/plan-interrogado.md"], {
+          cwd: project,
+          env: env(),
+        });
+        expect(marked.status, marked.stderr).toBe(0);
+      }
       const approved = approveInTerminal(project, phase);
       expect(approved.stdout, `${phase}: ${approved.stdout}`).toContain("aprobada");
 

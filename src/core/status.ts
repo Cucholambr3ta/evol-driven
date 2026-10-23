@@ -1,6 +1,7 @@
 import { findValidApproval, readKey, readLog, verifyChain } from "./gate.js";
 import { currentArtifacts, describe } from "./pipeline.js";
 import type { PhaseOverview, PipelineContext } from "./pipeline.js";
+import { interrogationState } from "./interrogation.js";
 import type { Phase } from "./phases.js";
 
 export type ApprovalState = "vigente" | "pendiente" | "obsoleta" | "no-verificable" | "no-integro";
@@ -9,6 +10,8 @@ export interface StatusReport extends PhaseOverview {
   project: string;
   adopted: Phase[];
   approval: { state: ApprovalState; detail?: string };
+  /** Only while the plan is the current phase: whether it was interrogated (and the mark still holds). */
+  interrogation?: "vigente" | "obsoleta" | "falta";
 }
 
 /** Read-only picture of the pipeline. Nothing is executed. */
@@ -21,6 +24,7 @@ export function statusReport(ctx: PipelineContext): StatusReport {
     approval: { state: "pendiente" },
   };
   if (overview.phase === "done") return report;
+  if (overview.phase === "plan") report.interrogation = interrogationState(ctx).estado;
 
   const key = readKey(ctx.state.projectId);
   if (!key) {
@@ -81,6 +85,10 @@ export function renderStatus(report: StatusReport): string[] {
       );
     }
   }
+  if (report.interrogation)
+    lines.push(
+      `Plan interrogado: ${report.interrogation === "vigente" ? "sí" : report.interrogation === "obsoleta" ? "no: cambió después de interrogarlo" : "no"}`,
+    );
   const detail = report.approval.detail ? ` — ${report.approval.detail}` : "";
   lines.push(
     `Aprobación de «${report.phase}»: ${APPROVAL_TEXT[report.approval.state]}${
@@ -106,5 +114,6 @@ export function statusForAgents(report: StatusReport): Record<string, unknown> {
       artefactos: d.artefactos,
     })),
     aprobacion: { estado: report.approval.state, detalle: report.approval.detail ?? null },
+    ...(report.interrogation ? { planInterrogado: report.interrogation } : {}),
   };
 }

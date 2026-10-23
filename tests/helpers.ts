@@ -6,6 +6,8 @@ import { afterAll } from "vitest";
 import { saveConfig } from "../src/core/config.js";
 import type { EvolConfig } from "../src/core/config.js";
 import { loadDisciplines } from "../src/core/disciplines.js";
+import { recordInterrogation } from "../src/core/interrogation.js";
+import { loadContext } from "../src/core/pipeline.js";
 import { ensureKey } from "../src/core/gate.js";
 import type { Phase } from "../src/core/phases.js";
 import { initState } from "../src/core/state.js";
@@ -214,4 +216,17 @@ echo '{"results":[]}'`,
     ),
     EVOL_TOOL_GUARDDOG: "",
   };
+}
+
+/**
+ * Writes the document of an interrogation and records it against the plan as it is now: what a test
+ * that walks the whole pipeline does before approving the plan.
+ */
+export function interrogatePlan(root: string, document = "docs/plan-interrogado.md"): void {
+  write(
+    root,
+    document,
+    "# Plan\n\n## Interrogado\n\n- ¿Cubre cada criterio? Sí, ver la especificación.\n- ¿Qué supuestos hay? Ninguno sin comprobar.\n- ¿Qué se recorta primero? Lo opcional.\n",
+  );
+  recordInterrogation(loadContext(root), document, "ana");
 }

@@ -28,6 +28,15 @@ const COMMANDS: Record<string, CommandSpec> = {
     summary: "Lo que falta de la fase anterior antes de trabajar en una fase (--fase, --json)",
     load: async () => (await import("./commands/prerequisites.js")).default,
   },
+  verify: {
+    summary: "Veredicto PASS, WARN o BLOCK de la fase actual (--inicio, --json); no cambia nada",
+    load: async () => (await import("./commands/verify.js")).default,
+  },
+  interrogate: {
+    summary:
+      "Anota que el plan se interrogó, contra su contenido actual (documento con «Interrogado»)",
+    load: async () => (await import("./commands/interrogate.js")).default,
+  },
   approve: {
     summary: "Registra la aprobación humana de una fase",
     load: async () => (await import("./commands/approve.js")).default,
