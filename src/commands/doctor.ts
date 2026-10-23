@@ -5,6 +5,7 @@ import { loadDisciplines } from "../core/disciplines.js";
 import { readKey, readLog, verifyChain, keyPath } from "../core/gate.js";
 import { CONFIG_FILE, findProjectRoot, packageVersion } from "../core/paths.js";
 import { loadState } from "../core/state.js";
+import { adapterMissing, CLAUDE_CODE, detectIdes, OTHER_ADAPTERS } from "../agents/adapters.js";
 import { agentFilesComplete } from "../agents/files.js";
 import { GitNexusProvider } from "../codeintel/gitnexus.js";
 import { withMemPalace } from "../memory/mempalace.js";
@@ -119,6 +120,41 @@ export default async function run(): Promise<number> {
   // and it is what makes the scan fail with --ci or leaves every skill «no auditada».
   for (const t of securityToolStatus())
     add(t.instalada ? "ok" : "aviso", `Seguridad: ${t.tool}`, t.detalle);
+
+  // The IDEs of the matrix that are on this machine, and what each one can do (level A, B or C).
+  const ides = detectIdes();
+  const found = ides.filter((d) => d.detectado);
+  if (found.length === 0)
+    add(
+      "aviso",
+      "IDE de agentes",
+      "no se detectó ninguno (Claude Code, Codex, Antigravity, OpenCode ni Hermes)",
+    );
+  for (const d of found) {
+    const other = OTHER_ADAPTERS.find((a) => a.id === d.id);
+    const adapter = d.id === "claude-code" ? CLAUDE_CODE : other;
+    if (!adapter) continue;
+    const readOnly =
+      adapter.proteccion.soloLectura === "impuesta"
+        ? "subagentes de solo lectura impuestos por el IDE"
+        : "subagentes de solo lectura solo por instrucción";
+    const block =
+      adapter.proteccion.aprobar === "instalada"
+        ? "bloqueo de aprobar instalado"
+        : adapter.proteccion.aprobar === "manual"
+          ? "bloqueo de aprobar parcial (lo completa la terminal)"
+          : "bloqueo de aprobar por confirmar";
+    const missing = root && other && existsSync(CONFIG_FILE) ? adapterMissing(root, other) : [];
+    add(
+      missing.length > 0 ? "aviso" : "ok",
+      `IDE ${d.nombre}`,
+      `nivel ${d.nivel} (subagentes nativos); entrada ${adapter.entrada}; ${readOnly}; ${block}${
+        missing.length > 0
+          ? `; falta ${missing.join(", ")} (evol agents --ide ${d.id} lo crea)`
+          : ""
+      }`,
+    );
+  }
 
   if (!root || !existsSync(CONFIG_FILE)) {
     const nexus = await new GitNexusProvider().available();

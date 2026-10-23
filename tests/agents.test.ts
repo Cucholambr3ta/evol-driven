@@ -4,6 +4,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { spawnSync } from "node:child_process";
 import {
   agentFilesComplete,
+  DENY_RULES,
   formatJson,
   HOOK_COMMAND,
   writeAgentFiles,
@@ -113,7 +114,8 @@ describe("archivos para agentes (criterio 23)", () => {
     const commands = settings.hooks.SessionStart.flatMap((e) => e.hooks.map((h) => h.command));
     expect(commands.filter((c) => c === HOOK_COMMAND)).toHaveLength(1);
     expect(commands).toContain("echo hola");
-    expect(settings.permissions).toEqual({ allow: ["Bash(npm test)"] });
+    // the person's own rule stays, and evol adds what keeps an agent from approving or moving on
+    expect(settings.permissions).toEqual({ allow: ["Bash(npm test)"], deny: DENY_RULES });
   });
 
   it(".mcp.json: añade el servidor evol y conserva los demás; no pisa uno propio", () => {
@@ -194,7 +196,9 @@ describe("comandos que los generan", () => {
     expect(doctor().stdout).toContain("! Integración con agentes: falta");
     const r = cli(["agents"], { cwd: root, env: env() });
     expect(r.status, r.stderr).toBe(0);
-    expect(r.stdout).toContain("hermes mcp add evol");
+    expect(cli(["agents", "--ide", "hermes"], { cwd: root, env: env() }).stdout).toContain(
+      "hermes mcp add evol",
+    );
     expect(doctor().stdout).toContain("✓ Integración con agentes: completa");
   });
 });

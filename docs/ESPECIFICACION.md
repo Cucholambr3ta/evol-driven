@@ -1135,6 +1135,23 @@ siempre igual, con las mismas opciones fijadas.
 > - **Falta del S3:** el análisis dinámico (S3b) y la regla de confirmación por IDE (control 9). Los lectores de Codex, OpenCode, Gemini CLI y los
 >   demás de la lista se suman con su propio adaptador y su prueba de aislamiento. La instalación en la biblioteca es del S5.
 
+> **O2 implementado (2026-10-23): adaptadores para Codex, Antigravity, OpenCode y Hermes, y `evol doctor` por IDE.**
+>
+> - `evol agents --ide <claude-code|codex|antigravity|opencode|hermes|all>` (sin `--ide`, Claude Code, como antes). Un adaptador solo coloca el
+>   orquestador y los dos roles de subagente donde cada IDE los busca y en su formato: Codex (skill `$evol` en `.agents/skills`, `.codex/agents/*.toml`),
+>   Antigravity (workflow `.agents/workflows/evol.md`, `.agents/agents/*.md` con solo herramientas de lectura), OpenCode (`.opencode/commands/evol.md` con
+>   `$ARGUMENTS`, `.opencode/agents/*.md` sin permiso de editar ni de ejecutar). Los envoltorios no llevan instrucciones propias: dicen «carga la skill
+>   `<rol>`». Hermes no genera archivos (sus subagentes se crean al ejecutar y su entrada está por confirmar).
+> - `AGENTS.md` lleva un bloque propio (`evol:begin/end`) sin estado del proyecto; lo demás del archivo no se toca. Un archivo con el mismo nombre que no
+>   sea de evol (sin su marca) no se pisa.
+> - **Lo que vive en archivos de la persona se imprime, no se escribe:** el MCP de Codex, Antigravity (global), OpenCode y Hermes, el tope de hilos, y las
+>   reglas de bloqueo donde no están confirmadas. Las skills no se instalan aquí (entran por la auditoría y la aprobación).
+> - **Claude Code instala `permissions.deny` para `evol approve` y `evol next`** (conservando las reglas de la persona); `evol doctor` avisa si falta.
+> - `evol doctor` detecta qué IDE hay (por el ejecutable o su carpeta de configuración) y muestra nivel (todos A), entrada, si el solo lectura lo impone el
+>   IDE o es solo una instrucción (Codex), y el estado del bloqueo de aprobar; avisa de los archivos que faltan.
+> - **Por confirmar:** reglas de bloqueo de Codex y Antigravity, entrada y ganchos de Hermes, formato exacto del `command` MCP de OpenCode. Los niveles B y C
+>   se definen pero ningún IDE de hoy los necesita.
+
 > **O4 implementado (2026-10-23): PASS/WARN/BLOCK y la marca de plan interrogado.**
 >
 > - **Veredicto con tres niveles.** Cada hallazgo de la verificación puede ser un **bloqueo** (el valor por defecto: nada de lo anterior cambia) o un

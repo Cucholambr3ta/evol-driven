@@ -25,6 +25,8 @@ export function quoteFrontmatter(content: string): string {
 const BEGIN = "<!-- evol:begin -->";
 const END = "<!-- evol:end -->";
 export const HOOK_COMMAND = "evol hook session-start";
+/** What Claude Code is told never to run: approving a phase and moving the pipeline on are for a person. */
+export const DENY_RULES = ["Bash(evol approve:*)", "Bash(evol next:*)"];
 
 const COMMANDS: Record<string, string> = {
   "evol-status.md": `---
@@ -185,6 +187,13 @@ function writeJson(
   write(root, rel, `${formatJson(data)}\n`, report);
 }
 
+/** The deny rules evol installs that the settings do not have yet; the person's own rules stay as they are. */
+function missingDenyRules(settings: Record<string, unknown>): string[] {
+  const deny = (settings["permissions"] as { deny?: unknown } | undefined)?.deny;
+  const have = Array.isArray(deny) ? deny : [];
+  return DENY_RULES.filter((r) => !have.includes(r));
+}
+
 function hasHook(settings: Record<string, unknown>): boolean {
   const hooks = settings["hooks"] as Record<string, unknown> | undefined;
   const entries = hooks?.["SessionStart"];
@@ -239,16 +248,25 @@ export function writeAgentFiles(root: string): AgentReport {
 
   const settings = readJson(root, ".claude/settings.json", report);
   if (settings) {
-    if (hasHook(settings.data)) report.unchanged.push(".claude/settings.json");
-    else {
+    const next: Record<string, unknown> = { ...settings.data };
+    if (!hasHook(settings.data)) {
       const hooks = (settings.data["hooks"] ?? {}) as Record<string, unknown>;
       const existing = Array.isArray(hooks["SessionStart"]) ? hooks["SessionStart"] : [];
       hooks["SessionStart"] = [
         ...existing,
         { hooks: [{ type: "command", command: HOOK_COMMAND, timeout: 30 }] },
       ];
-      writeJson(root, ".claude/settings.json", { ...settings.data, hooks }, report);
+      next["hooks"] = hooks;
     }
+    const lacking = missingDenyRules(settings.data);
+    if (lacking.length > 0) {
+      const permissions = (settings.data["permissions"] ?? {}) as Record<string, unknown>;
+      const deny = Array.isArray(permissions["deny"]) ? (permissions["deny"] as unknown[]) : [];
+      next["permissions"] = { ...permissions, deny: [...deny, ...lacking] };
+    }
+    if (hasHook(settings.data) && lacking.length === 0)
+      report.unchanged.push(".claude/settings.json");
+    else writeJson(root, ".claude/settings.json", next, report);
   }
 
   const mcp = readJson(root, ".mcp.json", report);
@@ -283,6 +301,8 @@ export function agentFilesComplete(root: string): { ok: boolean; missing: string
     skipped: [],
   });
   if (!settings || !hasHook(settings.data)) missing.push(".claude/settings.json (hook)");
+  if (settings && missingDenyRules(settings.data).length > 0)
+    missing.push(".claude/settings.json (permissions.deny)");
   const mcp = readJson(root, ".mcp.json", { created: [], updated: [], unchanged: [], skipped: [] });
   const servers = mcp?.data["mcpServers"] as Record<string, unknown> | undefined;
   if (!servers?.["evol"]) missing.push(".mcp.json (servidor evol)");
