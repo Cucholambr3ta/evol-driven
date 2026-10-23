@@ -3,106 +3,368 @@
   "skills": {
     "revisar-secretos": {
       "alcance": "paquete",
-      "fases": ["build", "qa"],
-      "disciplina": "SecDD"
+      "fases": [
+        "build",
+        "qa"
+      ],
+      "disciplina": "SecDD",
+      "auditoria": {
+        "estado": "con-avisos",
+        "huella": "e0394546175d452b6e79a2df14d3fecfcc613ac8d31835692626eec47b5b54c5",
+        "fecha": "2026-10-23T20:18:57.244Z",
+        "informe": "/home/cucholambreta/.config/evol/quarantine/e0394546175d452b/informe.json",
+        "aprobadaPor": "cucholambreta",
+        "avisosAceptados": true
+      }
     },
     "incorporar-dependencia": {
       "alcance": "paquete",
-      "fases": ["plan", "build"],
-      "disciplina": "SecDD"
+      "fases": [
+        "plan",
+        "build"
+      ],
+      "disciplina": "SecDD",
+      "auditoria": {
+        "estado": "con-avisos",
+        "huella": "4133b2184ece717e13a6375916b31acf3f5fe807e01301a9cc32872eee114aff",
+        "fecha": "2026-10-23T20:18:23.538Z",
+        "informe": "/home/cucholambreta/.config/evol/quarantine/4133b2184ece717e/informe.json",
+        "aprobadaPor": "cucholambreta",
+        "avisosAceptados": true
+      }
     },
     "incorporar-skill": {
       "alcance": "paquete",
-      "fases": ["briefing", "spec", "plan", "build", "qa", "retro"]
+      "fases": [
+        "briefing",
+        "spec",
+        "plan",
+        "build",
+        "qa",
+        "retro"
+      ],
+      "auditoria": {
+        "estado": "con-avisos",
+        "huella": "cebb7710f0a8e42cb1996596e9f188881d7757a485f71072a666ede2110ca0dc",
+        "fecha": "2026-10-23T20:18:34.660Z",
+        "informe": "/home/cucholambreta/.config/evol/quarantine/cebb7710f0a8e42c/informe.json",
+        "aprobadaPor": "cucholambreta",
+        "avisosAceptados": true
+      }
     },
     "evaluar-skill": {
       "alcance": "paquete",
-      "fases": ["qa"]
+      "fases": [
+        "qa"
+      ],
+      "auditoria": {
+        "estado": "aprobada",
+        "huella": "3ac5d45edb11cefac4adabbd6976a12364ce1436a20fc674538722a8c0f22318",
+        "fecha": "2026-10-23T20:18:11.916Z",
+        "informe": "/home/cucholambreta/.config/evol/quarantine/3ac5d45edb11cefa/informe.json",
+        "aprobadaPor": "cucholambreta",
+        "avisosAceptados": false
+      }
     },
     "secdd": {
       "alcance": "paquete",
-      "fases": ["qa"],
-      "disciplina": "SecDD"
+      "fases": [
+        "qa"
+      ],
+      "disciplina": "SecDD",
+      "auditoria": {
+        "estado": "aprobada",
+        "huella": "28be122f6cb62e771c0657229507a0b604e7673a26906fa81580b0f061e63884",
+        "fecha": "2026-10-23T20:19:08.572Z",
+        "informe": "/home/cucholambreta/.config/evol/quarantine/28be122f6cb62e77/informe.json",
+        "aprobadaPor": "cucholambreta",
+        "avisosAceptados": false
+      }
     },
     "stdd": {
       "alcance": "paquete",
-      "fases": ["build"],
-      "disciplina": "STDD"
+      "fases": [
+        "build"
+      ],
+      "disciplina": "STDD",
+      "auditoria": {
+        "estado": "aprobada",
+        "huella": "ed7b6c068d403d279ac744d56ff9df4cc805cccdfd756aa5c762bf09ba57a6b9",
+        "fecha": "2026-10-23T20:19:19.346Z",
+        "informe": "/home/cucholambreta/.config/evol/quarantine/ed7b6c068d403d27/informe.json",
+        "aprobadaPor": "cucholambreta",
+        "avisosAceptados": false
+      }
     },
     "threat": {
       "alcance": "paquete",
-      "fases": ["spec"],
-      "disciplina": "THREAT"
+      "fases": [
+        "spec"
+      ],
+      "disciplina": "THREAT",
+      "auditoria": {
+        "estado": "con-avisos",
+        "huella": "8dbe555343ed9db6de6cd0308495fc849e19fa91f1653f88733b6a693ca6ad96",
+        "fecha": "2026-10-23T20:19:28.416Z",
+        "informe": "/home/cucholambreta/.config/evol/quarantine/8dbe555343ed9db6/informe.json",
+        "aprobadaPor": "cucholambreta",
+        "avisosAceptados": true
+      }
     },
     "sdd": {
       "alcance": "paquete",
-      "fases": ["spec", "plan", "build", "qa", "retro"],
-      "disciplina": "SDD"
+      "fases": [
+        "spec",
+        "plan",
+        "build",
+        "qa",
+        "retro"
+      ],
+      "disciplina": "SDD",
+      "auditoria": {
+        "estado": "aprobada",
+        "huella": "7ab5840a7035d7d91cae41945366f01d3f86f418e8ef3ecab1d4269fec65e91f",
+        "fecha": "2026-10-23T20:19:05.845Z",
+        "informe": "/home/cucholambreta/.config/evol/quarantine/7ab5840a7035d7d9/informe.json",
+        "aprobadaPor": "cucholambreta",
+        "avisosAceptados": false
+      }
     },
     "fdd": {
       "alcance": "paquete",
-      "fases": ["briefing", "plan"],
-      "disciplina": "FDD"
+      "fases": [
+        "briefing",
+        "plan"
+      ],
+      "disciplina": "FDD",
+      "auditoria": {
+        "estado": "aprobada",
+        "huella": "57d317cf18696aff8ab49805fdca0904b49a3d330f3e3e9813554ae01a1499a8",
+        "fecha": "2026-10-23T20:18:20.845Z",
+        "informe": "/home/cucholambreta/.config/evol/quarantine/57d317cf18696aff/informe.json",
+        "aprobadaPor": "cucholambreta",
+        "avisosAceptados": false
+      }
     },
     "ddd": {
       "alcance": "paquete",
-      "fases": ["spec"],
-      "disciplina": "DDD"
+      "fases": [
+        "spec"
+      ],
+      "disciplina": "DDD",
+      "auditoria": {
+        "estado": "aprobada",
+        "huella": "8795e961ca77fcb521fce1f5104fdf2ba6ebd8222109eb62cb0a3e70d3c0236c",
+        "fecha": "2026-10-23T20:18:09.204Z",
+        "informe": "/home/cucholambreta/.config/evol/quarantine/8795e961ca77fcb5/informe.json",
+        "aprobadaPor": "cucholambreta",
+        "avisosAceptados": false
+      }
     },
     "bdd": {
       "alcance": "paquete",
-      "fases": ["briefing", "qa"],
-      "disciplina": "BDD"
+      "fases": [
+        "briefing",
+        "qa"
+      ],
+      "disciplina": "BDD",
+      "auditoria": {
+        "estado": "aprobada",
+        "huella": "4535261fdc5243e4d4625119c5b1ceea03dbecc0683b60cb6cba17d2a64336f1",
+        "fecha": "2026-10-23T20:17:54.782Z",
+        "informe": "/home/cucholambreta/.config/evol/quarantine/4535261fdc5243e4/informe.json",
+        "aprobadaPor": "cucholambreta",
+        "avisosAceptados": false
+      }
     },
     "atdd": {
       "alcance": "paquete",
-      "fases": ["briefing", "qa"],
-      "disciplina": "ATDD"
+      "fases": [
+        "briefing",
+        "qa"
+      ],
+      "disciplina": "ATDD",
+      "auditoria": {
+        "estado": "con-avisos",
+        "huella": "9aa1c3ba30e6ac32811697a7af80f80eaa2ae662ad77075a8dc117b5edfd8cf9",
+        "fecha": "2026-10-23T20:17:46.965Z",
+        "informe": "/home/cucholambreta/.config/evol/quarantine/9aa1c3ba30e6ac32/informe.json",
+        "aprobadaPor": "cucholambreta",
+        "avisosAceptados": true
+      }
     },
     "tdd": {
       "alcance": "paquete",
-      "fases": ["build"],
-      "disciplina": "TDD"
+      "fases": [
+        "build"
+      ],
+      "disciplina": "TDD",
+      "auditoria": {
+        "estado": "con-avisos",
+        "huella": "dec3221bfd3f2c89d0f31dade93b4191daed0592c198ef27a4f44e46f5e04972",
+        "fecha": "2026-10-23T20:19:22.539Z",
+        "informe": "/home/cucholambreta/.config/evol/quarantine/dec3221bfd3f2c89/informe.json",
+        "aprobadaPor": "cucholambreta",
+        "avisosAceptados": true
+      }
     },
     "afinar-idea": {
       "alcance": "paquete",
-      "fases": ["briefing"]
+      "fases": [
+        "briefing"
+      ],
+      "auditoria": {
+        "estado": "aprobada",
+        "huella": "70ebe95d1fdbf2197d007b366e64b4eec2fef450b6b7969bea29a1abbfdce952",
+        "fecha": "2026-10-23T20:19:55.630Z",
+        "informe": "/home/cucholambreta/.config/evol/quarantine/70ebe95d1fdbf219/informe.json",
+        "aprobadaPor": "cucholambreta",
+        "avisosAceptados": false
+      }
     },
     "interrogar-plan": {
       "alcance": "paquete",
-      "fases": ["plan"]
+      "fases": [
+        "plan"
+      ],
+      "auditoria": {
+        "estado": "aprobada",
+        "huella": "85f844a284c150191739dd4dbe67c688f7f064e0c61a1e7e867f76add3edb1bb",
+        "fecha": "2026-10-23T20:18:44.862Z",
+        "informe": "/home/cucholambreta/.config/evol/quarantine/85f844a284c15019/informe.json",
+        "aprobadaPor": "cucholambreta",
+        "avisosAceptados": false
+      }
     },
     "verificar-afirmaciones": {
       "alcance": "paquete",
-      "fases": ["spec", "qa"]
+      "fases": [
+        "spec",
+        "qa"
+      ],
+      "auditoria": {
+        "estado": "aprobada",
+        "huella": "de57c83e6e37ffa6a81027980cb9e27f4e153196ed9e92af7d40a8ea7b59e1f3",
+        "fecha": "2026-10-23T20:19:44.949Z",
+        "informe": "/home/cucholambreta/.config/evol/quarantine/de57c83e6e37ffa6/informe.json",
+        "aprobadaPor": "cucholambreta",
+        "avisosAceptados": false
+      }
     },
     "evol": {
       "alcance": "paquete",
-      "fases": ["briefing", "spec", "plan", "build", "qa", "retro"]
+      "fases": [
+        "briefing",
+        "spec",
+        "plan",
+        "build",
+        "qa",
+        "retro"
+      ],
+      "auditoria": {
+        "estado": "aprobada",
+        "huella": "230545ea7f8c9fb40bd3ab447c83b2f4e78d22a26e3ddef3b16c863e2308e123",
+        "fecha": "2026-10-23T20:18:18.264Z",
+        "informe": "/home/cucholambreta/.config/evol/quarantine/230545ea7f8c9fb4/informe.json",
+        "aprobadaPor": "cucholambreta",
+        "avisosAceptados": false
+      }
     },
     "analista": {
       "alcance": "paquete",
-      "fases": ["briefing", "plan", "qa"]
+      "fases": [
+        "briefing",
+        "plan",
+        "qa"
+      ],
+      "auditoria": {
+        "estado": "con-avisos",
+        "huella": "84710767ad01fd915d414c7de7585ddca021890f4875d3048477982f6c2fd29c",
+        "fecha": "2026-10-23T20:17:21.945Z",
+        "informe": "/home/cucholambreta/.config/evol/quarantine/84710767ad01fd91/informe.json",
+        "aprobadaPor": "cucholambreta",
+        "avisosAceptados": true
+      }
     },
     "arquitecto": {
       "alcance": "paquete",
-      "fases": ["spec", "plan", "build", "qa", "retro"]
+      "fases": [
+        "spec",
+        "plan",
+        "build",
+        "qa",
+        "retro"
+      ],
+      "auditoria": {
+        "estado": "con-avisos",
+        "huella": "06b5a2d3123387c3dec99db34a2560e4750c36998239405c58203314dd49fb8e",
+        "fecha": "2026-10-23T20:17:38.729Z",
+        "informe": "/home/cucholambreta/.config/evol/quarantine/06b5a2d3123387c3/informe.json",
+        "aprobadaPor": "cucholambreta",
+        "avisosAceptados": true
+      }
     },
     "constructor": {
       "alcance": "paquete",
-      "fases": ["plan", "build"]
+      "fases": [
+        "plan",
+        "build"
+      ],
+      "auditoria": {
+        "estado": "aprobada",
+        "huella": "11f2c88cbad07b4fb2c1fda47127af34e75d174d52addcaaa5c27ef0d97ff587",
+        "fecha": "2026-10-23T20:18:01.397Z",
+        "informe": "/home/cucholambreta/.config/evol/quarantine/11f2c88cbad07b4f/informe.json",
+        "aprobadaPor": "cucholambreta",
+        "avisosAceptados": false
+      }
     },
     "verificador": {
       "alcance": "paquete",
-      "fases": ["briefing", "qa"]
+      "fases": [
+        "briefing",
+        "qa"
+      ],
+      "auditoria": {
+        "estado": "con-avisos",
+        "huella": "d02bef9b6d5eb24c8a0aaf96b0b9c65feeb44ae1ef26a7f2856552a8844fe92e",
+        "fecha": "2026-10-23T20:19:37.851Z",
+        "informe": "/home/cucholambreta/.config/evol/quarantine/d02bef9b6d5eb24c/informe.json",
+        "aprobadaPor": "cucholambreta",
+        "avisosAceptados": true
+      }
     },
     "seguridad": {
       "alcance": "paquete",
-      "fases": ["spec", "build", "qa"]
+      "fases": [
+        "spec",
+        "build",
+        "qa"
+      ],
+      "auditoria": {
+        "estado": "con-avisos",
+        "huella": "d9021cc4a7579ad36fe81cd15c5ff36211ba0e4d2ef3820c37c8da53670202f4",
+        "fecha": "2026-10-23T20:19:13.226Z",
+        "informe": "/home/cucholambreta/.config/evol/quarantine/d9021cc4a7579ad3/informe.json",
+        "aprobadaPor": "cucholambreta",
+        "avisosAceptados": true
+      }
     },
     "operaciones": {
       "alcance": "paquete",
-      "fases": ["spec", "build", "qa"]
+      "fases": [
+        "spec",
+        "build",
+        "qa"
+      ],
+      "auditoria": {
+        "estado": "con-avisos",
+        "huella": "e0b4c4e1a021a22e0e2af3af495f9d21c22f28dcf3b56b135f4993158671e573",
+        "fecha": "2026-10-23T20:18:50.690Z",
+        "informe": "/home/cucholambreta/.config/evol/quarantine/e0b4c4e1a021a22e/informe.json",
+        "aprobadaPor": "cucholambreta",
+        "avisosAceptados": true
+      }
     }
   }
 }

@@ -1,6 +1,6 @@
 # Evaluación de «incorporar-skill» con promptfoo (skill evaluar-skill).
 #   cd skills/incorporar-skill/evals
-#   export EVOL_EVAL_API_KEY=$(cat ~/.local/state/omarchy/local-ai/gateway.key)
+#   export EVOL_EVAL_API_KEY=<la clave de tu modelo local>
 #   PROMPTFOO_DISABLE_TELEMETRY=1 promptfoo eval -c promptfooconfig.yaml
 # El modelo es el local (sin red hacia fuera); la lista de skills del enrutador se mantiene
 # igual que las descripciones de skills/*/SKILL.md (una prueba lo comprueba).
