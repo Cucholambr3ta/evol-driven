@@ -2,6 +2,7 @@
   "id": "SLO",
   "nombre": "SLO/SLA-Driven Development",
   "tipo": "extendida",
+  "rol": "operaciones",
   "skill": "slo",
   "fases": ["qa"],
   "artefactos": [

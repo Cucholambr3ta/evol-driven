@@ -2,6 +2,7 @@
   "id": "DeprecationDD",
   "nombre": "Deprecation-Driven Development",
   "tipo": "extendida",
+  "rol": "arquitecto",
   "skill": "deprecationdd",
   "fases": ["plan"],
   "artefactos": [

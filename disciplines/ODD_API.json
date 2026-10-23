@@ -2,6 +2,7 @@
   "id": "ODD_API",
   "nombre": "OpenAPI-Driven Development",
   "tipo": "extendida",
+  "rol": "arquitecto",
   "skill": "odd-api",
   "fases": ["spec"],
   "artefactos": [

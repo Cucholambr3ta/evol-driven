@@ -5,6 +5,8 @@ import { activeDisciplines, describePhase } from "./pipeline.js";
 import type { PipelineContext } from "./pipeline.js";
 import { PHASES } from "./phases.js";
 import type { Phase } from "./phases.js";
+import { executionOf } from "./roles.js";
+import type { RoleId } from "./roles.js";
 
 /**
  * Everything the orchestrator reads before it proposes anything. All of it is read-only: nothing here
@@ -84,6 +86,9 @@ export interface PhaseDiscipline {
   nombre: string;
   /** The skill that applies the discipline, if the discipline names one. */
   skill: string | null;
+  /** The role that applies it, and how that role runs (in the session or as a read-only subagent). */
+  rol: RoleId;
+  ejecucion: "en-linea" | "subagente";
   artefactos: { patron: string; formato: string; min: number }[];
   verificaciones: string[];
 }
@@ -101,6 +106,8 @@ export function phaseDisciplines(
       id: discipline.id,
       nombre: discipline.nombre,
       skill: discipline.skill ?? null,
+      rol: discipline.rol,
+      ejecucion: executionOf(discipline.rol),
       artefactos: discipline.artefactos.map((a) => ({
         patron: a.patron,
         formato: a.formato,

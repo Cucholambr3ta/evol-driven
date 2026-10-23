@@ -2,6 +2,7 @@
   "id": "FDD",
   "nombre": "Feature-Driven Development",
   "tipo": "base",
+  "rol": "analista",
   "skill": "fdd",
   "fases": ["briefing", "plan"],
   "artefactos": [

@@ -1,6 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { orchestratorBody } from "./orchestrator.js";
+import { claudeSubagent, SUBAGENT_FILES } from "./roles.js";
 
 export interface AgentReport {
   created: string[];
@@ -10,6 +11,17 @@ export interface AgentReport {
 }
 
 const GENERATED = "<!-- evol:generated -->";
+
+/**
+ * The frontmatter values `description` and `argument-hint` quoted, so they stay one string whatever
+ * they contain: a plain «Estado: algo» is a mapping in YAML, and «[a, b]» is a list.
+ */
+export function quoteFrontmatter(content: string): string {
+  return content.replace(
+    /^(description|argument-hint): (?!")(.*)$/gm,
+    (_m, key: string, value: string) => `${key}: ${JSON.stringify(value)}`,
+  );
+}
 const BEGIN = "<!-- evol:begin -->";
 const END = "<!-- evol:end -->";
 export const HOOK_COMMAND = "evol hook session-start";
@@ -196,7 +208,18 @@ export function writeAgentFiles(root: string): AgentReport {
       report.skipped.push({ file: rel, reason: "ya existe y no es de evol; no se tocó" });
       continue;
     }
-    write(root, rel, content, report);
+    write(root, rel, quoteFrontmatter(content), report);
+  }
+
+  // wrappers for the roles that run as read-only subagents; they never overwrite one that is not evol's
+  for (const [name, role] of Object.entries(SUBAGENT_FILES)) {
+    const rel = `.claude/agents/${name}`;
+    const file = join(root, rel);
+    if (existsSync(file) && !readFileSync(file, "utf8").includes(GENERATED)) {
+      report.skipped.push({ file: rel, reason: "ya existe y no es de evol; no se tocó" });
+      continue;
+    }
+    write(root, rel, claudeSubagent(role, GENERATED), report);
   }
 
   const claudeFile = join(root, "CLAUDE.md");
@@ -246,6 +269,9 @@ export function agentFilesComplete(root: string): { ok: boolean; missing: string
   for (const name of Object.keys(commandFiles())) {
     if (!existsSync(join(root, ".claude", "commands", name)))
       missing.push(`.claude/commands/${name}`);
+  }
+  for (const name of Object.keys(SUBAGENT_FILES)) {
+    if (!existsSync(join(root, ".claude", "agents", name))) missing.push(`.claude/agents/${name}`);
   }
   const claude = join(root, "CLAUDE.md");
   if (!existsSync(claude) || !readFileSync(claude, "utf8").includes(BEGIN))

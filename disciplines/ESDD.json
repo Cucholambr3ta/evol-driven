@@ -2,6 +2,7 @@
   "id": "ESDD",
   "nombre": "Event Sourcing-Driven Development",
   "tipo": "extendida",
+  "rol": "arquitecto",
   "skill": "esdd",
   "fases": ["spec"],
   "artefactos": [

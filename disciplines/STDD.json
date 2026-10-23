@@ -2,6 +2,7 @@
   "id": "STDD",
   "nombre": "Security-Test-Driven Development",
   "tipo": "base",
+  "rol": "seguridad",
   "skill": "stdd",
   "fases": ["build"],
   "artefactos": [

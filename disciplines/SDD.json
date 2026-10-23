@@ -2,6 +2,7 @@
   "id": "SDD",
   "nombre": "Spec-Driven Development",
   "tipo": "base",
+  "rol": "arquitecto",
   "skill": "sdd",
   "fases": ["spec", "plan", "build", "qa", "retro"],
   "transversal": true,

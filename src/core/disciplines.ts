@@ -1,6 +1,7 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { z } from "zod";
+import { ROLE_IDS } from "./roles.js";
 import { PHASES, phaseIndex } from "./phases.js";
 import type { Phase } from "./phases.js";
 import { packageRoot } from "./paths.js";
@@ -53,6 +54,8 @@ export const DisciplineSchema = z.object({
   id: z.string().regex(/^[A-Za-z0-9_]+$/),
   nombre: z.string().min(1),
   tipo: z.enum(["base", "extendida"]),
+  /** The one role that applies this discipline (see roles.ts): every discipline has exactly one. */
+  rol: z.enum(ROLE_IDS),
   /** The skill that applies this discipline: its id (folder name) in the skills library. */
   skill: z
     .string()

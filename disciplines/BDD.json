@@ -2,6 +2,7 @@
   "id": "BDD",
   "nombre": "Behavior-Driven Development",
   "tipo": "base",
+  "rol": "verificador",
   "skill": "bdd",
   "fases": ["briefing", "qa"],
   "artefactos": [

@@ -2,6 +2,7 @@
   "id": "CDCDD",
   "nombre": "Change Data Capture-Driven Development",
   "tipo": "extendida",
+  "rol": "constructor",
   "skill": "cdcdd",
   "fases": ["plan"],
   "artefactos": [

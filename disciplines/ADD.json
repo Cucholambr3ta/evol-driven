@@ -2,6 +2,7 @@
   "id": "ADD",
   "nombre": "Architecture-Driven Development",
   "tipo": "extendida",
+  "rol": "arquitecto",
   "skill": "add",
   "fases": ["spec"],
   "artefactos": [

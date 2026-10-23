@@ -1135,6 +1135,31 @@ siempre igual, con las mismas opciones fijadas.
 > - **Falta del S3:** el análisis dinámico (S3b) y la regla de confirmación por IDE (control 9). Los lectores de Codex, OpenCode, Gemini CLI y los
 >   demás de la lista se suman con su propio adaptador y su prueba de aislamiento. La instalación en la biblioteca es del S5.
 
+> **O3 implementado (2026-10-23): los seis roles.** `analista`, `arquitecto`, `constructor`, `verificador`, `seguridad` y `operaciones` son skills como
+> las demás (sin scripts, con su entrada en el manifiesto y sus 14 casos de evaluación), con las **23 skills** de la primera ola ya escritas: las 9 de
+> disciplinas base, las 3 de razonamiento, las 4 de seguridad, el orquestador y los 6 roles. Las 23 dan PASS en la pasada 1.
+>
+> - **El reparto vive en un solo sitio:** cada disciplina declara su `rol` (campo obligatorio en las 31 definiciones), de modo que **cada disciplina la
+>   aplica exactamente un rol** por construcción, y las de los seis suman 31 (4, 9, 4, 5, 5 y 4, igual que la tabla de arriba; criterio 76). Una
+>   prueba comprueba que las disciplinas que cada skill de rol dice aplicar son exactamente las que las definiciones le asignan.
+> - **`evol_disciplines` y `evol disciplines active` dicen ahora el rol y cómo corre** (en línea o como subagente). El orquestador (`evol`) usa eso en
+>   los pasos 4 y 5: carga la skill del rol y la de la disciplina, y **delega la revisión a `verificador` y `seguridad` si el IDE tiene subagentes**;
+>   si no, la hace en línea y avisa de que esa revisión perdió su independencia (criterios 68 y 74).
+> - **Los envoltorios de subagente se generan de la skill** (`evol agents` crea `.claude/agents/verificador.md` y `seguridad.md`, y no pisa uno que la
+>   persona ya tenga): reutilizan la descripción de la skill, **no llevan instrucciones propias** (solo «carga la skill y haz la tarea»; criterio 73) y
+>   son de solo lectura: únicamente `Read`, `Grep` y `Glob` y el modo `plan`, sin `Bash` ni herramientas de escritura (criterio 74). Un matiz que importa:
+>   como no pueden ejecutar, **el orquestador corre las herramientas** (por ejemplo, el escaneo de seguridad) y les pasa lo que produjeron; ellos revisan
+>   los artefactos y los informes con contexto limpio. Los campos del encabezado se verificaron en la documentación de Claude Code solo en parte (`name`,
+>   `description`, `tools` y `permissionMode: plan`); el campo `skills` no se pudo confirmar y no se usa.
+> - **Un error que encontró la prueba de esto y que venía de antes:** el encabezado de los comandos `/evol-*` generados llevaba `description` y
+>   `argument-hint` sin comillas, y un texto como «Estado del pipeline evol: fase actual…» es un mapa en YAML, y «[a, b]» una lista, así que el
+>   encabezado no era YAML válido. Ahora esos campos se escriben entre comillas y una prueba lee todos los archivos generados.
+> - **Medido con el Qwen local:** 292 de 322 casos. Con seis roles y las skills de disciplina en el mismo enrutador aparecen solapes de activación
+>   esperables, porque el rol aplica la disciplina (`analista` y `fdd`, `constructor` y `tdd`, `seguridad` y `secdd`); como es el orquestador, y no un
+>   enrutador de texto libre, quien carga el rol según la fase y la disciplina, pesa poco. **Siguen sin aprobar.**
+> - **No hace todavía:** los envoltorios para Codex, Antigravity, OpenCode y Hermes (O2), la marca de «plan interrogado» y el PASS/WARN/BLOCK (O4),
+>   la instalación de las skills en `.claude/skills` (S5: instalar es aprobar primero), ni el tope de concurrencia por proyecto.
+
 > **O1 implementado (2026-10-23): el contrato del orquestador.** Una sola fuente para `/evol`: la skill `evol` (`skills/evol/SKILL.md`), con los siete
 > pasos (arrancar, clasificar, comprobar, dividir, repartir, verificar, parar) y lo que no hace. Es **una skill como las demás**: pasa la auditoría,
 > lleva sus 14 casos de evaluación (14 de 14 con el Qwen local) y cuenta como la skill 17. El comando `/evol` de Claude Code

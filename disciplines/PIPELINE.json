@@ -2,6 +2,7 @@
   "id": "PIPELINE",
   "nombre": "Pipeline-Driven Development",
   "tipo": "extendida",
+  "rol": "operaciones",
   "skill": "pipeline",
   "fases": ["build"],
   "artefactos": [

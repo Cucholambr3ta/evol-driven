@@ -2,6 +2,7 @@
   "id": "PrivacyDD",
   "nombre": "Privacy by Design",
   "tipo": "extendida",
+  "rol": "seguridad",
   "skill": "privacydd",
   "fases": ["spec"],
   "artefactos": [

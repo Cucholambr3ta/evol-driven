@@ -2,6 +2,7 @@
   "id": "ATDD",
   "nombre": "Acceptance Test-Driven Development",
   "tipo": "base",
+  "rol": "verificador",
   "skill": "atdd",
   "fases": ["briefing", "qa"],
   "artefactos": [

@@ -2,6 +2,7 @@
   "id": "IODD",
   "nombre": "Infrastructure-as-Code-Driven Development",
   "tipo": "extendida",
+  "rol": "operaciones",
   "skill": "iodd",
   "fases": ["spec"],
   "artefactos": [

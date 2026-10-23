@@ -2,6 +2,7 @@
   "id": "CHAOS",
   "nombre": "Resiliency-Driven Development (Chaos)",
   "tipo": "extendida",
+  "rol": "verificador",
   "skill": "chaos",
   "fases": ["qa"],
   "artefactos": [

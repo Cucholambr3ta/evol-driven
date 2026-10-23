@@ -2,6 +2,7 @@
   "id": "TDD",
   "nombre": "Test-Driven Development",
   "tipo": "base",
+  "rol": "constructor",
   "skill": "tdd",
   "fases": ["build"],
   "artefactos": [

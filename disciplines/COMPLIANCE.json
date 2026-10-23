@@ -2,6 +2,7 @@
   "id": "COMPLIANCE",
   "nombre": "Compliance-Driven Development",
   "tipo": "extendida",
+  "rol": "seguridad",
   "skill": "compliance",
   "fases": ["spec"],
   "artefactos": [

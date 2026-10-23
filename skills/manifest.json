@@ -79,6 +79,30 @@
     "evol": {
       "alcance": "paquete",
       "fases": ["briefing", "spec", "plan", "build", "qa", "retro"]
+    },
+    "analista": {
+      "alcance": "paquete",
+      "fases": ["briefing", "plan", "qa"]
+    },
+    "arquitecto": {
+      "alcance": "paquete",
+      "fases": ["spec", "plan", "build", "qa", "retro"]
+    },
+    "constructor": {
+      "alcance": "paquete",
+      "fases": ["plan", "build"]
+    },
+    "verificador": {
+      "alcance": "paquete",
+      "fases": ["briefing", "qa"]
+    },
+    "seguridad": {
+      "alcance": "paquete",
+      "fases": ["spec", "build", "qa"]
+    },
+    "operaciones": {
+      "alcance": "paquete",
+      "fases": ["spec", "build", "qa"]
     }
   }
 }
