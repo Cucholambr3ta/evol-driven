@@ -32,10 +32,37 @@ interface Case {
   assert?: { type: string; value?: string }[];
 }
 
-describe("las skills de la primera ola y sus evaluaciones", () => {
-  it("son las veintitrés previstas: las nueve disciplinas base, las tres de razonamiento, las cuatro de seguridad, el orquestador y los seis roles", () => {
-    expect(NAMES.sort()).toEqual(
+/** The second wave: one skill for each of the 22 extended disciplines. */
+const EXTENDED = [
+  "a11ydd",
+  "add",
+  "apivdd",
+  "ccdd",
+  "cdcdd",
+  "chaos",
+  "compliance",
+  "debtbudgetdd",
+  "deprecationdd",
+  "eda",
+  "esdd",
+  "iodd",
+  "mdd",
+  "odd-api",
+  "odd-obs",
+  "pdd",
+  "pipeline",
+  "privacydd",
+  "rdd",
+  "slo",
+  "udd",
+  "uxdd",
+];
+
+describe("las skills y sus evaluaciones", () => {
+  it("son las cuarenta y cinco previstas: las veintitrés de la primera ola y una por cada disciplina extendida", () => {
+    expect([...NAMES].sort()).toEqual(
       [
+        ...EXTENDED,
         "afinar-idea",
         "analista",
         "arquitecto",
@@ -103,15 +130,24 @@ describe("las skills de la primera ola y sus evaluaciones", () => {
     },
   );
 
+  // The router of an evaluation is a snapshot of the skills that existed when it was written: the
+  // first wave lists the 23 of its time (changing those files would void their approvals), the
+  // second wave lists all 45. Whatever it lists must be the real description, and the skill itself must be there.
   it.each(NAMES)(
-    "«%s»: el enrutador de la evaluación lista las descripciones reales de todas las skills",
+    "«%s»: el enrutador de la evaluación copia las descripciones reales de las skills que lista",
     (name) => {
       const config = YAML.parse(read(name, "evals", "promptfooconfig.yaml")) as {
         prompts: { label: string; raw: string }[];
       };
       const router = config.prompts.find((p) => p.label === "enrutador")?.raw ?? "";
-      for (const other of NAMES)
-        expect(router, `${name} → ${other}`).toContain(`- ${other}: ${description(other)}`);
+      const listed = [...router.matchAll(/^- ([a-z0-9-]+): (.+)$/gm)];
+      expect(
+        listed.map((m) => m[1]),
+        name,
+      ).toContain(name);
+      for (const m of listed) expect(m[2], `${name} → ${m[1]}`).toBe(description(m[1] ?? ""));
+      const expected = EXTENDED.includes(name) ? NAMES.length : 23;
+      expect(listed, name).toHaveLength(expected);
     },
   );
 

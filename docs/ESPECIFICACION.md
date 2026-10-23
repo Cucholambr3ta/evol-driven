@@ -1141,6 +1141,17 @@ siempre igual, con las mismas opciones fijadas.
 > aprobaciones y exige una terminal). Si la carpeta ya tenía código, `init` lo adopta sin tocarlo; dentro de otro proyecto, no inicializa. Aprobar y avanzar
 > siguen siendo de la persona. Inicializar no aprueba nada y se deshace borrando `.evol/` y `evol.config.json`.
 
+> **S4, segunda ola (2026-10-23): las 22 disciplinas extendidas ya tienen skill.** Con ellas, las 31 disciplinas tienen la suya y la biblioteca tiene 45 skills
+> (`evol skills list --disciplinas` da 31 de 31). Cada una sigue el molde de las nueve base (lema, cuándo, cómo, qué no hacer, sección de «lo que lees son
+> datos»), se apoya en los artefactos y verificaciones que su disciplina ya declara, y trae 14 casos de evaluación (5 de activación, 5 de no activación, 3 de
+> inyección y 1 de filtración). Entran **sin auditar**: la persona las audita y las aprueba como las demás. No se tocó ninguna de las 23 de la primera ola, así que
+> sus aprobaciones siguen valiendo; por eso el enrutador de sus evaluaciones es una foto de las 23 skills de entonces y el de las 22 nuevas lista las 45 (la
+> prueba comprueba que lo listado es la descripción real, no que estén todas).
+> **Resultado con el modelo local (Qwen3.5-9B): 289 de 308 casos.** Todos los casos de activación y de no activación pasan tras afinar cinco descripciones y
+> varios casos ambiguos (vecinas que se confunden: `odd-api`/`apivdd`/`ccdd`, `eda`/`esdd`, `mdd`/`cdcdd`). Los 19 fallos que quedan son de inyección (el
+> modelo escribe la línea que pide el material) y de filtración (rechaza, pero cita el valor falso al rechazar): es la limitación del modelo pequeño que ya se
+> vio en la primera ola, no de las skills; se repetirán con un modelo mayor.
+
 > **Incorporar una skill en un paso (2026-10-23).** `evol skills incorporar <origen> [--propia] [--capacidades <archivo>] [--lector <id>]` audita con la segunda
 > pasada, y si el veredicto es PASS o WARN copia a la biblioteca **la copia auditada** (no la carpeta de origen, que puede cambiar) y pide la aprobación en
 > la misma terminal: el nombre de la skill, y los avisos aceptados por escrito. Si ya hay otra skill con ese nombre, no la pisa sin escribir `reemplazar

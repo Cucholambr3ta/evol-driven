@@ -3,10 +3,7 @@
   "skills": {
     "revisar-secretos": {
       "alcance": "paquete",
-      "fases": [
-        "build",
-        "qa"
-      ],
+      "fases": ["build", "qa"],
       "disciplina": "SecDD",
       "auditoria": {
         "estado": "con-avisos",
@@ -19,10 +16,7 @@
     },
     "incorporar-dependencia": {
       "alcance": "paquete",
-      "fases": [
-        "plan",
-        "build"
-      ],
+      "fases": ["plan", "build"],
       "disciplina": "SecDD",
       "auditoria": {
         "estado": "con-avisos",
@@ -35,14 +29,7 @@
     },
     "incorporar-skill": {
       "alcance": "paquete",
-      "fases": [
-        "briefing",
-        "spec",
-        "plan",
-        "build",
-        "qa",
-        "retro"
-      ],
+      "fases": ["briefing", "spec", "plan", "build", "qa", "retro"],
       "auditoria": {
         "estado": "con-avisos",
         "huella": "cebb7710f0a8e42cb1996596e9f188881d7757a485f71072a666ede2110ca0dc",
@@ -54,9 +41,7 @@
     },
     "evaluar-skill": {
       "alcance": "paquete",
-      "fases": [
-        "qa"
-      ],
+      "fases": ["qa"],
       "auditoria": {
         "estado": "aprobada",
         "huella": "3ac5d45edb11cefac4adabbd6976a12364ce1436a20fc674538722a8c0f22318",
@@ -68,9 +53,7 @@
     },
     "secdd": {
       "alcance": "paquete",
-      "fases": [
-        "qa"
-      ],
+      "fases": ["qa"],
       "disciplina": "SecDD",
       "auditoria": {
         "estado": "aprobada",
@@ -83,9 +66,7 @@
     },
     "stdd": {
       "alcance": "paquete",
-      "fases": [
-        "build"
-      ],
+      "fases": ["build"],
       "disciplina": "STDD",
       "auditoria": {
         "estado": "aprobada",
@@ -98,9 +79,7 @@
     },
     "threat": {
       "alcance": "paquete",
-      "fases": [
-        "spec"
-      ],
+      "fases": ["spec"],
       "disciplina": "THREAT",
       "auditoria": {
         "estado": "con-avisos",
@@ -113,13 +92,7 @@
     },
     "sdd": {
       "alcance": "paquete",
-      "fases": [
-        "spec",
-        "plan",
-        "build",
-        "qa",
-        "retro"
-      ],
+      "fases": ["spec", "plan", "build", "qa", "retro"],
       "disciplina": "SDD",
       "auditoria": {
         "estado": "aprobada",
@@ -132,10 +105,7 @@
     },
     "fdd": {
       "alcance": "paquete",
-      "fases": [
-        "briefing",
-        "plan"
-      ],
+      "fases": ["briefing", "plan"],
       "disciplina": "FDD",
       "auditoria": {
         "estado": "aprobada",
@@ -148,9 +118,7 @@
     },
     "ddd": {
       "alcance": "paquete",
-      "fases": [
-        "spec"
-      ],
+      "fases": ["spec"],
       "disciplina": "DDD",
       "auditoria": {
         "estado": "aprobada",
@@ -163,10 +131,7 @@
     },
     "bdd": {
       "alcance": "paquete",
-      "fases": [
-        "briefing",
-        "qa"
-      ],
+      "fases": ["briefing", "qa"],
       "disciplina": "BDD",
       "auditoria": {
         "estado": "aprobada",
@@ -179,10 +144,7 @@
     },
     "atdd": {
       "alcance": "paquete",
-      "fases": [
-        "briefing",
-        "qa"
-      ],
+      "fases": ["briefing", "qa"],
       "disciplina": "ATDD",
       "auditoria": {
         "estado": "con-avisos",
@@ -195,9 +157,7 @@
     },
     "tdd": {
       "alcance": "paquete",
-      "fases": [
-        "build"
-      ],
+      "fases": ["build"],
       "disciplina": "TDD",
       "auditoria": {
         "estado": "con-avisos",
@@ -210,9 +170,7 @@
     },
     "afinar-idea": {
       "alcance": "paquete",
-      "fases": [
-        "briefing"
-      ],
+      "fases": ["briefing"],
       "auditoria": {
         "estado": "aprobada",
         "huella": "70ebe95d1fdbf2197d007b366e64b4eec2fef450b6b7969bea29a1abbfdce952",
@@ -224,9 +182,7 @@
     },
     "interrogar-plan": {
       "alcance": "paquete",
-      "fases": [
-        "plan"
-      ],
+      "fases": ["plan"],
       "auditoria": {
         "estado": "aprobada",
         "huella": "85f844a284c150191739dd4dbe67c688f7f064e0c61a1e7e867f76add3edb1bb",
@@ -238,10 +194,7 @@
     },
     "verificar-afirmaciones": {
       "alcance": "paquete",
-      "fases": [
-        "spec",
-        "qa"
-      ],
+      "fases": ["spec", "qa"],
       "auditoria": {
         "estado": "aprobada",
         "huella": "de57c83e6e37ffa6a81027980cb9e27f4e153196ed9e92af7d40a8ea7b59e1f3",
@@ -253,14 +206,7 @@
     },
     "evol": {
       "alcance": "paquete",
-      "fases": [
-        "briefing",
-        "spec",
-        "plan",
-        "build",
-        "qa",
-        "retro"
-      ],
+      "fases": ["briefing", "spec", "plan", "build", "qa", "retro"],
       "auditoria": {
         "estado": "aprobada",
         "huella": "230545ea7f8c9fb40bd3ab447c83b2f4e78d22a26e3ddef3b16c863e2308e123",
@@ -272,11 +218,7 @@
     },
     "analista": {
       "alcance": "paquete",
-      "fases": [
-        "briefing",
-        "plan",
-        "qa"
-      ],
+      "fases": ["briefing", "plan", "qa"],
       "auditoria": {
         "estado": "con-avisos",
         "huella": "84710767ad01fd915d414c7de7585ddca021890f4875d3048477982f6c2fd29c",
@@ -288,13 +230,7 @@
     },
     "arquitecto": {
       "alcance": "paquete",
-      "fases": [
-        "spec",
-        "plan",
-        "build",
-        "qa",
-        "retro"
-      ],
+      "fases": ["spec", "plan", "build", "qa", "retro"],
       "auditoria": {
         "estado": "con-avisos",
         "huella": "06b5a2d3123387c3dec99db34a2560e4750c36998239405c58203314dd49fb8e",
@@ -306,10 +242,7 @@
     },
     "constructor": {
       "alcance": "paquete",
-      "fases": [
-        "plan",
-        "build"
-      ],
+      "fases": ["plan", "build"],
       "auditoria": {
         "estado": "aprobada",
         "huella": "11f2c88cbad07b4fb2c1fda47127af34e75d174d52addcaaa5c27ef0d97ff587",
@@ -321,10 +254,7 @@
     },
     "verificador": {
       "alcance": "paquete",
-      "fases": [
-        "briefing",
-        "qa"
-      ],
+      "fases": ["briefing", "qa"],
       "auditoria": {
         "estado": "con-avisos",
         "huella": "d02bef9b6d5eb24c8a0aaf96b0b9c65feeb44ae1ef26a7f2856552a8844fe92e",
@@ -336,11 +266,7 @@
     },
     "seguridad": {
       "alcance": "paquete",
-      "fases": [
-        "spec",
-        "build",
-        "qa"
-      ],
+      "fases": ["spec", "build", "qa"],
       "auditoria": {
         "estado": "con-avisos",
         "huella": "d9021cc4a7579ad36fe81cd15c5ff36211ba0e4d2ef3820c37c8da53670202f4",
@@ -352,11 +278,7 @@
     },
     "operaciones": {
       "alcance": "paquete",
-      "fases": [
-        "spec",
-        "build",
-        "qa"
-      ],
+      "fases": ["spec", "build", "qa"],
       "auditoria": {
         "estado": "con-avisos",
         "huella": "e0b4c4e1a021a22e0e2af3af495f9d21c22f28dcf3b56b135f4993158671e573",
@@ -365,6 +287,116 @@
         "aprobadaPor": "cucholambreta",
         "avisosAceptados": true
       }
+    },
+    "a11ydd": {
+      "alcance": "paquete",
+      "fases": ["briefing", "qa"],
+      "disciplina": "A11yDD"
+    },
+    "add": {
+      "alcance": "paquete",
+      "fases": ["spec"],
+      "disciplina": "ADD"
+    },
+    "apivdd": {
+      "alcance": "paquete",
+      "fases": ["plan"],
+      "disciplina": "APIVDD"
+    },
+    "ccdd": {
+      "alcance": "paquete",
+      "fases": ["qa"],
+      "disciplina": "CCDD"
+    },
+    "cdcdd": {
+      "alcance": "paquete",
+      "fases": ["plan"],
+      "disciplina": "CDCDD"
+    },
+    "chaos": {
+      "alcance": "paquete",
+      "fases": ["qa"],
+      "disciplina": "CHAOS"
+    },
+    "compliance": {
+      "alcance": "paquete",
+      "fases": ["spec"],
+      "disciplina": "COMPLIANCE"
+    },
+    "debtbudgetdd": {
+      "alcance": "paquete",
+      "fases": ["plan"],
+      "disciplina": "DebtBudgetDD"
+    },
+    "deprecationdd": {
+      "alcance": "paquete",
+      "fases": ["plan"],
+      "disciplina": "DeprecationDD"
+    },
+    "eda": {
+      "alcance": "paquete",
+      "fases": ["spec"],
+      "disciplina": "EDA"
+    },
+    "esdd": {
+      "alcance": "paquete",
+      "fases": ["spec"],
+      "disciplina": "ESDD"
+    },
+    "iodd": {
+      "alcance": "paquete",
+      "fases": ["spec"],
+      "disciplina": "IODD"
+    },
+    "mdd": {
+      "alcance": "paquete",
+      "fases": ["plan"],
+      "disciplina": "MDD"
+    },
+    "odd-api": {
+      "alcance": "paquete",
+      "fases": ["spec"],
+      "disciplina": "ODD_API"
+    },
+    "odd-obs": {
+      "alcance": "paquete",
+      "fases": ["qa"],
+      "disciplina": "ODD_OBS"
+    },
+    "pdd": {
+      "alcance": "paquete",
+      "fases": ["qa"],
+      "disciplina": "PDD"
+    },
+    "pipeline": {
+      "alcance": "paquete",
+      "fases": ["build"],
+      "disciplina": "PIPELINE"
+    },
+    "privacydd": {
+      "alcance": "paquete",
+      "fases": ["spec"],
+      "disciplina": "PrivacyDD"
+    },
+    "rdd": {
+      "alcance": "paquete",
+      "fases": ["build"],
+      "disciplina": "RDD"
+    },
+    "slo": {
+      "alcance": "paquete",
+      "fases": ["qa"],
+      "disciplina": "SLO"
+    },
+    "udd": {
+      "alcance": "paquete",
+      "fases": ["briefing"],
+      "disciplina": "UDD"
+    },
+    "uxdd": {
+      "alcance": "paquete",
+      "fases": ["briefing"],
+      "disciplina": "UXDD"
     }
   }
 }
