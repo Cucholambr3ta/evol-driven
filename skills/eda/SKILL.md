@@ -1,7 +1,7 @@
 ---
 name: eda
 description: >-
-  Diseña una arquitectura por eventos: qué eventos existen, su esquema (eda/schemas/*.avsc), los temas y quién los produce y los consume. Úsala en spec cuando los componentes se comunican por mensajes asíncronos en vez de llamadas directas.
+  Diseña la comunicación entre servicios mediante eventos publicados y consumidos: qué eventos existen, su esquema (eda/schemas/*.avsc), los temas o colas, y qué componente los produce y cuál los consume. Úsala en spec cuando los servicios se hablan con mensajes asíncronos en vez de llamadas directas.
 license: UNLICENSED
 origin: evol-driven
 ---

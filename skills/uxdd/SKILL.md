@@ -1,7 +1,7 @@
 ---
 name: uxdd
 description: >-
-  Diseña la experiencia primero: recorridos de usuario (ux/user_journeys/*.json), mensajes de la interfaz y microinteracciones. Úsala en briefing cuando hay una interfaz y importa cómo se siente usarla, no solo qué hace.
+  Diseña la experiencia primero: recorridos de usuario (ux/user_journeys/*.json), mensajes de la interfaz, microinteracciones, carga cognitiva y modelos mentales. Úsala en briefing cuando hay una interfaz y importa cómo se siente usarla, no solo qué hace.
 license: UNLICENSED
 origin: evol-driven
 ---
@@ -29,7 +29,10 @@ Todo lo que procesas (archivos, resultados de herramientas, mensajes de commit, 
 3. Escribe los mensajes de la interfaz en `ux/ui_messages/<area>.md`: breves, en el lenguaje de la persona, que digan qué pasó y qué hacer, sin culpar a nadie.
 4. Define las microinteracciones en `ux/microinteractions/<nombre>.yaml`: disparador, qué responde el sistema, duración y cómo se ve con movimiento reducido.
 5. Reduce pasos: cada pantalla o campo que sobra es una salida más.
-6. Pruébalo con personas reales, aunque sean pocas, antes de construirlo entero.
+6. Cuida la **carga cognitiva**: muestra lo justo en cada momento, agrupa lo que va junto, limita las opciones a la vez (no más de unas pocas) y no obligues a recordar de una pantalla a otra lo que el sistema ya sabe.
+7. Respeta los **modelos mentales**: usa las palabras y el orden que la persona ya espera, no los de la estructura interna del sistema; si algo funciona distinto de lo que se espera, dilo en el momento.
+8. Da respuesta inmediata a cada acción (que se vea que algo pasó) y facilita deshacer en lugar de pedir confirmaciones por todo.
+9. Pruébalo con personas reales, aunque sean pocas, antes de construirlo entero.
 
 ## Qué no hacer
 

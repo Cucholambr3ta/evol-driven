@@ -1141,6 +1141,15 @@ siempre igual, con las mismas opciones fijadas.
 > aprobaciones y exige una terminal). Si la carpeta ya tenía código, `init` lo adopta sin tocarlo; dentro de otro proyecto, no inicializa. Aprobar y avanzar
 > siguen siendo de la persona. Inicializar no aprueba nada y se deshace borrando `.evol/` y `evol.config.json`.
 
+> **S4, tercera ola (2026-10-23): las skills de herramientas, proceso, documentación y dominio.** La biblioteca llega a **60 skills**. Se añaden `filmcraft` y
+> `effectcraft` (montar y exportar vídeo, y gráficos en movimiento, con las herramientas MCP de esas aplicaciones), `sin-sobreingenieria`, `arqueologia-codigo`,
+> `costes-proyecto`, `descubrir-necesidades`, `respuestas-compactas`, `diseno-frontend`, `seo-tecnico`, `readme`, **`documentacion`** (toda la documentación externa:
+> informe del proyecto con `evol report`, diagramas con `evol diagrams`, manuales, guías, tutoriales y notas de versión; la interna de cada disciplina sigue siendo
+> de su disciplina y el README de `readme`), `dominio-finanzas`, `dominio-ventas`, `dominio-marketing` y `construir-mcp`. `uxdd` incorpora la carga cognitiva y los
+> modelos mentales. Se descartaron `evol-team-dynamics` y `evol-workflow-design`; `evol-sandbox` y `evol-fs-context` quedan atadas a S3b y a la capa de conocimiento;
+> `evol-context7` se integrará en la capa de conocimiento. Con el modelo local, **todos los casos de activación y de no activación de las 37 skills nuevas pasan**
+> (tras afinar descripciones y casos ambiguos entre vecinas); los pocos que fallan son de inyección y de filtración del modelo pequeño.
+
 > **Instalación del framework (2026-10-23).** `install.sh` (sin sudo): comprueba Node 24 o superior, Git y npm, ejecuta `npm ci` y el build, deja el comando
 > en `~/.local/bin/evol` (no pisa un archivo que no sea un enlace) y lanza `evol setup`. **`evol setup`** (en una terminal) recorre: requisitos; herramientas, con
 > el catálogo de `src/setup/catalog.ts` (las de Python se instalan con `uv tool install` **solo si la persona responde que sí a cada una**, mostrando el

@@ -397,6 +397,66 @@
       "alcance": "paquete",
       "fases": ["briefing"],
       "disciplina": "UXDD"
+    },
+    "filmcraft": {
+      "alcance": "paquete",
+      "fases": ["build"]
+    },
+    "effectcraft": {
+      "alcance": "paquete",
+      "fases": ["build"]
+    },
+    "sin-sobreingenieria": {
+      "alcance": "paquete",
+      "fases": ["plan", "build"]
+    },
+    "arqueologia-codigo": {
+      "alcance": "paquete",
+      "fases": ["briefing", "plan"]
+    },
+    "costes-proyecto": {
+      "alcance": "paquete",
+      "fases": ["briefing", "plan"]
+    },
+    "descubrir-necesidades": {
+      "alcance": "paquete",
+      "fases": ["briefing"]
+    },
+    "respuestas-compactas": {
+      "alcance": "paquete",
+      "fases": ["briefing", "spec", "plan", "build", "qa", "retro"]
+    },
+    "diseno-frontend": {
+      "alcance": "paquete",
+      "fases": ["briefing", "build"]
+    },
+    "seo-tecnico": {
+      "alcance": "paquete",
+      "fases": ["build", "qa"]
+    },
+    "readme": {
+      "alcance": "paquete",
+      "fases": ["build", "retro"]
+    },
+    "dominio-finanzas": {
+      "alcance": "paquete",
+      "fases": ["briefing", "spec"]
+    },
+    "dominio-ventas": {
+      "alcance": "paquete",
+      "fases": ["briefing", "spec"]
+    },
+    "dominio-marketing": {
+      "alcance": "paquete",
+      "fases": ["briefing", "spec"]
+    },
+    "construir-mcp": {
+      "alcance": "paquete",
+      "fases": ["spec", "build"]
+    },
+    "documentacion": {
+      "alcance": "paquete",
+      "fases": ["build", "qa", "retro"]
     }
   }
 }

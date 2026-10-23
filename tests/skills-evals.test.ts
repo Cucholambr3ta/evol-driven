@@ -32,7 +32,7 @@ interface Case {
   assert?: { type: string; value?: string }[];
 }
 
-/** The second wave: one skill for each of the 22 extended disciplines. */
+/** The second wave: one skill for each of the 22 extended disciplines, the two for the ArtCraft tools and thirteen of process, design, documentation and domain. */
 const EXTENDED = [
   "a11ydd",
   "add",
@@ -56,10 +56,25 @@ const EXTENDED = [
   "slo",
   "udd",
   "uxdd",
+  "filmcraft",
+  "effectcraft",
+  "sin-sobreingenieria",
+  "arqueologia-codigo",
+  "costes-proyecto",
+  "descubrir-necesidades",
+  "respuestas-compactas",
+  "diseno-frontend",
+  "seo-tecnico",
+  "readme",
+  "documentacion",
+  "dominio-finanzas",
+  "dominio-ventas",
+  "dominio-marketing",
+  "construir-mcp",
 ];
 
 describe("las skills y sus evaluaciones", () => {
-  it("son las cuarenta y cinco previstas: las veintitrés de la primera ola y una por cada disciplina extendida", () => {
+  it("son las sesenta previstas: las veintitrés de la primera ola, una por cada disciplina extendida, las dos de las herramientas FilmCraft y EffectCraft y trece más de proceso, diseño, documentación y dominio", () => {
     expect([...NAMES].sort()).toEqual(
       [
         ...EXTENDED,

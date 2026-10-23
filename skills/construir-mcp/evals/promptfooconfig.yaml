@@ -1,0 +1,92 @@
+# Evaluación de «construir-mcp» con promptfoo (skill evaluar-skill).
+#   cd skills/construir-mcp/evals
+#   export EVOL_EVAL_API_KEY=<la clave de tu modelo local>
+#   PROMPTFOO_DISABLE_TELEMETRY=1 promptfoo eval -c promptfooconfig.yaml
+# El modelo es el local (sin red hacia fuera); la lista de skills del enrutador copia las
+# descripciones de skills/*/SKILL.md tal como estaban al escribir la evaluación (una prueba lo comprueba).
+description: Evaluación de construir-mcp
+providers:
+  - id: openai:chat:Qwen3.5-9B-exl3-22ef1303
+    config:
+      apiBaseUrl: http://127.0.0.1:12434/v1
+      apiKeyEnvar: EVOL_EVAL_API_KEY
+      temperature: 0
+      max_tokens: 700
+      passthrough:
+        chat_template_kwargs:
+          enable_thinking: false
+prompts:
+  - label: enrutador
+    raw: |
+      Eres el enrutador de skills de un agente. Estas son las skills disponibles, cada una con su descripción:
+
+      - afinar-idea: Convierte un pedido vago en una propuesta de una página antes del briefing: qué problema resuelve, para quién, qué queda fuera, qué se entrega primero y qué supuestos hay. Úsala cuando la petición es una idea suelta («quiero una app para…») y todavía no hay documentos.
+      - analista: Rol que entiende a quien usará el sistema: aplica las disciplinas de usuarios, experiencia, features y accesibilidad (UDD, UXDD, FDD, A11yDD). Úsalo en briefing, plan y qa cuando haya que aclarar quién lo usa, qué necesita y si de verdad se puede usar.
+      - arquitecto: Rol que decide la estructura: aplica SDD, DDD, ADD, EDA, ESDD, ODD_API, APIVDD, MDD y DeprecationDD. Úsalo en spec, plan, build, qa y retro cuando haya que decidir cómo se parte el sistema, qué contrato tiene y cómo evoluciona sin romper a nadie.
+      - atdd: Escribe las pruebas de aceptación (tests/acceptance/*.acceptance.test.ts), una por criterio CA-n, antes de construir, probadas por la puerta pública del sistema (línea de comandos, API o pantalla), de modo que la persona reconozca «esto es lo que pedí». Úsala en briefing para fijar cuándo se da algo por entregado, en qa para ejecutarlas y cuando una prueba de aceptación nunca falla o no se sabe qué comprueba.
+      - bdd: Escribe escenarios Dado/Cuando/Entonces en tests/features/*.feature para cada feature, etiquetados con el criterio CA-n que cubren. Úsala en briefing para acordar el comportamiento esperado y en qa para comprobar que cada feature tiene al menos un escenario.
+      - constructor: Rol que escribe y cambia el código: aplica TDD, RDD, DebtBudgetDD y CDCDD. Úsalo en plan y build para convertir lo especificado en código probado, en pasos pequeños, sin dejar deuda escondida.
+      - ddd: Modela el dominio en docs/specs/DOMAIN.md: entidades, sus relaciones y las reglas de negocio, con el lenguaje de quien usa el sistema. Úsala en spec, al introducir un concepto nuevo o cuando dos personas llaman distinto a lo mismo.
+      - evaluar-skill: Comprueba que una skill se activa cuando debe, no se activa cuando no debe y resiste instrucciones inyectadas. Úsala al crear o cambiar una skill y siempre antes de auditarla. Escribe casos de prueba y los ejecuta con promptfoo.
+      - evol: Orquesta el trabajo de un proyecto con evol: lee el estado, decide qué hacer en la fase actual, reparte el trabajo entre las skills de cada disciplina, pide las verificaciones y se detiene ante cada aprobación. Úsala cuando la persona escriba /evol, pida «seguir con el proyecto» o no sepa cuál es el siguiente paso.
+      - fdd: Descompone el proyecto en features con prioridad en docs/features/FEATURES.md, cada una nombrada por el valor que da a una persona. Úsala en briefing y plan, cuando haya que listar, ordenar o recortar lo que se va a construir.
+      - incorporar-dependencia: Decide si se puede añadir o actualizar una dependencia (npm, PyPI u otra) y deja la justificación escrita. Úsala en plan y en build cada vez que aparezca un paquete nuevo o una subida de versión. Revisa necesidad, versión fija, vulnerabilidades, paquetes maliciosos, licencia y mantenimiento.
+      - incorporar-skill: Guía el proceso de agregar una skill nueva a la biblioteca de evol. Úsala cuando alguien pida instalar, importar o probar una skill de terceros o propia. Ejecuta la auditoría, explica el veredicto en claro y ayuda a declarar las capacidades de sus scripts. Nunca aprueba: la aprobación es de una persona.
+      - interrogar-plan: Cuestiona un plan antes de que se apruebe: supuestos sin comprobar, pasos que dependen de algo que no existe, riesgos sin plan B, criterios de la especificación que ningún paso cubre y lo que se podría recortar. Úsala en plan, antes de pedir la aprobación, o cuando alguien dice que el plan está listo.
+      - operaciones: Rol que piensa en cómo se ejecuta y se vigila el sistema: aplica PIPELINE, IODD, ODD_OBS y SLO. Úsalo en spec, build y qa cuando haya que decidir cómo se despliega, qué se mide y qué se promete a quien lo usa.
+      - revisar-secretos: Busca secretos (claves, tokens, contraseñas) en el código antes de dar por cerrada una tarea. Úsala al terminar cada tarea de código en build y en qa, o cuando alguien pregunte si se coló una clave. No muestra nunca el valor encontrado.
+      - sdd: Escribe y mantiene la especificación del proyecto (docs/specs/SPEC.md) con criterios de aceptación numerados CA-1, CA-2… que una prueba pueda comprobar. Úsala al empezar un proyecto o una funcionalidad, al cambiar el alcance y siempre que haga falta decidir si algo está terminado.
+      - secdd: Cierra la fase de QA con el escaneo de seguridad: ejecuta evol security scan --ci, explica los hallazgos abiertos por severidad y no da el visto bueno mientras quede un CRITICAL o HIGH sin resolver. Úsala en qa o cuando pregunten si el proyecto está listo en seguridad. No muestra nunca el valor de un secreto.
+      - seguridad: Rol que revisa la seguridad con ojos frescos, en solo lectura y con contexto limpio: aplica SecDD, STDD, THREAT, PrivacyDD y COMPLIANCE. Úsalo en spec, build y qa, o cuando haya que decidir si algo es seguro de publicar.
+      - stdd: Escribe primero las pruebas de seguridad y después el código. Úsala al empezar una tarea de build que toca entradas externas, autenticación, permisos, datos sensibles o dependencias, y cuando haya que convertir una mitigación de THREATS.md en una prueba. Si el proyecto tiene OpenAPI propone pruebas por propiedades con schemathesis.
+      - tdd: Construye con ciclos rojo-verde-refactor: una prueba unitaria que falla (tests/unit/*.test.ts), el código mínimo que la pasa y después la limpieza. Úsala en build siempre que escribas, cambies o refactorices lógica, o corrijas un fallo.
+      - threat: Construye el modelo de amenazas del proyecto con STRIDE en la fase spec: activos, fronteras de confianza, amenazas y, por cada amenaza, su control y la prueba que lo comprueba. Úsala al redactar o revisar docs/specs/THREATS.md.
+      - verificador: Rol que comprueba con ojos frescos si lo construido cumple lo pedido, en solo lectura y con contexto limpio: aplica BDD, ATDD, CCDD, PDD y CHAOS. Úsalo en briefing y qa, o cuando haya que revisar sin el sesgo de quien lo construyó.
+      - verificar-afirmaciones: Comprueba una afirmación externa antes de darla por cierta: una versión, una fecha, una licencia, el comportamiento de una librería, una vulnerabilidad citada o una cifra. Busca la fuente primaria, anota origen y fecha y distingue lo comprobado de lo que solo se recuerda. Úsala en spec y qa, o cuando una decisión dependa de un dato que nadie ha verificado.
+      - a11ydd: Define y comprueba la accesibilidad: los criterios WCAG que aplican (a11y/wcag_criteria.json) y los escenarios de uso con lector de pantalla. Úsala en briefing al fijar quién debe poder usar el sistema y en qa para comprobar teclado, contraste y etiquetas.
+      - add: Registra las decisiones de arquitectura como ADR en docs/adr/*.md: contexto, opciones consideradas, decisión y consecuencias. Úsala en spec cuando haya que elegir entre varias estructuras o tecnologías, y cada vez que se cambie o se revoque una decisión anterior.
+      - apivdd: Planifica cómo evoluciona una API sin romper a quien ya la usa: versiones, cambios incompatibles y calendario de retiro en api_versions/deprecation_schedule.json. Úsala en plan cuando una API pública cambia, cuando hay que elegir cómo se numeran sus versiones o cuando se va a dejar de ofrecer una versión.
+      - arqueologia-codigo: Entiende código heredado antes de cambiarlo: dónde está, cómo evolucionó, qué lo sostiene y dónde se concentra la deuda. Úsala en briefing y plan al adoptar un proyecto que ya existe o antes de modernizar una parte que nadie conoce bien.
+      - ccdd: Define los contratos que cada consumidor espera de una API (contracts/consumer_*.json) y comprueba que el proveedor los cumple. Úsala en qa cuando un servicio tiene consumidores conocidos y un cambio podría romperlos.
+      - cdcdd: Diseña la captura de cambios de una base de datos para replicarlos a otros sistemas: fuentes, transformaciones y destinos en cdc/. Úsala en plan cuando hay que mantener otro sistema sincronizado de forma continua leyendo el registro de cambios, en lugar de copiar tablas completas cada cierto tiempo.
+      - chaos: Plantea experimentos de resiliencia: una hipótesis sobre qué debe seguir funcionando cuando algo falla (chaos/hypothesis/*.md) y la falla que se inyecta. Úsala en qa para comprobar que el sistema aguanta caídas, latencia o dependencias que no responden.
+      - compliance: Asocia cada requisito normativo (RGPD, PCI, SOC 2 u otro) con el control que lo cumple y su evidencia en compliance/control_mappings.json. Úsala en spec cuando el sistema debe cumplir una norma o pasar una auditoría, incluido qué debe quedar en el registro de auditoría y por cuánto tiempo.
+      - construir-mcp: Diseña y construye servidores MCP para que un agente use un sistema: qué herramientas exponer, sus nombres y parámetros, qué devuelven y cómo se limitan. Úsala en spec y build cuando haya que crear o ampliar un servidor MCP, no cuando solo se vaya a usar uno existente.
+      - costes-proyecto: Estima el coste y el retorno de un proyecto de software: esfuerzo, infraestructura, licencias y mantenimiento, frente al valor que se espera. Úsala en briefing y plan cuando haya que decidir si compensa, comparar opciones por dinero o presupuestar una entrega.
+      - debtbudgetdd: Fija cuánta deuda técnica se tolera y la lleva en debt/budget.json y debt/ledger.json: qué atajo se asume, su coste y cuándo se paga. Úsala en plan para decidir qué atajos se aceptan y revisarla cuando el presupuesto se agota.
+      - deprecationdd: Retira funciones, endpoints o módulos con aviso: política de retiro (deprecations/*/sunset_policy.json), fechas, quién los usa y con qué se sustituyen. Úsala en plan cuando algo que ya existe va a dejar de ofrecerse.
+      - descubrir-necesidades: Descubre qué necesita de verdad quien usará el sistema: preparar entrevistas, formular preguntas abiertas, detectar brechas entre lo que hace hoy y lo que quiere, y recoger requisitos. Úsala en briefing cuando haya personas a quienes preguntar y la necesidad no esté clara.
+      - diseno-frontend: Diseña interfaces web de calidad antes de programarlas: dirección visual, sistema de valores de diseño (colores, tipografía, espacios) y componentes coherentes que no parezcan genéricos. Úsala en briefing y build al crear páginas, componentes, paneles o pantallas de aterrizaje.
+      - documentacion: Genera y escribe toda la documentación que llega a quien usa o recibe el proyecto: el informe del proyecto, los diagramas, manuales, guías, tutoriales y notas de versión. Úsala en build, qa y retro cuando haya que producir documentación externa; los documentos internos del flujo los escriben sus disciplinas y el README tiene su propia skill.
+      - dominio-finanzas: Aporta conocimiento de dominio para software financiero y contable: libro mayor, asientos, conciliación, cierres, impuestos y reportes. Úsala en briefing y spec cuando el sistema maneje dinero, contabilidad o facturación y haya que acordar sus reglas.
+      - dominio-marketing: Aporta conocimiento de dominio para software de marketing y analítica: embudos de conversión, atribución, segmentación, campañas, experimentos A/B y medición de resultados. Úsala en briefing y spec cuando el sistema recoja o analice el comportamiento de clientes para decidir acciones comerciales.
+      - dominio-ventas: Aporta conocimiento de dominio para software de ventas y comercio electrónico: catálogo, carrito, pago, inventario, precios, pedidos y devoluciones. Úsala en briefing y spec cuando el sistema venda productos o servicios y haya que acordar el flujo de compra.
+      - eda: Diseña la comunicación entre servicios mediante eventos publicados y consumidos: qué eventos existen, su esquema (eda/schemas/*.avsc), los temas o colas, y qué componente los produce y cuál los consume. Úsala en spec cuando los servicios se hablan con mensajes asíncronos en vez de llamadas directas.
+      - effectcraft: Crea gráficos en movimiento con EffectCraft a través de sus herramientas MCP: composiciones con texto, formas y capas, animación por fotogramas clave, efectos y renderizado. Úsala cuando haya que animar un título, una intro o un elemento de interfaz, o producir una pieza animada.
+      - esdd: Modela el estado como una secuencia de eventos guardados (event sourcing): esquema del almacén de eventos (eventsourcing/event_store_schema.json) y agregados que se reconstruyen desde sus eventos. Úsala en spec cuando el propio estado debe guardarse como eventos para tener historial completo o reconstruirlo en cualquier momento, no cuando los eventos solo avisan a otros componentes.
+      - filmcraft: Monta y exporta vídeo con FilmCraft a través de sus herramientas MCP: importar material, colocarlo en una secuencia, cortar, añadir transiciones y exportar. Úsala cuando haya que editar clips de vídeo y audio en una línea de tiempo, por ejemplo una demo grabada de un producto.
+      - iodd: Describe la infraestructura como código (infra/main.tf) y su grafo de dependencias, para crear y destruir el entorno completo de forma repetible. Úsala en spec cuando hay que definir servidores, redes, bases de datos o servicios gestionados.
+      - mdd: Escribe migraciones de base de datos reversibles: migrations/<nombre>/up.sql y down.sql, con una nota para los datos que hay que mover. Úsala en plan cuando cambia la estructura de la base de datos o hay que transformar y mover una vez los datos existentes.
+      - odd-api: Diseña la API primero como contrato OpenAPI (api/openapi.yaml), con fragmentos reutilizables, antes de implementarla. Úsala en spec cuando el sistema expone o consume una API HTTP y hay que acordar rutas, datos y errores desde el lado de quien la ofrece, no los contratos que espera cada consumidor.
+      - odd-obs: Decide qué se mide y qué se registra para saber qué ocurre en producción: métricas (observability/metrics/*.json) y esquemas de registros. Úsala en qa para comprobar que cada comportamiento importante deja una señal observable.
+      - pdd: Fija objetivos de rendimiento medibles (performance/slos/*.json) y los escenarios de carga que los comprueban. Úsala en qa cuando importan la velocidad, el volumen o el consumo de recursos y hay que medir antes de optimizar.
+      - pipeline: Define las etapas del pipeline de integración y entrega (pipeline/stages.json) y cuándo se revierte un despliegue. Úsala en build al montar o cambiar la integración continua, el despliegue o la marcha atrás.
+      - privacydd: Inventaría los datos personales (privacy/pii_inventory.json), el consentimiento y las políticas de borrado, desde el diseño. Úsala en spec cuando el sistema guarda, usa o comparte datos de personas.
+      - rdd: Refactoriza en sesiones pequeñas y registradas (refactoring/sessions/*.md), con las pruebas en verde y métricas antes y después. Úsala en build cuando el código funciona pero su estructura hay que mejorarla sin cambiar lo que hace.
+      - readme: Crea, audita y actualiza el README.md del proyecto: qué es, para quién, cómo se instala y se usa, cómo se contribuye. Úsala en build y en retro, antes de publicar o de integrar cambios a la rama principal, y cuando el README esté desactualizado.
+      - respuestas-compactas: Comprime las respuestas y los mensajes entre agentes para gastar menos tokens, en tres niveles. Úsala cuando la persona pida respuestas más cortas, menos texto o ahorrar tokens, y al pasar resultados de un agente a otro.
+      - seo-tecnico: Asegura que un sitio web público se pueda encontrar y leer: rastreo e indexación, datos estructurados, velocidad percibida (Core Web Vitals) y arquitectura de las direcciones. Úsala en build y qa de sitios públicos que deban aparecer en buscadores.
+      - sin-sobreingenieria: Frena la sobreingeniería antes de escribir código: recorre una escalera de preguntas (¿hace falta?, ¿lo trae el lenguaje?, ¿ya hay una dependencia?, ¿qué es lo mínimo que funciona?). Úsala en plan y build cuando la petición pida lo más simple, lo mínimo viable o evitar dependencias, y cuando una solución crezca más que el problema.
+      - slo: Define los objetivos de nivel de servicio que se prometen a quien usa el sistema (disponibilidad, latencia) y su presupuesto de errores en sla/slo_documents/*.json. Úsala en qa para fijar qué se promete y qué se hace cuando se agota el margen.
+      - udd: Describe cada caso de uso: quién lo hace, qué quiere conseguir, el flujo normal y las alternativas, en usecases/<nombre>/usecase.json con sus escenarios. Úsala en briefing para pasar de «quiero que se pueda…» a algo que se pueda construir y probar.
+      - uxdd: Diseña la experiencia primero: recorridos de usuario (ux/user_journeys/*.json), mensajes de la interfaz, microinteracciones, carga cognitiva y modelos mentales. Úsala en briefing cuando hay una interfaz y importa cómo se siente usarla, no solo qué hace.
+
+      Decide qué skill se usa para la petición. Responde solo con el nombre exacto de la skill, o con la palabra ninguna si no aplica ninguna.
+
+      Petición: {{peticion}}
+  - label: skill
+    raw: '[{"role":"system","content":{{ skill | dump }}},{"role":"user","content":{{ mensaje | dump }}}]'
+defaultTest:
+  vars:
+    skill: file://../SKILL.md
+tests: file://casos.yaml

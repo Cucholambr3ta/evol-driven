@@ -25,7 +25,7 @@
 - description: "activa 4"
   prompts: [enrutador]
   vars:
-    peticion: "Añadimos un servicio de notificaciones que escucha los eventos de pedidos; ¿qué eventos, temas y esquemas hay que definir?"
+    peticion: "Define el esquema Avro del evento PagoRecibido y el tema donde se publica."
   assert:
     - type: regex
       value: "^\\s*`?eda`?\\s*\\.?\\s*$"
