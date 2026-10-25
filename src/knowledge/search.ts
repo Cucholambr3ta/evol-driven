@@ -1,6 +1,7 @@
 import { UserError } from "../core/errors.js";
 import { indexedLibraries, searchLibrary } from "./engine.js";
 import type { RawHit } from "./engine.js";
+import { originalName } from "./gate.js";
 import type { KnowledgeSource } from "./model.js";
 import { readRegistry } from "./store.js";
 
@@ -76,6 +77,8 @@ function toHit(source: KnowledgeSource, raw: RawHit): Hit | null {
   } catch {
     return null;
   }
+  // a converted DocBook document answers with its converted name; the link goes to the original
+  const original = originalName(file);
   const heading = firstHeading(raw.content);
   return {
     fuente: source.id,
@@ -84,9 +87,9 @@ function toHit(source: KnowledgeSource, raw: RawHit): Hit | null {
     capturadoEl: source.capturadoEl,
     licencia: source.licencia.spdx,
     citable: source.citable,
-    archivo: file,
+    archivo: original,
     seccion: heading,
-    enlace: linkOf(source, file, heading ? anchorOf(heading) : null),
+    enlace: linkOf(source, original, original === file && heading ? anchorOf(heading) : null),
     puntuacion: raw.score,
     tipo: "dato",
     texto: raw.content,

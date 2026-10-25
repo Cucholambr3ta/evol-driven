@@ -149,7 +149,7 @@ const NEGATION = /\b(no|nunca|jamás|never|don'?t|do not|not)\b[^.\n]{0,40}$/i;
 const DEFENSIVE =
   /injection|inyecci[oó]n|attack|ataque|malicious|malicios|untrusted|no\s+confiabl|treat\s+(it\s+|them\s+)?as\s+data|tr[aá]talo\s+como\s+datos|embedded\s+instructions|instrucciones\s+incrustadas|do\s+not\s+(follow|obey)|no\s+(sigas|obedezcas)/i;
 
-interface Injection {
+export interface Injection {
   regla: string;
   pattern: RegExp;
   texto: string;
@@ -158,7 +158,7 @@ interface Injection {
   negatable?: boolean;
 }
 
-const INJECTIONS: Injection[] = [
+export const INJECTIONS: Injection[] = [
   {
     regla: "inyeccion",
     pattern:
@@ -237,7 +237,7 @@ const INJECTIONS: Injection[] = [
   },
 ];
 
-const INVISIBLE = new RegExp(
+export const INVISIBLE = new RegExp(
   "[\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u2064\\u2066-\\u2069]|[\\u{E0000}-\\u{E007F}]",
   "u",
 );

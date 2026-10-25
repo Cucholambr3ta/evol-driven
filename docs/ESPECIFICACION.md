@@ -1387,9 +1387,11 @@ siempre igual, con las mismas opciones fijadas.
 > (CC-BY-4.0), Docker y Compose, OpenAPI (Apache-2.0), 18 RFC elegidas (HTTP, OAuth 2, JWT, TLS 1.3, URI, JSON y cookies; licencia del IETF Trust,
 > TLP 5, registrada como `LicenseRef-IETF-TLP-5` porque no tiene identificador SPDX) y el **ArchWiki en inglés** (paquete `arch-wiki-docs`
 > 20261003-1, firma comprobada; la página de copyright del wiki dice GFDL 1.3 sin «o posterior», así que se registró `GFDL-1.3-only`). La revisión
-> rechazó 51 documentos, casi todos falsos positivos (claves y tokens de ejemplo): esperan `evol knowledge accept` de una persona. **No capturadas:**
-> PostgreSQL 18 (su documentación fuente es SGML, que la revisión no lee) y KDE Plasma 6 (el contenido de develop.kde.org no declara su licencia en
-> el repositorio, y la documentación de usuario es DocBook). Node.js sigue fuera por su licencia.
+> rechazó 51 documentos, casi todos falsos positivos (claves y tokens de ejemplo): esperan `evol knowledge accept` de una persona. **Formatos DocBook y SGML (2026-10-25):** la revisión los lee tal como vienen y `publish` los convierte a Markdown con un convertidor propio
+> (`src/knowledge/docbook.ts`, sin dependencias nuevas: títulos por profundidad, listas, código, tablas y avisos; quita índices y metadatos). El
+> convertido se guarda como `<original>.md` y la búsqueda vuelve al nombre y al enlace del original. Con eso entran **PostgreSQL 18** (rama
+> REL_18_STABLE, licencia PostgreSQL, 404 documentos) y el **manual de usuario de Plasma 6.8.1** (`plasma-desktop/doc`, GFDL-1.2-or-later, cuyo aviso
+> dice «1.2 or any later version»; 20 documentos). Siguen fuera Node.js (licencia) y el resto de manuales de Plasma (`plasma-workspace`, `systemsettings`).
 
 > **Piloto R0 preparado (2026-10-23).**
 >

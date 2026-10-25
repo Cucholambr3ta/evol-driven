@@ -218,6 +218,22 @@ describe("evol knowledge search (criterio 111)", () => {
   });
 });
 
+describe("documentos convertidos de DocBook", () => {
+  it("el resultado nombra el archivo original y enlaza a él, sin ancla", () => {
+    const world = makeWorld([source("pg")], ["pg"], {
+      pg: [hit("pg", "ref/create_index.sgml.md", "## Parameters\ntexto", 0.02)],
+    });
+    const out = JSON.parse(search(world, "indice").stdout) as {
+      resultados: { archivo: string; enlace: string; seccion: string }[];
+    };
+    expect(out.resultados[0]).toMatchObject({
+      archivo: "ref/create_index.sgml",
+      seccion: "Parameters",
+      enlace: `https://github.com/acme/docs/blob/${SHA}/docs/ref/create_index.sgml`,
+    });
+  });
+});
+
 describe("enlaces y anclas", () => {
   it("el ancla sigue el estilo de GitHub", () => {
     expect(anchorOf("¿Qué es `useState`?")).toBe("qué-es-usestate");

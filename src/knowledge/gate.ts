@@ -1,14 +1,18 @@
 import { createHash } from "node:crypto";
-import { copyFileSync, mkdirSync, readFileSync, rmSync, statSync } from "node:fs";
+import { copyFileSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { UserError } from "../core/errors.js";
 import { runGitleaks } from "../security/runners.js";
 import { scanInjection } from "../skills/analyze.js";
 import { isBinary } from "../skills/inventory.js";
 import { filesOf } from "./capture.js";
+import { DOCBOOK_FILE, docbookToMarkdown } from "./docbook.js";
 
-/** What counts as documentation: text a person reads (OpenAPI files included). Code and assets stay out. */
-export const DOC_FILE = /\.(md|mdx|markdown|txt|rst|adoc|asciidoc|html?|json|ya?ml)$/i;
+/**
+ * What counts as documentation: text a person reads (OpenAPI files included). Code and assets stay
+ * out. DocBook and SGML are reviewed as they came and converted to Markdown when published.
+ */
+export const DOC_FILE = /\.(md|mdx|markdown|txt|rst|adoc|asciidoc|html?|json|ya?ml|sgml|docbook)$/i;
 const MAX_BYTES = 2 * 1024 * 1024;
 
 export interface Acceptance {
@@ -46,7 +50,7 @@ export interface Review {
  * value. Without gitleaks nothing is reviewed: a review that did not run is not a pass.
  */
 export function reviewCapture(dir: string, acceptances: Acceptance[] = []): Review {
-  const docs = filesOf(dir).filter((f) => DOC_FILE.test(f));
+  const docs = filesOf(dir).filter((f) => DOC_FILE.test(f) && !/(^|\/)CMakeLists\.txt$/.test(f));
   const reasons = new Map<string, Set<string>>();
   const warnings: Review["avisos"] = [];
   const reject = (ruta: string, motivo: string): void =>
@@ -105,10 +109,27 @@ export function reviewCapture(dir: string, acceptances: Acceptance[] = []): Revi
   };
 }
 
-/** Replaces `ready` with a copy of only the accepted documents. */
+/** The name a converted document gets in `ready`: the original's, plus «.md», so it can be traced back. */
+export const convertedName = (file: string): string => `${file}.md`;
+
+/** The original file a document in `ready` came from. */
+export const originalName = (file: string): string =>
+  file.endsWith(".md") && DOCBOOK_FILE.test(file.slice(0, -3)) ? file.slice(0, -3) : file;
+
+/**
+ * Replaces `ready` with a copy of only the accepted documents. DocBook and SGML are converted to
+ * Markdown, which is what the indexer reads; a document with nothing readable left is not published.
+ */
 export function publish(capture: string, ready: string, accepted: string[]): void {
   rmSync(ready, { recursive: true, force: true });
   for (const f of accepted) {
+    if (DOCBOOK_FILE.test(f)) {
+      const markdown = docbookToMarkdown(readFileSync(join(capture, f), "utf8"));
+      if (markdown.trim() === "") continue;
+      mkdirSync(dirname(join(ready, f)), { recursive: true });
+      writeFileSync(join(ready, convertedName(f)), markdown);
+      continue;
+    }
     mkdirSync(dirname(join(ready, f)), { recursive: true });
     copyFileSync(join(capture, f), join(ready, f));
   }
