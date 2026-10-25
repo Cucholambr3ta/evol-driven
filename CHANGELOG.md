@@ -1,5 +1,13 @@
 # Cambios
 
+## 0.3.2 — 2026-10-25
+
+- fix: el CI deja de romperse por la versión en la documentación y por dos herramientas inestables
+- docs: comparación de evol con gentle-ai y mejoras propuestas
+- fix: la skill constructor ya no rompe evol skills list; evol update nombra lo que hay que aprobar
+- docs: la lista de Claude Code cubre el arranque del proyecto además de la auditoría
+- docs: preguntas para OpenCode y Claude Code en las pruebas reales de evol
+
 ## 0.3.1 — 2026-10-25
 
 - feat: evol checkpoint y evol handoff para retomar el trabajo con otro agente
