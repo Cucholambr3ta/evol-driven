@@ -3,7 +3,7 @@ import { existsSync } from "node:fs";
 import { loadConfig } from "../core/config.js";
 import { loadDisciplines } from "../core/disciplines.js";
 import { expectedPhase, readKey, readLog, verifyChain, keyPath } from "../core/gate.js";
-import { CONFIG_FILE, findProjectRoot } from "../core/paths.js";
+import { CONFIG_FILE, findProjectRoot, packageRoot } from "../core/paths.js";
 import { loadState } from "../core/state.js";
 import { adapterMissing, CLAUDE_CODE, detectIdes, OTHER_ADAPTERS } from "../agents/adapters.js";
 import { agentFilesComplete } from "../agents/files.js";
@@ -11,8 +11,14 @@ import { detectGlobalAgents, projectMcpServers } from "../agents/convivencia.js"
 import { GitNexusProvider } from "../codeintel/gitnexus.js";
 import { withMemPalace } from "../memory/mempalace.js";
 import { securityToolStatus } from "../security/tools.js";
-import { describeVersion, versionInfo, compareVersions } from "../release/version.js";
+import {
+  describeVersion,
+  versionInfo,
+  compareVersions,
+  readInstallRecord,
+} from "../release/version.js";
 import { verifyIntegrity } from "../release/integrity.js";
+import { checkUpdateNotice } from "../release/notice.js";
 import { embeddingsReachable, engineInstalled, storeDir } from "../knowledge/engine.js";
 import { readRegistry } from "../knowledge/store.js";
 import { indexedLibraries } from "../knowledge/engine.js";
@@ -46,6 +52,19 @@ const RUTAS_PROTEGIDAS = [
 function tool(command: string, args: string[]): string | null {
   const result = spawnSync(command, args, { encoding: "utf8", timeout: 20_000 });
   return result.error || result.status !== 0 ? null : (result.stdout.trim().split("\n")[0] ?? "");
+}
+
+/** Where to look for a newer version (criterio 145): `EVOL_UPDATE_REPO` for tests, else the record
+ * `evol update` left, else the origin's git remote. `null` means nothing to check against. */
+function updateRepo(): string | null {
+  const explicit = process.env["EVOL_UPDATE_REPO"];
+  if (explicit) return explicit;
+  const record = readInstallRecord(packageRoot());
+  if (record) return record.repositorio;
+  const remote = spawnSync("git", ["-C", packageRoot(), "remote", "get-url", "origin"], {
+    encoding: "utf8",
+  });
+  return remote.status === 0 && remote.stdout.trim() ? remote.stdout.trim() : null;
 }
 
 export default async function run(): Promise<number> {
@@ -306,6 +325,21 @@ export default async function run(): Promise<number> {
   if (!root || !existsSync(CONFIG_FILE)) {
     const nexus = await new GitNexusProvider().available();
     add("aviso", "GitNexus (opcional)", nexus.ok ? nexus.detail : "no instalado (es opcional)");
+  }
+
+  // Aviso de versión nueva (criterio 145): nunca a costa de la velocidad ni sin la persona pudiendo
+  // apagarlo, y solo cuenta una versión que lleva firma.
+  const notice = checkUpdateNotice(updateRepo(), info.version);
+  if (notice) {
+    const skills =
+      notice.skillsQuePerderianAprobacion.length > 0
+        ? ` Perderían su aprobación y volverían a pedirla: ${notice.skillsQuePerderianAprobacion.join(", ")}.`
+        : "";
+    add(
+      "aviso",
+      "Versión nueva",
+      `hay una versión más nueva y firmada: ${notice.versionNueva} (tienes ${info.version}). Instálala con evol update.${skills}`,
+    );
   }
 
   for (const c of checks) out(`${ICON[c.level]} ${c.name}: ${c.detail}`);
