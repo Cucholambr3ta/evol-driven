@@ -124,12 +124,17 @@ export function securityToolVersion(tool: ToolName, bin: string): string | undef
   return r.status === 0 ? probe.parse(r.stdout) : undefined;
 }
 
-/** The same, without waiting for each tool in turn: several are Python and slow to start. */
+/**
+ * The same, without waiting for each tool in turn: several are Python and slow to start. Used only
+ * by `evol doctor` (criterio 145: no se retrasa demasiado), so a `--version` call gets a much
+ * tighter cap than the 20 s of the synchronous version above (used by the security scan itself,
+ * which has no such budget): a version probe that has not answered in 1.5 s is not going to.
+ */
 async function securityToolVersionAsync(tool: ToolName, bin: string): Promise<string | undefined> {
   if (tool === "zaproxy") return zapVersion(bin);
   const probe = PROBES[tool] ?? DEFAULT_PROBE;
   return new Promise((resolve) => {
-    execFile(bin, probe.args, { encoding: "utf8", timeout: 20_000 }, (error, stdout) =>
+    execFile(bin, probe.args, { encoding: "utf8", timeout: 1_500 }, (error, stdout) =>
       resolve(error ? undefined : probe.parse(stdout)),
     );
   });

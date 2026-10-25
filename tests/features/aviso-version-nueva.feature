@@ -20,7 +20,7 @@ Feature: Saber cuándo hay una versión nueva
   Scenario: sin red, evol doctor no falla ni se retrasa
     Given que no hay conexión de red
     When la persona ejecuta "evol doctor"
-    Then el comando termina en menos de 3 segundos
+    Then el comando termina en menos de 6 segundos
     And el resto del informe de doctor se muestra igual
 
   @CA-145

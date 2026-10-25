@@ -101,6 +101,15 @@ export default async function run(): Promise<number> {
   const git = tool("git", ["--version"]);
   add(git ? "ok" : "error", "Git", git ?? "no está instalado");
 
+  // Arrancan ya, en paralelo con todo lo que sigue (criterio 145: entre las dos, más de 2,5 s en
+  // serie antes de que exista ningún aviso de versión nueva). Capturadas en lugar de esperadas: se
+  // consumen más abajo, una vez se conocen datos que solo salen de leer el proyecto (memoryEnabled).
+  const mempalacePromise = withMemPalace((m) => m.status(), { timeoutMs: 60_000 }).then(
+    (status) => ({ ok: true as const, status }),
+    (error: unknown) => ({ ok: false as const, error: error as Error }),
+  );
+  const securityPromise = securityToolStatus();
+
   const root = findProjectRoot();
   let memoryEnabled = true;
   if (!root) {
@@ -217,16 +226,16 @@ export default async function run(): Promise<number> {
     }
   }
 
-  try {
-    const status = await withMemPalace((m) => m.status(), { timeoutMs: 60_000 });
-    const drawers = status["total_drawers"];
+  const mempalace = await mempalacePromise;
+  if (mempalace.ok) {
+    const drawers = mempalace.status["total_drawers"];
     add(
       "ok",
       "MemPalace",
       `conectado${typeof drawers === "number" ? ` (${drawers} recuerdos)` : ""}`,
     );
-  } catch (error) {
-    const detail = ((error as Error).message.split("\n")[0] ?? "no disponible").replace(
+  } else {
+    const detail = (mempalace.error.message.split("\n")[0] ?? "no disponible").replace(
       /^No se pudo usar MemPalace:\s*/,
       "",
     );
@@ -284,7 +293,7 @@ export default async function run(): Promise<number> {
 
   // `evol security scan` and `evol skills audit` lean on these; a missing one is a warning here,
   // and it is what makes the scan fail with --ci or leaves every skill «no auditada».
-  for (const t of await securityToolStatus())
+  for (const t of await securityPromise)
     add(t.instalada ? "ok" : "aviso", `Seguridad: ${t.tool}`, t.detalle);
 
   // The IDEs of the matrix that are on this machine, and what each one can do (level A, B or C).

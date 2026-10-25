@@ -112,15 +112,19 @@ delegación medida (ola 3).
     sumas, y rechaza una etiqueta firmada por una clave no autorizada; ninguna opción de
     `evol update` permite saltarse esas comprobaciones.
 17. **CA-144**: `evol release --sin-sbom` publica sin SBOM y lo deja registrado en `release.json`.
-18. **CA-145**: `evol doctor` avisa, como mucho una vez al día y sin retrasar el comando más de 3
+18. **CA-145**: `evol doctor` avisa, como mucho una vez al día y sin retrasar el comando más de 6
     segundos cuando no hay red, de una versión nueva firmada, nombrando las skills que perderían la
     aprobación al actualizar; la persona puede apagar el aviso en su configuración.
-    **Reserva (2026-10-25):** el propio aviso cuesta ~10-60 ms (medido); el presupuesto de 3 s es
-    ajustado porque `evol doctor` ya costaba ~2.6-2.7 s _antes_ de esta mejora (conexión a MemPalace
-    y sondeo de la versión de ~15 herramientas de seguridad), lo que deja la prueba de aceptación
-    expuesta a ser intermitente bajo carga. Se acepta así por decisión de la persona (2026-10-25):
-    se documenta aquí y se anota como mejora del framework (`evol mejora add`) en vez de ampliar el
-    alcance de esta ola para optimizar `doctor`.
+    **Reserva (2026-10-25, revisada el mismo día):** el propio aviso cuesta ~10-60 ms (medido).
+    `evol doctor` costaba ~2.6-2.7 s _antes_ de esta mejora (conexión a MemPalace y sondeo de la
+    versión de ~15 herramientas de seguridad, en serie); se paralelizaron ambas y se acotó a 1,5 s
+    cada sondeo de versión, bajando el coste normal a ~1.6-1.7 s. Aun así, corriendo dentro de
+    `npm run ci` (los 1170 casos de los 56 archivos de prueba en paralelo) la contención de CPU de
+    la máquina sigue empujando el caso límite por encima de 3 s de forma consistente (~4 s medidos):
+    ya no es algo que el código de `doctor` pueda acotar sin más cambios de alcance mayor. Por
+    decisión de la persona (2026-10-25), el presupuesto del criterio y de la prueba de aceptación
+    pasan de 3 a 6 segundos, realista para ese escenario de carga total; el uso normal (una sola
+    invocación) sigue siendo de ~1.6-1.7 s.
 19. **CA-146**: `evol ciclo nuevo` abre un segundo ciclo del pipeline sin invalidar la cadena de
     aprobaciones firmadas del primer ciclo, y las aprobaciones del ciclo anterior no cuentan como
     aprobación previa del nuevo.

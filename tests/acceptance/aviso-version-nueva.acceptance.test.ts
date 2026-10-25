@@ -85,7 +85,7 @@ describe("saber cuándo hay una versión nueva", () => {
     expect(result.stdout).toMatch(/0\.9\.9/);
   });
 
-  it("CA-145: sin red, doctor no falla y termina en menos de 3 segundos", () => {
+  it("CA-145: sin red, doctor no falla y termina en menos de 6 segundos", () => {
     const config = isolateUserConfig();
     const project = tempDir("evol-aviso-sin-red-");
     const started = Date.now();
@@ -95,7 +95,7 @@ describe("saber cuándo hay una versión nueva", () => {
       env: { ...env(config), EVOL_UPDATE_REPO: "ssh://host-inexistente.invalid/no-existe" },
     });
 
-    expect(Date.now() - started).toBeLessThan(3_000);
+    expect(Date.now() - started).toBeLessThan(6_000);
     expect(result.status).toBe(0);
   });
 
