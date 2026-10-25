@@ -1,0 +1,69 @@
+# Modelo de amenazas — Ola 1
+
+> STRIDE sobre la superficie nueva de esta ola. No repite el modelo de amenazas general de evol
+> (`docs/ESPECIFICACION.md`); solo lo que esta ola añade o cambia.
+
+## Activos
+
+- La clave del gate (`~/.config/evol/keys/<projectId>.key`) y el registro de aprobaciones firmado
+  (`.evol/gate-log.jsonl`).
+- `.evol/state.json`: la fase actual del pipeline y el ciclo en curso.
+- Los respaldos de `.evol/respaldos/`: contenido previo de archivos que `evol agents` reescribió.
+- Las credenciales del sistema que la lista de bloqueo protege (`~/.ssh`, `~/.aws/credentials`,
+  `.env*`, claves y certificados).
+- La configuración de convivencia que `evol agents` escribe en cada IDE (`CLAUDE.md`,
+  `.claude/settings.json`, `opencode.json`): qué prevalece sobre qué.
+- La identidad del agente «evol» en cada IDE y sus permisos propios.
+- La clave de firma de las etiquetas de evol y lo que `evol release` publica (sumas, SBOM, firma).
+- La caché local del aviso de versión nueva.
+
+## Fronteras de confianza
+
+- **Agente (LLM) ↔ sistema de archivos y CLI del proyecto**: el agente ejecuta comandos y lee
+  archivos dentro del permiso que el IDE le dé; el IDE es quien de verdad hace cumplir una regla
+  «impuesta».
+- **Proyecto ↔ configuración global del usuario**: lo que `evol agents` escribe en el proyecto
+  convive con lo que otro framework de agentes dejó a nivel de usuario o de máquina.
+- **Repositorio de origen de evol ↔ máquina que instala con `evol update`**: una etiqueta git
+  firmada es el único canal de distribución; lo que haya entre medio (una copia, un espejo) no está
+  protegido salvo por esa firma y, desde esta ola, por las sumas.
+- **`evol doctor` ↔ el remoto git configurado para buscar versiones**: una consulta de red
+  opcional, sin telemetría, que no debe bloquear el resto del comando.
+
+## Amenazas
+
+| ID   | Elemento                              | STRIDE                     | Escenario                                                                                                                                                                                                | Impacto                                                              | Probabilidad                    |
+| ---- | ------------------------------------- | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- | ------------------------------- |
+| T-1  | Clave del gate                        | Elevación de privilegios   | Un agente con permiso de lectura amplio lee `~/.config/evol/keys/<id>.key` y firma una aprobación falsa                                                                                                  | Alto (aprobaciones falsificadas, pipeline comprometido)              | Baja                            |
+| T-2  | `.evol/state.json`                    | Manipulación               | Un agente o un script edita `state.json` a mano para simular una fase ya aprobada                                                                                                                        | Medio (se salta una revisión, pero no falsifica el registro firmado) | Media                           |
+| T-3  | Credenciales del sistema              | Divulgación de información | Un agente con permiso de shell lee `~/.ssh/id_ed25519` con un script, sin pasar por la herramienta de lectura del IDE                                                                                    | Alto (robo de credenciales)                                          | Media                           |
+| T-4  | Configuración de convivencia          | Suplantación               | Las reglas de otro framework (hooks, `bypassPermissions`) hacen que un comando de evol se ejecute con menos control del que la persona cree                                                              | Alto (aprobación o entrega sin la revisión esperada)                 | Media                           |
+| T-5  | Agente «evol» en OpenCode/Claude Code | Elevación de privilegios   | El agente «evol» obtiene, por un permiso mal escrito, capacidad de ejecutar `evol approve` o `evol ciclo nuevo`                                                                                          | Alto (aprobación sin persona)                                        | Baja                            |
+| T-6  | Etiqueta publicada                    | Manipulación               | Alguien con acceso de escritura al repositorio de origen fuerza (`git tag -f`) una etiqueta ya firmada hacia otro commit, con una firma de una clave no autorizada                                       | Alto (código no revisado instalado como si fuera oficial)            | Baja                            |
+| T-7  | Sumas de una versión                  | Manipulación               | Un commit posterior a la firma de la etiqueta altera un archivo sin regenerar `release/SUMAS.txt`, de modo que las sumas y el árbol dejan de coincidir aunque la firma de la etiqueta siga siendo válida | Alto (archivo alterado instalado sin aviso)                          | Baja                            |
+| T-8  | `evol update --insecure` (hipotético) | Manipulación               | Una opción futura permite saltarse la verificación de sumas o firma «para salir del paso»                                                                                                                | Alto (abre la puerta a instalar cualquier cosa)                      | Baja (se decide no construirla) |
+| T-9  | Respaldos (`.evol/respaldos/`)        | Divulgación de información | Un respaldo guarda, sin querer, el contenido previo de un archivo que tenía un secreto (por ejemplo, un `.mcp.json` con un token)                                                                        | Medio (el secreto queda en texto plano, aunque local)                | Baja                            |
+| T-10 | Aviso de versión nueva                | Denegación de servicio     | Un remoto de actualización inalcanzable o muy lento hace que `evol doctor` se cuelgue esperando la red                                                                                                   | Bajo (molesta, no compromete nada)                                   | Media                           |
+| T-11 | `evol ciclo nuevo`                    | Repudio                    | Sin un registro claro de quién abrió un ciclo nuevo y cuándo, no se puede reconstruir después por qué las aprobaciones del ciclo anterior dejaron de contar                                              | Medio (dificulta auditar el pipeline)                                | Baja                            |
+
+## Mitigaciones
+
+| ID   | Control                                                                                                                                                                                                                                                                                                                       | Prueba                                                                                                                           |
+| ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| T-1  | Regla de bloqueo «impuesta» en el IDE para `~/.config/evol/keys/**` (CA-134); la clave nunca se expone en salidas de comandos                                                                                                                                                                                                 | `tests/acceptance/bloqueo-rutas-sensibles.acceptance.test.ts` (CA-134); `tests/security/claves.security.test.ts` (STDD, build)   |
+| T-2  | `evol doctor` y `evol verify` comparan la fase de `state.json` contra la última aprobación válida del registro firmado y avisan si no concuerdan (CA-134)                                                                                                                                                                     | `tests/acceptance/bloqueo-rutas-sensibles.acceptance.test.ts`; `tests/security/estado-manipulado.security.test.ts` (STDD, build) |
+| T-3  | Regla de bloqueo «impuesta» para `~/.ssh/**`, `.env*`, `*.pem`, `*.key`, `~/.aws/credentials` (CA-134); la documentación dice con claridad que leer por un script no se bloquea (riesgo aceptado, no se promete lo contrario)                                                                                                 | `tests/acceptance/bloqueo-rutas-sensibles.acceptance.test.ts`                                                                    |
+| T-4  | `evol doctor` detecta y clasifica cada hallazgo de convivencia como impuesta, declarativa o no anulable (CA-136); el aislamiento escribe reglas del proyecto que prevalecen donde el IDE lo permite (CA-135)                                                                                                                  | `tests/acceptance/aislamiento-proyecto.acceptance.test.ts`                                                                       |
+| T-5  | El agente «evol» de cada IDE recibe permisos propios que deniegan `evol approve`, `evol next` y `evol ciclo nuevo` (CA-139, CA-147)                                                                                                                                                                                           | `tests/acceptance/agente-opencode.acceptance.test.ts`, `tests/acceptance/ciclo-siguiente.acceptance.test.ts`                     |
+| T-6  | `evol update` verifica la firma de la etiqueta con `allowed_signers`, y rechaza una firma de una clave no autorizada (CA-143)                                                                                                                                                                                                 | `tests/acceptance/procedencia-version.acceptance.test.ts`                                                                        |
+| T-7  | `evol update` recalcula las sumas de los archivos extraídos y las compara con `release/SUMAS.txt` antes de compilar (CA-143)                                                                                                                                                                                                  | `tests/acceptance/procedencia-version.acceptance.test.ts`                                                                        |
+| T-8  | Ninguna opción de `evol update` salta la verificación de firma, sumas o integridad (CA-143); se deja constancia explícita en la especificación de que no se construye                                                                                                                                                         | `tests/acceptance/procedencia-version.acceptance.test.ts` ("ninguna opción... salta")                                            |
+| T-9  | **Riesgo aceptado**: los respaldos quedan en `.evol/respaldos/`, dentro de `.gitignore` (nunca se publican), con permisos del sistema de archivos del usuario; no se cifran en esta ola. Responsable: quien mantiene evol. Revisar si algún archivo de agentes llega a contener secretos en texto plano antes de construir M2 | — (riesgo aceptado, sin prueba; revisar en qa)                                                                                   |
+| T-10 | El aviso de versión nueva usa una caché diaria y un límite de tiempo corto; sin red, `evol doctor` no se retrasa más de 3 segundos (CA-145)                                                                                                                                                                                   | `tests/acceptance/aviso-version-nueva.acceptance.test.ts`                                                                        |
+| T-11 | `evol ciclo nuevo` exige una persona en una terminal, igual que `evol approve`, y queda registrado en el journal y en el estado del proyecto qué ciclo se abrió y cuándo (CA-146, CA-147)                                                                                                                                     | `tests/acceptance/ciclo-siguiente.acceptance.test.ts`                                                                            |
+
+## Privacidad
+
+Esta ola no introduce tratamiento de datos personales nuevo: lo que se guarda (estado del
+pipeline, respaldos de configuración, caché de versión) es configuración del propio proyecto y de
+la máquina de quien lo usa, no datos de terceros. No alimenta PrivacyDD.

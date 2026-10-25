@@ -1,8 +1,13 @@
 {
   "version": 1,
   "projectId": "f99d5a54-3f05-42df-a86a-e3ebc7c2db5e",
-  "currentPhase": "briefing",
-  "completed": [],
+  "currentPhase": "spec",
+  "completed": [
+    {
+      "phase": "briefing",
+      "at": "2026-10-25T10:06:06.899Z"
+    }
+  ],
   "creadoCon": {
     "version": "0.3.2",
     "canal": "estable",
