@@ -115,6 +115,12 @@ delegación medida (ola 3).
 18. **CA-145**: `evol doctor` avisa, como mucho una vez al día y sin retrasar el comando más de 3
     segundos cuando no hay red, de una versión nueva firmada, nombrando las skills que perderían la
     aprobación al actualizar; la persona puede apagar el aviso en su configuración.
+    **Reserva (2026-10-25):** el propio aviso cuesta ~10-60 ms (medido); el presupuesto de 3 s es
+    ajustado porque `evol doctor` ya costaba ~2.6-2.7 s *antes* de esta mejora (conexión a MemPalace
+    y sondeo de la versión de ~15 herramientas de seguridad), lo que deja la prueba de aceptación
+    expuesta a ser intermitente bajo carga. Se acepta así por decisión de la persona (2026-10-25):
+    se documenta aquí y se anota como mejora del framework (`evol mejora add`) en vez de ampliar el
+    alcance de esta ola para optimizar `doctor`.
 19. **CA-146**: `evol ciclo nuevo` abre un segundo ciclo del pipeline sin invalidar la cadena de
     aprobaciones firmadas del primer ciclo, y las aprobaciones del ciclo anterior no cuentan como
     aprobación previa del nuevo.
