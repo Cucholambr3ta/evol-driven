@@ -6,3 +6,5 @@ coverage/
 .env.*
 # Local state of this repo's own pipeline, if any
 .evol/codegraph.sqlite*
+# evol agents: local safety copies before each write, never collaboration state
+.evol/respaldos/

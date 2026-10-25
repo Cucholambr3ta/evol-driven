@@ -32,6 +32,7 @@ import { NotInteractiveError } from "../core/errors.js";
 
 const MODULE_SPEC = /^([a-z][a-z0-9-]*)=([^:]+)(?::(.+))?$/;
 const GITIGNORE_LINE = ".evol/codegraph.sqlite*";
+const GITIGNORE_BACKUPS_LINE = ".evol/respaldos/";
 
 /** Prettier-using projects would flag evol's generated JSON; keep it out of their format check. */
 function ensurePrettierIgnore(root: string): string | null {
@@ -213,12 +214,25 @@ export default async function run(argv: string[]): Promise<number> {
   journalAppend(root, "project-adopted", { name, phase, perfil: profile });
 
   const gitignore = join(root, ".gitignore");
-  if (!existsSync(gitignore)) writeFileSync(gitignore, `${GITIGNORE_LINE}\n`);
-  else if (!readFileSync(gitignore, "utf8").includes("codegraph.sqlite")) {
-    appendFileSync(
+  if (!existsSync(gitignore)) {
+    writeFileSync(
       gitignore,
-      `\n# evol: datos derivados (se reconstruyen con \`evol index\`)\n${GITIGNORE_LINE}\n`,
+      `${GITIGNORE_LINE}\n# evol agents: copias de seguridad locales antes de cada escritura\n${GITIGNORE_BACKUPS_LINE}\n`,
     );
+  } else {
+    const current = readFileSync(gitignore, "utf8");
+    if (!current.includes("codegraph.sqlite")) {
+      appendFileSync(
+        gitignore,
+        `\n# evol: datos derivados (se reconstruyen con \`evol index\`)\n${GITIGNORE_LINE}\n`,
+      );
+    }
+    if (!current.includes(GITIGNORE_BACKUPS_LINE)) {
+      appendFileSync(
+        gitignore,
+        `\n# evol agents: copias de seguridad locales antes de cada escritura\n${GITIGNORE_BACKUPS_LINE}\n`,
+      );
+    }
   }
 
   const prettier = ensurePrettierIgnore(root);

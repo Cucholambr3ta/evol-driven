@@ -1,5 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
+import { BackupCollector } from "./backup.js";
 import { orchestratorBody } from "./orchestrator.js";
 import { claudeSubagent, SUBAGENT_FILES } from "./roles.js";
 
@@ -137,22 +138,32 @@ ${END}
 `;
 }
 
-function write(root: string, rel: string, content: string, report: AgentReport): void {
+/** Threaded through one run: where to report, whether to really write, and where to back up what changes. */
+interface WriteCtx {
+  report: AgentReport;
+  dry: boolean;
+  backup?: BackupCollector;
+}
+
+function write(root: string, rel: string, content: string, ctx: WriteCtx): void {
   const file = join(root, rel);
   const existed = existsSync(file);
   if (existed && readFileSync(file, "utf8") === content) {
-    report.unchanged.push(rel);
+    ctx.report.unchanged.push(rel);
     return;
   }
-  mkdirSync(dirname(file), { recursive: true });
-  writeFileSync(file, content);
-  (existed ? report.updated : report.created).push(rel);
+  if (!ctx.dry) {
+    ctx.backup?.capture(rel, existed ? readFileSync(file) : undefined, existed, content);
+    mkdirSync(dirname(file), { recursive: true });
+    writeFileSync(file, content);
+  }
+  (existed ? ctx.report.updated : ctx.report.created).push(rel);
 }
 
 function readJson(
   root: string,
   rel: string,
-  report: AgentReport,
+  ctx: WriteCtx,
 ): { data: Record<string, unknown>; exists: boolean } | null {
   const file = join(root, rel);
   if (!existsSync(file)) return { data: {}, exists: false };
@@ -164,7 +175,7 @@ function readJson(
   } catch {
     // fall through
   }
-  report.skipped.push({ file: rel, reason: "no es un JSON válido; no se tocó" });
+  ctx.report.skipped.push({ file: rel, reason: "no es un JSON válido; no se tocó" });
   return null;
 }
 
@@ -206,13 +217,8 @@ function printWidth(root: string): number {
   }
 }
 
-function writeJson(
-  root: string,
-  rel: string,
-  data: Record<string, unknown>,
-  report: AgentReport,
-): void {
-  write(root, rel, `${formatJson(data, printWidth(root))}\n`, report);
+function writeJson(root: string, rel: string, data: Record<string, unknown>, ctx: WriteCtx): void {
+  write(root, rel, `${formatJson(data, printWidth(root))}\n`, ctx);
 }
 
 /** The deny rules evol installs that the settings do not have yet; the person's own rules stay as they are. */
@@ -231,12 +237,9 @@ function hasHook(settings: Record<string, unknown>): boolean {
   );
 }
 
-/**
- * Creates or refreshes the files that make Claude Code (and any MCP client) follow the pipeline.
- * It never overwrites what is not evol's: user files are only extended with evol's own entries.
- */
-export function writeAgentFiles(root: string): AgentReport {
-  const report: AgentReport = { created: [], updated: [], unchanged: [], skipped: [] };
+/** The actual work of `writeAgentFiles`/`planAgentFiles`: same logic either way, only `ctx.dry` differs. */
+function runAgentFiles(root: string, ctx: WriteCtx): AgentReport {
+  const { report } = ctx;
 
   for (const [name, content] of Object.entries(commandFiles())) {
     const rel = `.claude/commands/${name}`;
@@ -245,7 +248,7 @@ export function writeAgentFiles(root: string): AgentReport {
       report.skipped.push({ file: rel, reason: "ya existe y no es de evol; no se tocó" });
       continue;
     }
-    write(root, rel, quoteFrontmatter(content), report);
+    write(root, rel, quoteFrontmatter(content), ctx);
   }
 
   // wrappers for the roles that run as read-only subagents; they never overwrite one that is not evol's
@@ -256,13 +259,13 @@ export function writeAgentFiles(root: string): AgentReport {
       report.skipped.push({ file: rel, reason: "ya existe y no es de evol; no se tocó" });
       continue;
     }
-    write(root, rel, claudeSubagent(role, GENERATED), report);
+    write(root, rel, claudeSubagent(role, GENERATED), ctx);
   }
 
   const claudeFile = join(root, "CLAUDE.md");
   const block = claudeBlock();
   if (!existsSync(claudeFile)) {
-    write(root, "CLAUDE.md", `# Instrucciones para agentes\n\n${block}`, report);
+    write(root, "CLAUDE.md", `# Instrucciones para agentes\n\n${block}`, ctx);
   } else {
     const current = readFileSync(claudeFile, "utf8");
     const start = current.indexOf(BEGIN);
@@ -271,10 +274,10 @@ export function writeAgentFiles(root: string): AgentReport {
       start !== -1 && end > start
         ? `${current.slice(0, start)}${block.trimEnd()}${current.slice(end + END.length)}`
         : `${current.trimEnd()}\n\n${block}`;
-    write(root, "CLAUDE.md", next, report);
+    write(root, "CLAUDE.md", next, ctx);
   }
 
-  const settings = readJson(root, ".claude/settings.json", report);
+  const settings = readJson(root, ".claude/settings.json", ctx);
   if (settings) {
     const next: Record<string, unknown> = { ...settings.data };
     if (!hasHook(settings.data)) {
@@ -294,19 +297,42 @@ export function writeAgentFiles(root: string): AgentReport {
     }
     if (hasHook(settings.data) && lacking.length === 0)
       report.unchanged.push(".claude/settings.json");
-    else writeJson(root, ".claude/settings.json", next, report);
+    else writeJson(root, ".claude/settings.json", next, ctx);
   }
 
-  const mcp = readJson(root, ".mcp.json", report);
+  const mcp = readJson(root, ".mcp.json", ctx);
   if (mcp) {
     const servers = (mcp.data["mcpServers"] ?? {}) as Record<string, unknown>;
     if (servers["evol"]) report.unchanged.push(".mcp.json");
     else {
       servers["evol"] = { command: "evol", args: ["mcp"] };
-      writeJson(root, ".mcp.json", { ...mcp.data, mcpServers: servers }, report);
+      writeJson(root, ".mcp.json", { ...mcp.data, mcpServers: servers }, ctx);
     }
   }
   return report;
+}
+
+/**
+ * Creates or refreshes the files that make Claude Code (and any MCP client) follow the pipeline.
+ * It never overwrites what is not evol's: user files are only extended with evol's own entries.
+ * Before changing anything, the previous content of every file it touches is backed up to
+ * `.evol/respaldos/` (`evol agents --deshacer` reads it back); nothing is backed up or written when
+ * nothing actually changes.
+ */
+export function writeAgentFiles(root: string): AgentReport {
+  const backup = new BackupCollector();
+  const report = runAgentFiles(root, { report: emptyReport(), dry: false, backup });
+  if (!backup.empty) backup.save(root);
+  return report;
+}
+
+/** Same as `writeAgentFiles`, but only reports what it would do: nothing is written or backed up. */
+export function planAgentFiles(root: string): AgentReport {
+  return runAgentFiles(root, { report: emptyReport(), dry: true });
+}
+
+function emptyReport(): AgentReport {
+  return { created: [], updated: [], unchanged: [], skipped: [] };
 }
 
 /** True when everything `writeAgentFiles` manages is already in place. */
@@ -322,16 +348,11 @@ export function agentFilesComplete(root: string): { ok: boolean; missing: string
   const claude = join(root, "CLAUDE.md");
   if (!existsSync(claude) || !readFileSync(claude, "utf8").includes(BEGIN))
     missing.push("CLAUDE.md");
-  const settings = readJson(root, ".claude/settings.json", {
-    created: [],
-    updated: [],
-    unchanged: [],
-    skipped: [],
-  });
+  const settings = readJson(root, ".claude/settings.json", { report: emptyReport(), dry: true });
   if (!settings || !hasHook(settings.data)) missing.push(".claude/settings.json (hook)");
   if (settings && missingDenyRules(settings.data).length > 0)
     missing.push(".claude/settings.json (permissions.deny)");
-  const mcp = readJson(root, ".mcp.json", { created: [], updated: [], unchanged: [], skipped: [] });
+  const mcp = readJson(root, ".mcp.json", { report: emptyReport(), dry: true });
   const servers = mcp?.data["mcpServers"] as Record<string, unknown> | undefined;
   if (!servers?.["evol"]) missing.push(".mcp.json (servidor evol)");
   return { ok: missing.length === 0, missing };
