@@ -1,6 +1,6 @@
 {
   "name": "evol-driven",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Framework de desarrollo que evoluciona: proyectos TypeScript con pipeline de disciplinas Driven Development y memoria persistente (MemPalace).",
   "type": "module",
   "private": true,

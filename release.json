@@ -1,5 +1,5 @@
 {
-  "version": "0.3.0",
+  "version": "0.3.1",
   "fecha": "2026-10-25",
   "skills": {
     "a11ydd": "79b320c29c5a10b896723f3c0968d3215baa825b5bc108f01624f3f3d330e5cc",
@@ -31,7 +31,7 @@
     "effectcraft": "746e2aa25b58e51c203226dead01b0e91710770c240735444849012892e6650e",
     "esdd": "4f0dac0bb96732a73560d310e2f98c4647aaa2b25749941c6d50eea5919e373d",
     "evaluar-skill": "3ac5d45edb11cefac4adabbd6976a12364ce1436a20fc674538722a8c0f22318",
-    "evol": "0bc1b7890ff7ecc32f7dab95619f4ff5e8fe7f73bed9b2e657a333cda1712151",
+    "evol": "73db2922418cfc835a929706ddb1e61415a12f9f71fabd25e93fe34a4b06a092",
     "fdd": "57d317cf18696aff8ab49805fdca0904b49a3d330f3e3e9813554ae01a1499a8",
     "filmcraft": "54f337fdcba23c849eef018980f2c3f43b1048f824bd2b5fc745f9a01055003b",
     "incorporar-dependencia": "4133b2184ece717e13a6375916b31acf3f5fe807e01301a9cc32872eee114aff",

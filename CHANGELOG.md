@@ -1,5 +1,14 @@
 # Cambios
 
+## 0.3.1 — 2026-10-25
+
+- feat: evol checkpoint y evol handoff para retomar el trabajo con otro agente
+- fix: el CHANGELOG que genera evol release cumple el formato del proyecto; body-parser a 2.4.0
+
+Skills:
+
+- cambiada (vuelve a «sin auditar»): evol
+
 ## 0.3.0 — 2026-10-25
 
 - fix: el fallo de semgrep sin archivo nombrado dice su tipo, su código y su salida de error
