@@ -48,6 +48,11 @@ delegación medida (ola 3).
 - El agente principal de Claude Code, OpenCode y sus equivalentes acepta un `outputStyle`/`agent`
   por proyecto que prevalece sobre el del usuario dentro de ese proyecto: **por confirmar** con un
   ensayo real antes de build (criterios CA-135, CA-137, CA-140).
+- Una regla `permissions.deny` del proyecto sigue aplicándose aunque el `defaultMode` **global**
+  sea `bypassPermissions` (el caso real encontrado en la máquina de la persona): **por confirmar**
+  con el mismo ensayo, antes de build. De esto depende que las reglas de CA-134 sean «impuestas» de
+  verdad (T-1, T-3 de `docs/specs/THREATS.md`) y no solo declarativas; si el ensayo lo desmiente, se
+  degrada su clasificación y se avisa en `evol doctor`.
 - «La persona» en los criterios de `evol ciclo nuevo` y de las instrucciones según el repositorio es
   quien mantiene o usa evol, no un rol nuevo del pipeline.
 
@@ -105,3 +110,16 @@ delegación medida (ola 3).
     ninguna herramienta del MCP de evol permite abrirlo.
 21. **CA-148**: en el propio repositorio de evol-driven, la instrucción que `evol agents` genera en
     `AGENTS.md` invita a editar el framework; en cualquier otro proyecto, sigue prohibiéndolo.
+22. **CA-149**: `evol doctor` lista los servidores MCP activos del proyecto (los del proyecto y los
+    globales que el IDE heredaría), con su transporte, y marca los remotos como una salida de
+    datos. Criterio nuevo, añadido en spec a partir de la revisión de seguridad (el plan ya lo
+    preveía para M4, pero no había quedado en ningún criterio de briefing).
+
+> El criterio 22 (CA-149) es posterior al briefing de esta ola: la revisión del rol `seguridad`
+> encontró que M4 preveía listar los MCP remotos (RISK-004 del hallazgo de gentle-ai) y que no
+> había quedado en ningún criterio. Como el briefing de CA-135/CA-136 ya está aprobado, se añade al
+> final en vez de ampliar un criterio existente (regla de SDD: «no renumeres criterios que ya
+> existen»). Lleva su propio escenario y prueba, añadidos en spec a los artefactos de BDD/ATDD de
+> esta ola (`tests/features/aislamiento-proyecto.feature`,
+> `tests/acceptance/aislamiento-proyecto.acceptance.test.ts`); no toca los escenarios ni las
+> pruebas de CA-135/CA-136 que briefing ya aprobó.

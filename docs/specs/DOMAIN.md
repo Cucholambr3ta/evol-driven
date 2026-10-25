@@ -25,8 +25,9 @@
   cuando es solo una instrucción de texto que un agente podría ignorar.
 - **Protección de convivencia**: lo que `evol doctor` informa sobre la configuración de otro
   framework de agentes que encuentra a nivel global: un hallazgo tiene un tipo (hook, plugin,
-  estilo, permiso, agente por defecto), si es anulable desde el proyecto, y su clasificación
-  (impuesta, declarativa o no anulable).
+  estilo, permiso, agente por defecto, **servidor MCP**), si es anulable desde el proyecto, y su
+  clasificación (impuesta, declarativa o no anulable). Un servidor MCP, además, tiene un transporte
+  (local o remoto): uno remoto se marca como una salida de datos, no solo como configuración.
 - **Agente «evol»**: la entrada que `evol agents` crea en la configuración de un IDE (OpenCode,
   Claude Code) para que el orquestador de evol tenga nombre e identidad propios: un modo (primario),
   una descripción, un conjunto de permisos propios y, si el IDE lo permite, el agente por defecto

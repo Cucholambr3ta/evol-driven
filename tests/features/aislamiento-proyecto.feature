@@ -32,3 +32,10 @@ Feature: Las reglas del proyecto por encima de las globales
     Given un proyecto con evol instalado
     When la persona ejecuta "evol doctor"
     Then cada regla de la lista de bloqueo aparece marcada como «impuesta» o «declarativa»
+
+  @CA-149
+  Scenario: doctor lista los servidores MCP activos y marca los remotos
+    Given un usuario con un servidor MCP remoto activado globalmente
+    When la persona ejecuta "evol doctor"
+    Then el informe de convivencia lista ese servidor con su transporte
+    And lo marca como una salida de datos, por ser remoto

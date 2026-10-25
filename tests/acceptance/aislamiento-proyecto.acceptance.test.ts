@@ -31,6 +31,27 @@ function fakeHomeWithGlobalFramework(): string {
 const sha256 = (path: string): string =>
   createHash("sha256").update(readFileSync(path)).digest("hex");
 
+/** A fake HOME with a remote MCP server configured globally in OpenCode, like context7. */
+function fakeHomeWithRemoteMcp(): string {
+  const home = isolateUserConfig();
+  mkdirSync(join(home, ".config", "opencode"), { recursive: true });
+  writeFileSync(
+    join(home, ".config", "opencode", "opencode.json"),
+    JSON.stringify(
+      {
+        mcp: {
+          servers: {
+            documentacion: { type: "remote", url: "https://mcp.example.com/mcp", enabled: true },
+          },
+        },
+      },
+      null,
+      2,
+    ),
+  );
+  return home;
+}
+
 describe("las reglas del proyecto por encima de las globales", () => {
   it("CA-135: aislar el proyecto no cambia nada fuera de él", () => {
     const home = fakeHomeWithGlobalFramework();
@@ -90,5 +111,16 @@ describe("las reglas del proyecto por encima de las globales", () => {
     // state.json, gate-log.jsonl, ciclo, keys del gate), no una mención genérica suelta.
     const etiquetas = (result.stdout.match(/\b(impuesta|declarativa)\b/g) ?? []).length;
     expect(etiquetas).toBeGreaterThanOrEqual(9);
+  });
+
+  it("CA-149: doctor lista un servidor MCP remoto y lo marca como salida de datos", () => {
+    const home = fakeHomeWithRemoteMcp();
+    const root = makeProject(DISC);
+
+    const result = cli(["doctor"], { cwd: root, env: { HOME: home, EVOL_CONFIG_DIR: home } });
+
+    expect(result.stdout).toMatch(/documentacion/);
+    expect(result.stdout).toMatch(/remot[oa]/i);
+    expect(result.stdout).toMatch(/salida de datos/i);
   });
 });
