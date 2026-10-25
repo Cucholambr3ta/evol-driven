@@ -1015,7 +1015,10 @@ describe("semgrep: cobertura y reglas propias", () => {
       }),
       { propia: true },
     );
-    expect(report.herramientas["semgrep"]?.estado).toBe("ok");
+    expect(
+      report.herramientas["semgrep"]?.estado,
+      JSON.stringify(report.herramientas["semgrep"]),
+    ).toBe("ok");
     expect(report.hallazgos.filter((h) => h.regla === "semgrep")).toEqual([]);
   });
 });

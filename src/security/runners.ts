@@ -253,7 +253,7 @@ export function runSemgrep(root: string): RunResult {
       start?: { line?: number };
       extra?: { severity?: string; metadata?: { evol_severity?: string } };
     }[];
-    errors?: { level?: string; path?: string }[];
+    errors?: { level?: string; path?: string; type?: unknown }[];
   }>(r.stdout);
   if (parsed === null)
     return failedRun(
@@ -266,7 +266,11 @@ export function runSemgrep(root: string): RunResult {
     return failedRun(
       SEMGREP,
       `no pudo analizar ${broken
-        .map((e) => (e.path ? rel(root, e.path) : "una regla"))
+        // the type of error says why (a timeout, a crash) without quoting the code it choked on
+        .map((e) => {
+          const kind = typeof e.type === "string" ? ` (${e.type})` : "";
+          return `${e.path ? rel(root, e.path) : "una regla"}${kind}`;
+        })
         .slice(0, 3)
         .join(", ")}`,
       version,
