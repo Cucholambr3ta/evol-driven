@@ -157,7 +157,7 @@ export function checkUpdateNotice(
       ? { versionNueva: cached.versionNueva, firmaValida: true, skillsQuePerderianAprobacion: [] }
       : null;
   if (!repo) return null;
-  const notice = fetchFromNetwork(repo, currentVersion, opts.timeoutMs ?? 2_500);
+  const notice = fetchFromNetwork(repo, currentVersion, opts.timeoutMs ?? 1_500);
   writeCache(configDir, notice?.versionNueva ?? null, now);
   return notice;
 }
