@@ -1,0 +1,843 @@
+{
+  "fecha": "2026-10-25T09:26:35.089Z",
+  "areas": [
+    "secretos",
+    "codigo",
+    "dependencias",
+    "contenedores",
+    "licencias"
+  ],
+  "herramientas": [
+    {
+      "herramienta": "gitleaks",
+      "area": "secretos",
+      "estado": "ok",
+      "obligatoria": true,
+      "red": false,
+      "version": "8.30.1"
+    },
+    {
+      "herramienta": "semgrep",
+      "area": "codigo",
+      "estado": "ok",
+      "obligatoria": true,
+      "red": false,
+      "version": "1.182.0"
+    },
+    {
+      "herramienta": "bandit",
+      "area": "codigo",
+      "estado": "ok",
+      "obligatoria": true,
+      "red": false,
+      "version": "1.9.4"
+    },
+    {
+      "herramienta": "shellcheck",
+      "area": "codigo",
+      "estado": "ok",
+      "obligatoria": true,
+      "red": false,
+      "version": "0.11.0"
+    },
+    {
+      "herramienta": "osv-scanner",
+      "area": "dependencias",
+      "estado": "ok",
+      "obligatoria": true,
+      "red": true,
+      "version": "2.7.0"
+    },
+    {
+      "herramienta": "guarddog",
+      "area": "dependencias",
+      "estado": "ok",
+      "obligatoria": false,
+      "red": true,
+      "version": "3.2.0"
+    },
+    {
+      "herramienta": "trivy",
+      "area": "contenedores",
+      "estado": "ok",
+      "obligatoria": false,
+      "red": false,
+      "version": "0.76.0"
+    },
+    {
+      "herramienta": "checkov",
+      "area": "contenedores",
+      "estado": "ok",
+      "obligatoria": false,
+      "red": false,
+      "version": "3.3.28"
+    },
+    {
+      "herramienta": "syft",
+      "area": "licencias",
+      "estado": "ok",
+      "obligatoria": false,
+      "red": false,
+      "version": "1.55.0",
+      "detalle": "132 componente(s) en .evol/qa/security/sbom.cdx.json"
+    },
+    {
+      "herramienta": "reuse",
+      "area": "licencias",
+      "estado": "no-aplica",
+      "obligatoria": false,
+      "red": false,
+      "detalle": "el proyecto no usa REUSE (sin .reuse/, REUSE.toml ni LICENSES/)"
+    }
+  ],
+  "abiertos": [
+    {
+      "herramienta": "gitleaks",
+      "area": "secretos",
+      "regla": "generic-api-key",
+      "severidad": "CRITICAL",
+      "archivo": "release.json",
+      "linea": 42,
+      "mensaje": "secreto detectado (generic-api-key)"
+    },
+    {
+      "herramienta": "gitleaks",
+      "area": "secretos",
+      "regla": "generic-api-key",
+      "severidad": "CRITICAL",
+      "archivo": "release.json",
+      "linea": 51,
+      "mensaje": "secreto detectado (generic-api-key)"
+    },
+    {
+      "herramienta": "gitleaks",
+      "area": "secretos",
+      "regla": "generic-api-key",
+      "severidad": "CRITICAL",
+      "archivo": "release.json",
+      "linea": 9,
+      "mensaje": "secreto detectado (generic-api-key)"
+    },
+    {
+      "herramienta": "gitleaks",
+      "area": "secretos",
+      "regla": "aws-access-token",
+      "severidad": "CRITICAL",
+      "archivo": "tests/knowledge.test.ts",
+      "linea": 19,
+      "mensaje": "secreto detectado (aws-access-token)"
+    },
+    {
+      "herramienta": "gitleaks",
+      "area": "secretos",
+      "regla": "aws-access-token",
+      "severidad": "CRITICAL",
+      "archivo": "tests/security.test.ts",
+      "linea": 17,
+      "mensaje": "secreto detectado (aws-access-token)"
+    },
+    {
+      "herramienta": "guarddog",
+      "area": "dependencias",
+      "regla": "threat-runtime-environment-read",
+      "severidad": "HIGH",
+      "archivo": "package.json",
+      "mensaje": "yaml@2.9.1: threat-runtime-environment-read"
+    },
+    {
+      "herramienta": "guarddog",
+      "area": "dependencias",
+      "regla": "threat-runtime-environment-read",
+      "severidad": "HIGH",
+      "archivo": "package.json",
+      "mensaje": "@modelcontextprotocol/sdk@1.32.2: threat-runtime-environment-read"
+    },
+    {
+      "herramienta": "semgrep",
+      "area": "codigo",
+      "regla": "evol.js-spawn-shell",
+      "severidad": "HIGH",
+      "archivo": "src/core/verify.ts",
+      "linea": 31,
+      "mensaje": "regla evol.js-spawn-shell"
+    },
+    {
+      "herramienta": "checkov",
+      "area": "contenedores",
+      "regla": "CKV2_GHA_1",
+      "severidad": "MEDIUM",
+      "archivo": ".github/workflows/ci.yml",
+      "mensaje": "Ensure top-level permissions are not set to write-all"
+    },
+    {
+      "herramienta": "shellcheck",
+      "area": "codigo",
+      "regla": "SC2164",
+      "severidad": "MEDIUM",
+      "archivo": "docs/piloto-conocimiento/medicion/index_rag.sh",
+      "linea": 4,
+      "mensaje": "aviso SC2164 de shellcheck"
+    },
+    {
+      "herramienta": "shellcheck",
+      "area": "codigo",
+      "regla": "SC2164",
+      "severidad": "MEDIUM",
+      "archivo": "docs/piloto-conocimiento/medicion/index_vec.sh",
+      "linea": 4,
+      "mensaje": "aviso SC2164 de shellcheck"
+    },
+    {
+      "herramienta": "trivy",
+      "area": "contenedores",
+      "regla": "DS-0026",
+      "severidad": "LOW",
+      "archivo": "Dockerfile",
+      "mensaje": "No HEALTHCHECK defined"
+    },
+    {
+      "herramienta": "bandit",
+      "area": "codigo",
+      "regla": "B404",
+      "severidad": "LOW",
+      "archivo": "docs/piloto-conocimiento/medicion/harness.py",
+      "linea": 1,
+      "mensaje": "prueba blacklist"
+    },
+    {
+      "herramienta": "bandit",
+      "area": "codigo",
+      "regla": "B603",
+      "severidad": "LOW",
+      "archivo": "docs/piloto-conocimiento/medicion/harness.py",
+      "linea": 20,
+      "mensaje": "prueba subprocess_without_shell_equals_true"
+    },
+    {
+      "herramienta": "bandit",
+      "area": "codigo",
+      "regla": "B603",
+      "severidad": "LOW",
+      "archivo": "docs/piloto-conocimiento/medicion/harness.py",
+      "linea": 38,
+      "mensaje": "prueba subprocess_without_shell_equals_true"
+    },
+    {
+      "herramienta": "shellcheck",
+      "area": "codigo",
+      "regla": "SC2086",
+      "severidad": "LOW",
+      "archivo": "docs/piloto-conocimiento/medicion/index_rag.sh",
+      "linea": 4,
+      "mensaje": "aviso SC2086 de shellcheck"
+    },
+    {
+      "herramienta": "shellcheck",
+      "area": "codigo",
+      "regla": "SC2086",
+      "severidad": "LOW",
+      "archivo": "docs/piloto-conocimiento/medicion/index_rag.sh",
+      "linea": 5,
+      "mensaje": "aviso SC2086 de shellcheck"
+    },
+    {
+      "herramienta": "shellcheck",
+      "area": "codigo",
+      "regla": "SC2086",
+      "severidad": "LOW",
+      "archivo": "docs/piloto-conocimiento/medicion/index_rag.sh",
+      "linea": 5,
+      "mensaje": "aviso SC2086 de shellcheck"
+    },
+    {
+      "herramienta": "shellcheck",
+      "area": "codigo",
+      "regla": "SC2086",
+      "severidad": "LOW",
+      "archivo": "docs/piloto-conocimiento/medicion/index_rag.sh",
+      "linea": 5,
+      "mensaje": "aviso SC2086 de shellcheck"
+    },
+    {
+      "herramienta": "shellcheck",
+      "area": "codigo",
+      "regla": "SC2086",
+      "severidad": "LOW",
+      "archivo": "docs/piloto-conocimiento/medicion/index_rag.sh",
+      "linea": 8,
+      "mensaje": "aviso SC2086 de shellcheck"
+    },
+    {
+      "herramienta": "shellcheck",
+      "area": "codigo",
+      "regla": "SC2086",
+      "severidad": "LOW",
+      "archivo": "docs/piloto-conocimiento/medicion/index_rag.sh",
+      "linea": 8,
+      "mensaje": "aviso SC2086 de shellcheck"
+    },
+    {
+      "herramienta": "shellcheck",
+      "area": "codigo",
+      "regla": "SC2086",
+      "severidad": "LOW",
+      "archivo": "docs/piloto-conocimiento/medicion/index_rag.sh",
+      "linea": 8,
+      "mensaje": "aviso SC2086 de shellcheck"
+    },
+    {
+      "herramienta": "shellcheck",
+      "area": "codigo",
+      "regla": "SC2086",
+      "severidad": "LOW",
+      "archivo": "docs/piloto-conocimiento/medicion/index_rag.sh",
+      "linea": 8,
+      "mensaje": "aviso SC2086 de shellcheck"
+    },
+    {
+      "herramienta": "shellcheck",
+      "area": "codigo",
+      "regla": "SC2086",
+      "severidad": "LOW",
+      "archivo": "docs/piloto-conocimiento/medicion/index_rag.sh",
+      "linea": 8,
+      "mensaje": "aviso SC2086 de shellcheck"
+    },
+    {
+      "herramienta": "shellcheck",
+      "area": "codigo",
+      "regla": "SC2086",
+      "severidad": "LOW",
+      "archivo": "docs/piloto-conocimiento/medicion/index_vec.sh",
+      "linea": 10,
+      "mensaje": "aviso SC2086 de shellcheck"
+    },
+    {
+      "herramienta": "shellcheck",
+      "area": "codigo",
+      "regla": "SC2086",
+      "severidad": "LOW",
+      "archivo": "docs/piloto-conocimiento/medicion/index_vec.sh",
+      "linea": 10,
+      "mensaje": "aviso SC2086 de shellcheck"
+    },
+    {
+      "herramienta": "shellcheck",
+      "area": "codigo",
+      "regla": "SC2086",
+      "severidad": "LOW",
+      "archivo": "docs/piloto-conocimiento/medicion/index_vec.sh",
+      "linea": 10,
+      "mensaje": "aviso SC2086 de shellcheck"
+    },
+    {
+      "herramienta": "shellcheck",
+      "area": "codigo",
+      "regla": "SC2086",
+      "severidad": "LOW",
+      "archivo": "docs/piloto-conocimiento/medicion/index_vec.sh",
+      "linea": 10,
+      "mensaje": "aviso SC2086 de shellcheck"
+    },
+    {
+      "herramienta": "shellcheck",
+      "area": "codigo",
+      "regla": "SC2086",
+      "severidad": "LOW",
+      "archivo": "docs/piloto-conocimiento/medicion/index_vec.sh",
+      "linea": 10,
+      "mensaje": "aviso SC2086 de shellcheck"
+    },
+    {
+      "herramienta": "shellcheck",
+      "area": "codigo",
+      "regla": "SC2086",
+      "severidad": "LOW",
+      "archivo": "docs/piloto-conocimiento/medicion/index_vec.sh",
+      "linea": 4,
+      "mensaje": "aviso SC2086 de shellcheck"
+    },
+    {
+      "herramienta": "shellcheck",
+      "area": "codigo",
+      "regla": "SC2086",
+      "severidad": "LOW",
+      "archivo": "docs/piloto-conocimiento/medicion/index_vec.sh",
+      "linea": 5,
+      "mensaje": "aviso SC2086 de shellcheck"
+    },
+    {
+      "herramienta": "shellcheck",
+      "area": "codigo",
+      "regla": "SC2086",
+      "severidad": "LOW",
+      "archivo": "docs/piloto-conocimiento/medicion/index_vec.sh",
+      "linea": 6,
+      "mensaje": "aviso SC2086 de shellcheck"
+    },
+    {
+      "herramienta": "shellcheck",
+      "area": "codigo",
+      "regla": "SC2086",
+      "severidad": "LOW",
+      "archivo": "docs/piloto-conocimiento/medicion/index_vec.sh",
+      "linea": 7,
+      "mensaje": "aviso SC2086 de shellcheck"
+    },
+    {
+      "herramienta": "shellcheck",
+      "area": "codigo",
+      "regla": "SC2086",
+      "severidad": "LOW",
+      "archivo": "docs/piloto-conocimiento/medicion/index_vec.sh",
+      "linea": 7,
+      "mensaje": "aviso SC2086 de shellcheck"
+    },
+    {
+      "herramienta": "bandit",
+      "area": "codigo",
+      "regla": "B404",
+      "severidad": "LOW",
+      "archivo": "docs/piloto-conocimiento/medicion/run_bge.py",
+      "linea": 1,
+      "mensaje": "prueba blacklist"
+    }
+  ],
+  "ignorados": [
+    {
+      "herramienta": "semgrep",
+      "area": "codigo",
+      "regla": "evol.js-eval",
+      "severidad": "HIGH",
+      "archivo": "rules/semgrep/javascript.js",
+      "linea": 6,
+      "mensaje": "regla evol.js-eval",
+      "ignorado": {
+        "motivo": "código de ejemplo deliberadamente inseguro, usado para probar las reglas del escáner",
+        "responsable": "cucholambreta",
+        "caduca": "2027-10-25"
+      }
+    },
+    {
+      "herramienta": "semgrep",
+      "area": "codigo",
+      "regla": "evol.js-eval",
+      "severidad": "HIGH",
+      "archivo": "rules/semgrep/javascript.js",
+      "linea": 8,
+      "mensaje": "regla evol.js-eval",
+      "ignorado": {
+        "motivo": "código de ejemplo deliberadamente inseguro, usado para probar las reglas del escáner",
+        "responsable": "cucholambreta",
+        "caduca": "2027-10-25"
+      }
+    },
+    {
+      "herramienta": "semgrep",
+      "area": "codigo",
+      "regla": "evol.js-exec",
+      "severidad": "HIGH",
+      "archivo": "rules/semgrep/javascript.js",
+      "linea": 13,
+      "mensaje": "regla evol.js-exec",
+      "ignorado": {
+        "motivo": "código de ejemplo deliberadamente inseguro, usado para probar las reglas del escáner",
+        "responsable": "cucholambreta",
+        "caduca": "2027-10-25"
+      }
+    },
+    {
+      "herramienta": "semgrep",
+      "area": "codigo",
+      "regla": "evol.js-exec",
+      "severidad": "HIGH",
+      "archivo": "rules/semgrep/javascript.js",
+      "linea": 15,
+      "mensaje": "regla evol.js-exec",
+      "ignorado": {
+        "motivo": "código de ejemplo deliberadamente inseguro, usado para probar las reglas del escáner",
+        "responsable": "cucholambreta",
+        "caduca": "2027-10-25"
+      }
+    },
+    {
+      "herramienta": "semgrep",
+      "area": "codigo",
+      "regla": "evol.js-spawn-shell",
+      "severidad": "HIGH",
+      "archivo": "rules/semgrep/javascript.js",
+      "linea": 22,
+      "mensaje": "regla evol.js-spawn-shell",
+      "ignorado": {
+        "motivo": "código de ejemplo deliberadamente inseguro, usado para probar las reglas del escáner",
+        "responsable": "cucholambreta",
+        "caduca": "2027-10-25"
+      }
+    },
+    {
+      "herramienta": "semgrep",
+      "area": "codigo",
+      "regla": "evol.js-dynamic-require",
+      "severidad": "MEDIUM",
+      "archivo": "rules/semgrep/javascript.js",
+      "linea": 27,
+      "mensaje": "regla evol.js-dynamic-require",
+      "ignorado": {
+        "motivo": "código de ejemplo deliberadamente inseguro, usado para probar las reglas del escáner",
+        "responsable": "cucholambreta",
+        "caduca": "2027-10-25"
+      }
+    },
+    {
+      "herramienta": "semgrep",
+      "area": "codigo",
+      "regla": "evol.js-tls-reject-unauthorized",
+      "severidad": "MEDIUM",
+      "archivo": "rules/semgrep/javascript.js",
+      "linea": 32,
+      "mensaje": "regla evol.js-tls-reject-unauthorized",
+      "ignorado": {
+        "motivo": "código de ejemplo deliberadamente inseguro, usado para probar las reglas del escáner",
+        "responsable": "cucholambreta",
+        "caduca": "2027-10-25"
+      }
+    },
+    {
+      "herramienta": "semgrep",
+      "area": "codigo",
+      "regla": "evol.py-shell-true",
+      "severidad": "HIGH",
+      "archivo": "rules/semgrep/python.py",
+      "linea": 11,
+      "mensaje": "regla evol.py-shell-true",
+      "ignorado": {
+        "motivo": "código de ejemplo deliberadamente inseguro, usado para probar las reglas del escáner",
+        "responsable": "cucholambreta",
+        "caduca": "2027-10-25"
+      }
+    },
+    {
+      "herramienta": "semgrep",
+      "area": "codigo",
+      "regla": "evol.py-os-system",
+      "severidad": "HIGH",
+      "archivo": "rules/semgrep/python.py",
+      "linea": 16,
+      "mensaje": "regla evol.py-os-system",
+      "ignorado": {
+        "motivo": "código de ejemplo deliberadamente inseguro, usado para probar las reglas del escáner",
+        "responsable": "cucholambreta",
+        "caduca": "2027-10-25"
+      }
+    },
+    {
+      "herramienta": "semgrep",
+      "area": "codigo",
+      "regla": "evol.py-eval-exec",
+      "severidad": "HIGH",
+      "archivo": "rules/semgrep/python.py",
+      "linea": 21,
+      "mensaje": "regla evol.py-eval-exec",
+      "ignorado": {
+        "motivo": "código de ejemplo deliberadamente inseguro, usado para probar las reglas del escáner",
+        "responsable": "cucholambreta",
+        "caduca": "2027-10-25"
+      }
+    },
+    {
+      "herramienta": "semgrep",
+      "area": "codigo",
+      "regla": "evol.py-eval-exec",
+      "severidad": "HIGH",
+      "archivo": "rules/semgrep/python.py",
+      "linea": 23,
+      "mensaje": "regla evol.py-eval-exec",
+      "ignorado": {
+        "motivo": "código de ejemplo deliberadamente inseguro, usado para probar las reglas del escáner",
+        "responsable": "cucholambreta",
+        "caduca": "2027-10-25"
+      }
+    },
+    {
+      "herramienta": "semgrep",
+      "area": "codigo",
+      "regla": "evol.py-pickle",
+      "severidad": "MEDIUM",
+      "archivo": "rules/semgrep/python.py",
+      "linea": 28,
+      "mensaje": "regla evol.py-pickle",
+      "ignorado": {
+        "motivo": "código de ejemplo deliberadamente inseguro, usado para probar las reglas del escáner",
+        "responsable": "cucholambreta",
+        "caduca": "2027-10-25"
+      }
+    },
+    {
+      "herramienta": "semgrep",
+      "area": "codigo",
+      "regla": "evol.py-yaml-load",
+      "severidad": "MEDIUM",
+      "archivo": "rules/semgrep/python.py",
+      "linea": 31,
+      "mensaje": "regla evol.py-yaml-load",
+      "ignorado": {
+        "motivo": "código de ejemplo deliberadamente inseguro, usado para probar las reglas del escáner",
+        "responsable": "cucholambreta",
+        "caduca": "2027-10-25"
+      }
+    },
+    {
+      "herramienta": "semgrep",
+      "area": "codigo",
+      "regla": "evol.py-tls-verify-false",
+      "severidad": "MEDIUM",
+      "archivo": "rules/semgrep/python.py",
+      "linea": 38,
+      "mensaje": "regla evol.py-tls-verify-false",
+      "ignorado": {
+        "motivo": "código de ejemplo deliberadamente inseguro, usado para probar las reglas del escáner",
+        "responsable": "cucholambreta",
+        "caduca": "2027-10-25"
+      }
+    },
+    {
+      "herramienta": "semgrep",
+      "area": "codigo",
+      "regla": "evol.py-dynamic-import",
+      "severidad": "MEDIUM",
+      "archivo": "rules/semgrep/python.py",
+      "linea": 43,
+      "mensaje": "regla evol.py-dynamic-import",
+      "ignorado": {
+        "motivo": "código de ejemplo deliberadamente inseguro, usado para probar las reglas del escáner",
+        "responsable": "cucholambreta",
+        "caduca": "2027-10-25"
+      }
+    },
+    {
+      "herramienta": "bandit",
+      "area": "codigo",
+      "regla": "B403",
+      "severidad": "LOW",
+      "archivo": "rules/semgrep/python.py",
+      "linea": 2,
+      "mensaje": "prueba blacklist",
+      "ignorado": {
+        "motivo": "código de ejemplo deliberadamente inseguro, usado para probar las reglas del escáner",
+        "responsable": "cucholambreta",
+        "caduca": "2027-10-25"
+      }
+    },
+    {
+      "herramienta": "bandit",
+      "area": "codigo",
+      "regla": "B404",
+      "severidad": "LOW",
+      "archivo": "rules/semgrep/python.py",
+      "linea": 3,
+      "mensaje": "prueba blacklist",
+      "ignorado": {
+        "motivo": "código de ejemplo deliberadamente inseguro, usado para probar las reglas del escáner",
+        "responsable": "cucholambreta",
+        "caduca": "2027-10-25"
+      }
+    },
+    {
+      "herramienta": "bandit",
+      "area": "codigo",
+      "regla": "B602",
+      "severidad": "HIGH",
+      "archivo": "rules/semgrep/python.py",
+      "linea": 11,
+      "mensaje": "prueba subprocess_popen_with_shell_equals_true",
+      "ignorado": {
+        "motivo": "código de ejemplo deliberadamente inseguro, usado para probar las reglas del escáner",
+        "responsable": "cucholambreta",
+        "caduca": "2027-10-25"
+      }
+    },
+    {
+      "herramienta": "bandit",
+      "area": "codigo",
+      "regla": "B607",
+      "severidad": "LOW",
+      "archivo": "rules/semgrep/python.py",
+      "linea": 13,
+      "mensaje": "prueba start_process_with_partial_path",
+      "ignorado": {
+        "motivo": "código de ejemplo deliberadamente inseguro, usado para probar las reglas del escáner",
+        "responsable": "cucholambreta",
+        "caduca": "2027-10-25"
+      }
+    },
+    {
+      "herramienta": "bandit",
+      "area": "codigo",
+      "regla": "B603",
+      "severidad": "LOW",
+      "archivo": "rules/semgrep/python.py",
+      "linea": 13,
+      "mensaje": "prueba subprocess_without_shell_equals_true",
+      "ignorado": {
+        "motivo": "código de ejemplo deliberadamente inseguro, usado para probar las reglas del escáner",
+        "responsable": "cucholambreta",
+        "caduca": "2027-10-25"
+      }
+    },
+    {
+      "herramienta": "bandit",
+      "area": "codigo",
+      "regla": "B605",
+      "severidad": "HIGH",
+      "archivo": "rules/semgrep/python.py",
+      "linea": 16,
+      "mensaje": "prueba start_process_with_a_shell",
+      "ignorado": {
+        "motivo": "código de ejemplo deliberadamente inseguro, usado para probar las reglas del escáner",
+        "responsable": "cucholambreta",
+        "caduca": "2027-10-25"
+      }
+    },
+    {
+      "herramienta": "bandit",
+      "area": "codigo",
+      "regla": "B605",
+      "severidad": "LOW",
+      "archivo": "rules/semgrep/python.py",
+      "linea": 18,
+      "mensaje": "prueba start_process_with_a_shell",
+      "ignorado": {
+        "motivo": "código de ejemplo deliberadamente inseguro, usado para probar las reglas del escáner",
+        "responsable": "cucholambreta",
+        "caduca": "2027-10-25"
+      }
+    },
+    {
+      "herramienta": "bandit",
+      "area": "codigo",
+      "regla": "B607",
+      "severidad": "LOW",
+      "archivo": "rules/semgrep/python.py",
+      "linea": 18,
+      "mensaje": "prueba start_process_with_partial_path",
+      "ignorado": {
+        "motivo": "código de ejemplo deliberadamente inseguro, usado para probar las reglas del escáner",
+        "responsable": "cucholambreta",
+        "caduca": "2027-10-25"
+      }
+    },
+    {
+      "herramienta": "bandit",
+      "area": "codigo",
+      "regla": "B307",
+      "severidad": "MEDIUM",
+      "archivo": "rules/semgrep/python.py",
+      "linea": 21,
+      "mensaje": "prueba blacklist",
+      "ignorado": {
+        "motivo": "código de ejemplo deliberadamente inseguro, usado para probar las reglas del escáner",
+        "responsable": "cucholambreta",
+        "caduca": "2027-10-25"
+      }
+    },
+    {
+      "herramienta": "bandit",
+      "area": "codigo",
+      "regla": "B102",
+      "severidad": "MEDIUM",
+      "archivo": "rules/semgrep/python.py",
+      "linea": 23,
+      "mensaje": "prueba exec_used",
+      "ignorado": {
+        "motivo": "código de ejemplo deliberadamente inseguro, usado para probar las reglas del escáner",
+        "responsable": "cucholambreta",
+        "caduca": "2027-10-25"
+      }
+    },
+    {
+      "herramienta": "bandit",
+      "area": "codigo",
+      "regla": "B307",
+      "severidad": "MEDIUM",
+      "archivo": "rules/semgrep/python.py",
+      "linea": 25,
+      "mensaje": "prueba blacklist",
+      "ignorado": {
+        "motivo": "código de ejemplo deliberadamente inseguro, usado para probar las reglas del escáner",
+        "responsable": "cucholambreta",
+        "caduca": "2027-10-25"
+      }
+    },
+    {
+      "herramienta": "bandit",
+      "area": "codigo",
+      "regla": "B301",
+      "severidad": "MEDIUM",
+      "archivo": "rules/semgrep/python.py",
+      "linea": 28,
+      "mensaje": "prueba blacklist",
+      "ignorado": {
+        "motivo": "código de ejemplo deliberadamente inseguro, usado para probar las reglas del escáner",
+        "responsable": "cucholambreta",
+        "caduca": "2027-10-25"
+      }
+    },
+    {
+      "herramienta": "bandit",
+      "area": "codigo",
+      "regla": "B506",
+      "severidad": "MEDIUM",
+      "archivo": "rules/semgrep/python.py",
+      "linea": 31,
+      "mensaje": "prueba yaml_load",
+      "ignorado": {
+        "motivo": "código de ejemplo deliberadamente inseguro, usado para probar las reglas del escáner",
+        "responsable": "cucholambreta",
+        "caduca": "2027-10-25"
+      }
+    },
+    {
+      "herramienta": "bandit",
+      "area": "codigo",
+      "regla": "B501",
+      "severidad": "HIGH",
+      "archivo": "rules/semgrep/python.py",
+      "linea": 38,
+      "mensaje": "prueba request_with_no_cert_validation",
+      "ignorado": {
+        "motivo": "código de ejemplo deliberadamente inseguro, usado para probar las reglas del escáner",
+        "responsable": "cucholambreta",
+        "caduca": "2027-10-25"
+      }
+    },
+    {
+      "herramienta": "bandit",
+      "area": "codigo",
+      "regla": "B113",
+      "severidad": "MEDIUM",
+      "archivo": "rules/semgrep/python.py",
+      "linea": 38,
+      "mensaje": "prueba request_without_timeout",
+      "ignorado": {
+        "motivo": "código de ejemplo deliberadamente inseguro, usado para probar las reglas del escáner",
+        "responsable": "cucholambreta",
+        "caduca": "2027-10-25"
+      }
+    },
+    {
+      "herramienta": "bandit",
+      "area": "codigo",
+      "regla": "B113",
+      "severidad": "MEDIUM",
+      "archivo": "rules/semgrep/python.py",
+      "linea": 40,
+      "mensaje": "prueba request_without_timeout",
+      "ignorado": {
+        "motivo": "código de ejemplo deliberadamente inseguro, usado para probar las reglas del escáner",
+        "responsable": "cucholambreta",
+        "caduca": "2027-10-25"
+      }
+    }
+  ],
+  "avisos": []
+}

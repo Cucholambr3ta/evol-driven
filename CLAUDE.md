@@ -23,3 +23,25 @@ Este proyecto sigue el pipeline de `evol`: briefing → spec → plan → build 
 - El MCP `evol` (`.mcp.json`) ofrece las consultas como herramientas de solo lectura.
 
 <!-- evol:end -->
+
+## Este repositorio es el origen de evol
+
+Este proyecto **es** el framework evol, no un proyecto que lo usa desde fuera. Por eso:
+
+- Lo que está prohibido tocar es la copia **instalada** de evol
+  (`~/.local/share/evol/versiones/*`, de solo lectura) y la carpeta de otro usuario
+  (`~/.local/share/evol` de cualquier otra persona). Editar el código fuente de este repositorio
+  **es** el trabajo: para eso existe.
+- El pipeline de arriba corre con la copia **estable** instalada (`evol`, no `evol-dev`), para que
+  el framework que verifica cada fase no cambie mientras se edita su propio origen.
+
+### Reglas de este proyecto
+
+- **Idioma:** español, tanto en el código generado para la persona (mensajes, documentación) como en
+  la conversación. El código fuente (identificadores, comentarios en inglés) sigue el estilo ya
+  existente en el repositorio.
+- **Commits:** convencionales (`feat:`, `fix:`, `docs:`, `chore:`…), en español, sin líneas de
+  atribución a un agente de IA.
+- **Memoria:** MemPalace es la memoria de este proyecto. No uses ninguna otra.
+- **Revisión:** `evol verify` y las disciplinas del propio pipeline son la revisión de este
+  repositorio; no se usan herramientas de revisión de terceros instaladas de forma global.
