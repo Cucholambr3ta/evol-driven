@@ -71,8 +71,27 @@ const q = (value: string): string => JSON.stringify(value);
 export const ENTRY_NOTE =
   "La skill `evol` es la fuente del orquestador; este archivo se genera de ella al ejecutar `evol agents`.";
 
+/**
+ * Whether `root` is the origin of the evol-driven framework itself (its own package name, in an
+ * actual git repository — not merely a project that happens to share the name), for the one line of
+ * `instructionsBlock` that depends on it (criterio 148).
+ */
+export function isEvolOrigin(root: string): boolean {
+  const pkgFile = join(root, "package.json");
+  if (!existsSync(pkgFile) || !existsSync(join(root, ".git"))) return false;
+  try {
+    const pkg = JSON.parse(readFileSync(pkgFile, "utf8")) as { name?: string };
+    return pkg.name === "evol-driven";
+  } catch {
+    return false;
+  }
+}
+
 /** The instructions block every IDE reads: no project state in it, only the way of working. */
-export function instructionsBlock(): string {
+export function instructionsBlock(origin = false): string {
+  const framework = origin
+    ? "**Este repositorio es el origen del framework evol: aquí sí se modifica.** Lo que cambies aquí llega, con la próxima versión (`evol release` y `evol update`), a todos los proyectos que lo usen: cuida la compatibilidad."
+    : '**No modifiques el framework evol desde este proyecto** (su copia instalada es de solo lectura). Si encuentras algo que mejorar, anótalo con `evol mejora add "…"`: se atiende en el origen del framework.';
   return `<!-- evol:begin -->
 
 ## Flujo de trabajo con evol
@@ -86,7 +105,7 @@ Este proyecto sigue el pipeline de \`evol\`: briefing → spec → plan → buil
   No los ejecutes ni intentes saltarte la aprobación.
 - Los archivos con \`[[COMPLETAR]]\` están sin escribir: complétalos antes de pedir la aprobación.
 - La revisión de \`verificador\` y \`seguridad\` se hace con contexto limpio y en solo lectura, sin cambiar nada.
-- **No modifiques el framework evol desde este proyecto** (su copia instalada es de solo lectura). Si encuentras algo que mejorar, anótalo con \`evol mejora add "…"\`: se atiende en el origen del framework.
+- ${framework}
 
 <!-- evol:end -->
 `;
@@ -374,7 +393,7 @@ const END = "<!-- evol:end -->";
 export function writeAgentsMd(root: string): AdapterReport {
   const report: AdapterReport = { created: [], updated: [], unchanged: [], skipped: [] };
   const file = join(root, "AGENTS.md");
-  const block = instructionsBlock();
+  const block = instructionsBlock(isEvolOrigin(root));
   const aislar = aislamientoBlock();
   let next: string;
   if (!existsSync(file)) {

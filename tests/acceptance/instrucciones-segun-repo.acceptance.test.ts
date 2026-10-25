@@ -12,7 +12,9 @@ describe("instrucciones correctas según el repositorio", () => {
     write(root, "package.json", JSON.stringify({ name: "evol-driven", version: "0.0.0" }));
     write(root, ".git/HEAD", "ref: refs/heads/main\n"); // suficiente para que se detecte como repo git
 
-    const result = cli(["agents"], { cwd: root, env: env() });
+    // AGENTS.md (los demás IDE) solo se escribe con --ide all o un IDE que no sea Claude Code: por
+    // defecto «evol agents» solo cubre Claude Code (no genera AGENTS.md).
+    const result = cli(["agents", "--ide", "all"], { cwd: root, env: env() });
 
     expect(result.status).toBe(0);
     const agentsMd = readFileSync(join(root, "AGENTS.md"), "utf8");
@@ -24,7 +26,7 @@ describe("instrucciones correctas según el repositorio", () => {
     const root = makeProject(DISC);
     write(root, "package.json", JSON.stringify({ name: "@acme/tienda", version: "1.0.0" }));
 
-    const result = cli(["agents"], { cwd: root, env: env() });
+    const result = cli(["agents", "--ide", "all"], { cwd: root, env: env() });
 
     expect(result.status).toBe(0);
     const agentsMd = readFileSync(join(root, "AGENTS.md"), "utf8");
