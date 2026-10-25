@@ -6,6 +6,7 @@ import { PHASES } from "./phases.js";
 import type { Phase } from "./phases.js";
 import { evolPath } from "./paths.js";
 import { UserError } from "./errors.js";
+import { versionInfo } from "../release/version.js";
 
 const StateSchema = z.object({
   version: z.literal(1),
@@ -14,6 +15,10 @@ const StateSchema = z.object({
   completed: z.array(
     z.object({ phase: z.enum(PHASES), at: z.string(), adopted: z.boolean().optional() }),
   ),
+  /** Which evol created the project. Projects from before this field simply do not have it. */
+  creadoCon: z
+    .object({ version: z.string(), canal: z.string(), commit: z.string().nullable() })
+    .optional(),
 });
 
 export type PipelineState = z.infer<typeof StateSchema>;
@@ -33,6 +38,7 @@ export function initState(root: string, phase: Phase = PHASES[0]): PipelineState
     projectId: randomUUID(),
     currentPhase: phase,
     completed: PHASES.slice(0, PHASES.indexOf(phase)).map((p) => ({ phase: p, at, adopted: true })),
+    creadoCon: (({ version, canal, commit }) => ({ version, canal, commit }))(versionInfo()),
   };
   saveState(root, state);
   return state;

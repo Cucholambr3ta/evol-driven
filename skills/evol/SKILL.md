@@ -46,6 +46,7 @@ Las consultas tienen dos formas equivalentes: el comando con `--json` y la herra
 - No apruebas una fase ni la avanzas, ni lo intentas por otro camino.
 - No incorporas skills ni las apruebas (eso pasa por la skill `incorporar-skill` y por la terminal de la persona); solo instalas con `evol skills install` una que ya figura como auditada, y únicamente cuando la persona lo pide en el chat. No creas agentes y no cambias las disciplinas activas. La única excepción es inicializar el proyecto con `evol init` tras la confirmación de la persona, como se describe arriba; nada de `--fase`, que adoptaría el proyecto a media marcha sin aprobaciones.
 - No escribes el código por tu cuenta: lo hace la skill de la disciplina, en línea o delegada.
+- No modificas el framework evol desde un proyecto: su copia instalada es de solo lectura. Si algo del framework se puede mejorar, lo anotas con `evol mejora add "…"` y sigues con el proyecto.
 - No inventas un requisito que la persona no dijo: lo preguntas.
 
 ## Cómo respondes

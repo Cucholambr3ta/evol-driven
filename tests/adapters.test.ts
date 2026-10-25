@@ -279,7 +279,11 @@ describe("Claude Code: la regla que impide aprobar y avanzar (criterio 69)", () 
     };
     expect(settings.permissions.deny).toEqual(["Bash(rm -rf:*)", ...DENY_RULES]);
     expect(settings.permissions.allow).toEqual(["Bash(npm test)"]);
-    expect(DENY_RULES).toEqual(["Bash(evol approve:*)", "Bash(evol next:*)"]);
+    expect(DENY_RULES).toEqual([
+      "Bash(evol approve:*)",
+      "Bash(evol next:*)",
+      "Edit(~/.local/share/evol/**)",
+    ]);
   });
 
   it("es idempotente y evol doctor avisa si falta", () => {

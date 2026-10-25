@@ -112,6 +112,24 @@ const COMMANDS: Record<string, CommandSpec> = {
     summary: "Servidor MCP de solo lectura (estado, verificación, código, memoria)",
     load: async () => (await import("./commands/mcp.js")).default,
   },
+  mejora: {
+    summary:
+      "Buzón de mejoras del framework: anota desde cualquier proyecto, no cambia nada (add | list | hecha | descartar)",
+    load: async () => (await import("./commands/mejora.js")).default,
+  },
+  update: {
+    summary: "Instala una versión firmada del framework desde GitHub (--comprobar, --volver)",
+    load: async () => (await import("./commands/update.js")).default,
+  },
+  release: {
+    summary:
+      "Publica una versión del framework: changelog, CI, commit y etiqueta firmada (no sube nada)",
+    load: async () => (await import("./commands/release.js")).default,
+  },
+  version: {
+    summary: "Qué evol es: versión, canal (origen o estable), commit e integridad (--json)",
+    load: async () => (await import("./commands/version.js")).default,
+  },
   setup: {
     summary: "Instala lo que falta (pregunta antes de cada cosa) y prepara tu biblioteca de skills",
     load: async () => (await import("./commands/setup.js")).default,

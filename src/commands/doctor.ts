@@ -3,13 +3,15 @@ import { existsSync } from "node:fs";
 import { loadConfig } from "../core/config.js";
 import { loadDisciplines } from "../core/disciplines.js";
 import { readKey, readLog, verifyChain, keyPath } from "../core/gate.js";
-import { CONFIG_FILE, findProjectRoot, packageVersion } from "../core/paths.js";
+import { CONFIG_FILE, findProjectRoot } from "../core/paths.js";
 import { loadState } from "../core/state.js";
 import { adapterMissing, CLAUDE_CODE, detectIdes, OTHER_ADAPTERS } from "../agents/adapters.js";
 import { agentFilesComplete } from "../agents/files.js";
 import { GitNexusProvider } from "../codeintel/gitnexus.js";
 import { withMemPalace } from "../memory/mempalace.js";
 import { securityToolStatus } from "../security/tools.js";
+import { describeVersion, versionInfo, compareVersions } from "../release/version.js";
+import { verifyIntegrity } from "../release/integrity.js";
 import { out } from "./shared.js";
 
 type Level = "ok" | "aviso" | "error";
@@ -38,7 +40,25 @@ export default async function run(): Promise<number> {
     "Node.js",
     `${process.versions.node}${major >= 24 ? "" : " (se requiere ≥ 24)"}`,
   );
-  add("ok", "evol", packageVersion());
+  const info = versionInfo();
+  add("ok", "evol", describeVersion(info));
+  if (info.canal === "estable") {
+    const integrity = verifyIntegrity(info.raiz);
+    if (integrity.sinRegistro)
+      add("aviso", "Integridad de evol", "la copia instalada no trae su registro de integridad");
+    else if (integrity.ok) add("ok", "Integridad de evol", "la copia instalada no ha cambiado");
+    else
+      add(
+        "error",
+        "Integridad de evol",
+        `la copia instalada se modificó (${[...integrity.modificados, ...integrity.faltan, ...integrity.nuevos].slice(0, 3).join(", ")}…): las mejoras se hacen en el origen, no aquí; reinstálala con evol update`,
+      );
+  } else if (info.canal === "origen" && process.env["EVOL_ORIGIN_OK"] !== "1")
+    add(
+      "aviso",
+      "Canal",
+      "estás usando el origen del framework, no la copia estable: cualquier cambio que hagas en él afecta a todos los proyectos que lo usen",
+    );
 
   const git = tool("git", ["--version"]);
   add(git ? "ok" : "error", "Git", git ?? "no está instalado");
@@ -62,6 +82,14 @@ export default async function run(): Promise<number> {
       );
       const state = loadState(root);
       add("ok", "Estado del pipeline", `fase actual: ${state.currentPhase}`);
+      if (state.creadoCon) {
+        const newer = compareVersions(state.creadoCon.version, info.version) > 0;
+        add(
+          newer ? "aviso" : "ok",
+          "Versión con la que se creó el proyecto",
+          `${state.creadoCon.version} (${state.creadoCon.canal})${newer ? `: es más nueva que la de este evol (${info.version}); actualízalo` : ""}`,
+        );
+      }
       const key = readKey(state.projectId);
       if (!key)
         add(

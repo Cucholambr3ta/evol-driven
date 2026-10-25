@@ -26,7 +26,12 @@ const BEGIN = "<!-- evol:begin -->";
 const END = "<!-- evol:end -->";
 export const HOOK_COMMAND = "evol hook session-start";
 /** What Claude Code is told never to run: approving a phase and moving the pipeline on are for a person. */
-export const DENY_RULES = ["Bash(evol approve:*)", "Bash(evol next:*)"];
+export const DENY_RULES = [
+  "Bash(evol approve:*)",
+  "Bash(evol next:*)",
+  // the installed framework is read-only and is improved from its origin, never from a project
+  "Edit(~/.local/share/evol/**)",
+];
 
 const COMMANDS: Record<string, string> = {
   "evol-status.md": `---
@@ -156,26 +161,42 @@ function readJson(
   return null;
 }
 
-/** JSON in Prettier's style: short arrays of plain values stay on one line. */
-export function formatJson(value: unknown, depth = 0): string {
+/** JSON in Prettier's style: arrays of plain values stay on one line while they fit in `width` columns. */
+export function formatJson(value: unknown, width = 80, depth = 0, used = 0): string {
   const pad = "  ".repeat(depth + 1);
   const end = "  ".repeat(depth);
   if (Array.isArray(value)) {
     if (value.length === 0) return "[]";
     if (value.every((v) => v === null || typeof v !== "object")) {
-      return `[${value.map((v) => JSON.stringify(v)).join(", ")}]`;
+      const inline = `[${value.map((v) => JSON.stringify(v)).join(", ")}]`;
+      // `used` is what the line already holds before the array; a trailing comma may follow it
+      if (used + inline.length + 1 <= width) return inline;
+      return `[\n${value.map((v) => pad + JSON.stringify(v)).join(",\n")}\n${end}]`;
     }
-    return `[\n${value.map((v) => pad + formatJson(v, depth + 1)).join(",\n")}\n${end}]`;
+    return `[\n${value.map((v) => pad + formatJson(v, width, depth + 1, pad.length)).join(",\n")}\n${end}]`;
   }
   if (value !== null && typeof value === "object") {
     const entries = Object.entries(value);
     if (entries.length === 0) return "{}";
-    const lines = entries.map(
-      ([k, v]) => `${pad}${JSON.stringify(k)}: ${formatJson(v, depth + 1)}`,
-    );
+    const lines = entries.map(([k, v]) => {
+      const head = `${pad}${JSON.stringify(k)}: `;
+      return head + formatJson(v, width, depth + 1, head.length);
+    });
     return `{\n${lines.join(",\n")}\n${end}}`;
   }
   return JSON.stringify(value);
+}
+
+/** The project's Prettier `printWidth` (80 when it sets none), so generated JSON is already formatted. */
+function printWidth(root: string): number {
+  try {
+    const rc = JSON.parse(readFileSync(join(root, ".prettierrc.json"), "utf8")) as {
+      printWidth?: unknown;
+    };
+    return typeof rc.printWidth === "number" ? rc.printWidth : 80;
+  } catch {
+    return 80;
+  }
 }
 
 function writeJson(
@@ -184,7 +205,7 @@ function writeJson(
   data: Record<string, unknown>,
   report: AgentReport,
 ): void {
-  write(root, rel, `${formatJson(data)}\n`, report);
+  write(root, rel, `${formatJson(data, printWidth(root))}\n`, report);
 }
 
 /** The deny rules evol installs that the settings do not have yet; the person's own rules stay as they are. */

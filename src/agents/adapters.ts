@@ -77,6 +77,7 @@ Este proyecto sigue el pipeline de \`evol\`: briefing → spec → plan → buil
   No los ejecutes ni intentes saltarte la aprobación.
 - Los archivos con \`[[COMPLETAR]]\` están sin escribir: complétalos antes de pedir la aprobación.
 - La revisión de \`verificador\` y \`seguridad\` se hace con contexto limpio y en solo lectura, sin cambiar nada.
+- **No modifiques el framework evol desde este proyecto** (su copia instalada es de solo lectura). Si encuentras algo que mejorar, anótalo con \`evol mejora add "…"\`: se atiende en el origen del framework.
 
 <!-- evol:end -->
 `;
