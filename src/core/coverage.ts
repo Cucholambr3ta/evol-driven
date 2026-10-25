@@ -35,7 +35,15 @@ export interface CoverageReport {
 const CRITERION_LINE =
   /^\s*(?:[-*+]\s+|\d+[.)]\s+|\|\s*)?\**\s*(CA-\d+)\b\**\s*[:.)|–—-]*\s*(.*?)\s*\|?\s*$/;
 const TAG = /@(CA-\d+)\b/g;
-const TEST_TITLE = /\b(?:it|test|describe)(?:\.\w+)*\(\s*(["'`])(.*?)\1/g;
+/**
+ * `it(`/`test(`/`describe(`, any chain of `.word` modifiers, and an optional one-level
+ * `(condition)` call in between (`it.skipIf(!hasScript)(`) before the title's own parentheses.
+ */
+const TEST_TITLE = /\b(?:it|test|describe)(?:\.\w+)*(?:\([^()]*\))?\(\s*(["'`])(.*?)\1/g;
+/** pytest: `def test_ca_200_…` — Python identifiers can't carry the hyphen of `CA-200`. */
+const PY_TEST_DEF = /^\s*def\s+test_(ca_\d+)\w*/gim;
+/** bats: `@test "CA-201: …" { … }` — the criterion is cited in the string itself, hyphen and all. */
+const BATS_TEST = /@test\s+(["'])((?:(?!\1).)*)\1/g;
 const CRITERION_ID = /\bCA-\d+\b/g;
 const SCENARIO =
   /^\s*(?:Scenario Outline|Scenario Template|Scenario|Esquema del escenario|Escenario)\s*:\s*(.*)$/;
@@ -80,10 +88,23 @@ export function parseScenarios(content: string): { nombre: string; criterios: st
   return scenarios;
 }
 
-/** Test and suite titles that mention a criterion. */
+/**
+ * Test and suite titles that mention a criterion — TypeScript (`it`/`test`/`describe`), pytest
+ * (`def test_ca_n_…`) and bats (`@test "…CA-n…"`), whichever the file happens to hold.
+ */
 export function parseTestTitles(source: string): { nombre: string; criterios: string[] }[] {
   const titles: { nombre: string; criterios: string[] }[] = [];
   for (const match of source.matchAll(TEST_TITLE)) {
+    const nombre = match[2] ?? "";
+    const criterios = [...new Set(nombre.match(CRITERION_ID) ?? [])];
+    if (criterios.length > 0) titles.push({ nombre, criterios });
+  }
+  for (const match of source.matchAll(PY_TEST_DEF)) {
+    const nombre = (match[0] ?? "").trim();
+    const id = (match[1] ?? "").toUpperCase().replace("_", "-");
+    titles.push({ nombre, criterios: [id] });
+  }
+  for (const match of source.matchAll(BATS_TEST)) {
     const nombre = match[2] ?? "";
     const criterios = [...new Set(nombre.match(CRITERION_ID) ?? [])];
     if (criterios.length > 0) titles.push({ nombre, criterios });
@@ -113,14 +134,20 @@ export function coverageReport(ctx: PipelineContext): CoverageReport {
         ...s,
       })),
     );
-    const tests = listSourceFiles(moduleRoot)
-      .filter(isTestPath)
-      .flatMap((archivo) =>
-        parseTestTitles(readFileSync(join(moduleRoot, archivo), "utf8")).map((t) => ({
-          archivo,
-          ...t,
-        })),
-      );
+    // listSourceFiles/isTestPath (codeIntel) only know TypeScript/JavaScript; pytest and bats
+    // files (a project remapped to python/shell, M1) are found directly, the same way .feature
+    // files already are above.
+    const testFiles = [
+      ...listSourceFiles(moduleRoot).filter(isTestPath),
+      ...matchFiles("**/test_*.py", moduleRoot),
+      ...matchFiles("**/*.bats", moduleRoot),
+    ];
+    const tests = [...new Set(testFiles)].flatMap((archivo) =>
+      parseTestTitles(readFileSync(join(moduleRoot, archivo), "utf8")).map((t) => ({
+        archivo,
+        ...t,
+      })),
+    );
 
     for (const s of scenarios) s.criterios.forEach((c) => referenced.add(c));
     for (const t of tests) t.criterios.forEach((c) => referenced.add(c));

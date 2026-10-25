@@ -263,7 +263,7 @@ describe("evol disciplines list, profiles y suggest", () => {
     expect(rows.find((d) => d.id === "BDD")?.modulos).toEqual([]);
   });
 
-  it("profiles muestra los cinco perfiles", () => {
+  it("profiles muestra todos los perfiles", () => {
     const r = cli(["disciplines", "profiles"], { cwd: tempDir(), env: env() });
     expect(r.status).toBe(0);
     for (const name of Object.keys(PROFILES)) expect(r.stdout).toContain(name);

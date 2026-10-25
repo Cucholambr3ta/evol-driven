@@ -18,6 +18,7 @@ import { ensureKey } from "../core/gate.js";
 import { journalAppend } from "../core/journal.js";
 import { getProfile } from "../core/profiles.js";
 import { CONFIG_FILE, EVOL_DIR, findProjectRoot } from "../core/paths.js";
+import { isStackId, STACK_IDS } from "../core/stacks.js";
 import { isPhase, PHASES } from "../core/phases.js";
 import type { Phase } from "../core/phases.js";
 import { loadContext } from "../core/pipeline.js";
@@ -104,6 +105,7 @@ export default async function run(argv: string[]): Promise<number> {
       disciplinas: { type: "string" },
       fase: { type: "string" },
       perfil: { type: "string" },
+      lenguaje: { type: "string" },
       "no-memory": { type: "boolean" },
       conocimiento: { type: "boolean" },
       "no-agentes": { type: "boolean" },
@@ -137,6 +139,15 @@ export default async function run(argv: string[]): Promise<number> {
   // Joining midway marks earlier phases as done without approvals, so a person must say so.
   if (phase !== "briefing" && !hasTerminal()) throw new NotInteractiveError();
 
+  const lenguaje =
+    values.lenguaje === undefined
+      ? undefined
+      : isStackId(values.lenguaje)
+        ? values.lenguaje
+        : (() => {
+            throw new UserError(`--lenguaje debe ser una de: ${STACK_IDS.join(", ")}.`);
+          })();
+
   const registry = loadDisciplines();
   const name = sanitizeName(values.name ?? projectName(root));
   if (values.perfil !== undefined && values.disciplinas !== undefined) {
@@ -164,7 +175,7 @@ export default async function run(argv: string[]): Promise<number> {
     if (!existsSync(dir) || !statSync(dir).isDirectory()) {
       throw new UserError(`La carpeta del módulo «${m.name}» no existe: ${dir}`);
     }
-    const detection = detectLayout(dir, m.ids, registry);
+    const detection = detectLayout(dir, m.ids, registry, { lenguaje });
     notes.push(...detection.notes.map((n) => `[${m.name}] ${n}`));
     return {
       name: m.name,

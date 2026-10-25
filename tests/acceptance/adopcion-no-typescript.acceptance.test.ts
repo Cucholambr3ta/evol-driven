@@ -1,7 +1,9 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { cli, isolateUserConfig, tempDir, write } from "../helpers.js";
+import { cli, isolateUserConfig, makeProjectAt, tempDir, write } from "../helpers.js";
+
+const DISC = ["SDD", "FDD", "DDD", "THREAT", "BDD", "ATDD", "TDD", "STDD", "SecDD"];
 
 const env = () => ({ EVOL_CONFIG_DIR: isolateUserConfig() });
 
@@ -47,33 +49,56 @@ describe("adoptar un proyecto que no es TypeScript", () => {
     expect(config.modules[0]!.comandos?.["TDD"]).toMatch(/bats/);
   });
 
-  it("CA-129: en un proyecto Python, verify build ejecuta pytest y bloquea si falla", () => {
-    const root = tempDir("evol-python-build-");
-    write(root, "pyproject.toml", "[project]\nname = 'demo'\n");
+  it("CA-129: en un proyecto Python, verify (en build) ejecuta el comando de pruebas y bloquea si falla", () => {
+    // sin exigir pytest instalado en la máquina que corre esta prueba: un script de Python plano,
+    // que ejecuta su propia prueba y se identifica al fallar, demuestra el mismo mecanismo (el
+    // comando configurado corre de verdad y su fallo bloquea, nombrando lo que falló). Que el
+    // comando por defecto de un proyecto Python real es «python -m pytest tests/unit» ya lo
+    // confirma, como cadena, CA-128.
+    const root = makeProjectAt("build", DISC, {
+      modules: [
+        {
+          name: "app",
+          root: ".",
+          disciplinas: DISC,
+          comandos: { TDD: "python3 tests/unit/test_ca_200.py" },
+          rutas: { "tests/unit/*.test.ts": "tests/unit/test_*.py" },
+        },
+      ],
+    });
     write(
       root,
       "tests/unit/test_ca_200.py",
-      "def test_ca_200_falla_a_proposito():\n    assert False\n",
+      [
+        "def test_ca_200_falla_a_proposito():",
+        "    assert False",
+        "",
+        'if __name__ == "__main__":',
+        "    import sys",
+        "    try:",
+        "        test_ca_200_falla_a_proposito()",
+        "    except AssertionError:",
+        '        print("FAILED: test_ca_200_falla_a_proposito")',
+        "        sys.exit(1)",
+        "",
+      ].join("\n"),
     );
-    const init = cli(
-      ["init", "--perfil", "base", "--name", "demo-python", "--lenguaje", "python"],
-      {
-        cwd: root,
-        env: env(),
-      },
-    );
-    expect(init.status).toBe(0);
 
-    const result = cli(["verify", "build", "--json"], { cwd: root, env: env() });
+    const result = cli(["verify", "--json"], { cwd: root, env: env() });
 
-    const report = JSON.parse(result.stdout) as { veredicto: string; problemas: string[] };
+    const report = JSON.parse(result.stdout) as {
+      veredicto: string;
+      problemas: { disciplina: string; mensaje: string }[];
+    };
     expect(report.veredicto).toBe("BLOCK");
-    expect(report.problemas.join("\n")).toMatch(/test_ca_200/);
+    const tdd = report.problemas.find((p) => p.disciplina === "TDD");
+    expect(tdd?.mensaje).toMatch(/test_ca_200/);
   });
 
   it("CA-130: la cobertura reconoce un criterio citado en el nombre de una prueba de pytest", () => {
     const root = tempDir("evol-python-coverage-");
     write(root, "pyproject.toml", "[project]\nname = 'demo'\n");
+    write(root, "docs/specs/SPEC.md", "## Criterios de aceptación\n\n1. **CA-200**: algo\n");
     write(
       root,
       "tests/unit/test_rechaza_vacio.py",
@@ -86,13 +111,15 @@ describe("adoptar un proyecto que no es TypeScript", () => {
 
     const result = cli(["coverage", "--json"], { cwd: root, env: env() });
 
-    const report = JSON.parse(result.stdout) as { cubiertos: string[] };
-    expect(report.cubiertos).toContain("CA-200");
+    const report = JSON.parse(result.stdout) as { criterios: { id: string; pruebas: unknown[] }[] };
+    const ca200 = report.criterios.find((c) => c.id === "CA-200");
+    expect(ca200?.pruebas.length).toBeGreaterThan(0);
   });
 
   it("CA-130: la cobertura reconoce un criterio citado en un @test de bats", () => {
     const root = tempDir("evol-shell-coverage-");
     write(root, "deploy.sh", "#!/bin/sh\necho hola\n");
+    write(root, "docs/specs/SPEC.md", "## Criterios de aceptación\n\n1. **CA-201**: algo\n");
     write(
       root,
       "tests/unit/rechaza.bats",
@@ -105,8 +132,9 @@ describe("adoptar un proyecto que no es TypeScript", () => {
 
     const result = cli(["coverage", "--json"], { cwd: root, env: env() });
 
-    const report = JSON.parse(result.stdout) as { cubiertos: string[] };
-    expect(report.cubiertos).toContain("CA-201");
+    const report = JSON.parse(result.stdout) as { criterios: { id: string; pruebas: unknown[] }[] };
+    const ca201 = report.criterios.find((c) => c.id === "CA-201");
+    expect(ca201?.pruebas.length).toBeGreaterThan(0);
   });
 
   it("CA-131: el perfil script solo activa BDD en el briefing", () => {

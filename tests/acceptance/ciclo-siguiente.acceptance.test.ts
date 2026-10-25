@@ -59,11 +59,9 @@ describe("seguir trabajando en un segundo ciclo", () => {
     });
   }
 
-  // evol coverage (regex TEST_TITLE) no reconoce it.skipIf(cond)("título", fn): solo un punto de
-  // encadenado (it.foo(...)), no dos llamadas seguidas. Por eso, aquí, en vez de it.skipIf, se
-  // escribe la llamada dos veces: it(...) cuando hay "script", it.skip(...) cuando no.
-  if (hasScript) {
-    it("CA-146: las aprobaciones del ciclo anterior no cuentan en el nuevo", async () => {
+  it.skipIf(!hasScript)(
+    "CA-146: las aprobaciones del ciclo anterior no cuentan en el nuevo",
+    async () => {
       const root = makeProject(DISC);
       await finishACycle(root);
       expect(loadState(root).currentPhase).toBe("done");
@@ -74,13 +72,12 @@ describe("seguir trabajando en un segundo ciclo", () => {
       const prereq = cli(["prerequisites", "--json"], { cwd: root, env: env() });
       const data = JSON.parse(prereq.stdout) as { anteriorAprobada: boolean };
       expect(data.anteriorAprobada).toBe(false);
-    });
-  } else {
-    it.skip("CA-146: las aprobaciones del ciclo anterior no cuentan en el nuevo", () => {});
-  }
+    },
+  );
 
-  if (hasScript) {
-    it("CA-146: la cadena de aprobaciones del primer ciclo sigue siendo válida", async () => {
+  it.skipIf(!hasScript)(
+    "CA-146: la cadena de aprobaciones del primer ciclo sigue siendo válida",
+    async () => {
       const root = makeProject(DISC);
       await finishACycle(root);
       const beforeEntries = readLog(root).length;
@@ -96,13 +93,12 @@ describe("seguir trabajando en un segundo ciclo", () => {
       const chain = verifyChain(readLog(root), key);
 
       expect(chain.ok).toBe(true);
-    });
-  } else {
-    it.skip("CA-146: la cadena de aprobaciones del primer ciclo sigue siendo válida", () => {});
-  }
+    },
+  );
 
-  if (hasScript) {
-    it("CA-147: sin una persona en una terminal, el comando se niega por eso, no por otro motivo", async () => {
+  it.skipIf(!hasScript)(
+    "CA-147: sin una persona en una terminal, el comando se niega por eso, no por otro motivo",
+    async () => {
       const root = makeProject(DISC);
       await finishACycle(root);
 
@@ -115,10 +111,8 @@ describe("seguir trabajando en un segundo ciclo", () => {
       expect(conTerminal.status, conTerminal.stdout + conTerminal.stderr).toBe(0);
       expect(sinTerminal.status).not.toBe(0);
       expect(sinTerminal.stdout + sinTerminal.stderr).toMatch(/terminal|confirmaci[oó]n/i);
-    });
-  } else {
-    it.skip("CA-147: sin una persona en una terminal, el comando se niega por eso, no por otro motivo", () => {});
-  }
+    },
+  );
 
   it("CA-147: el MCP no registra ninguna herramienta para abrir un ciclo", async () => {
     const root = makeProject(DISC);

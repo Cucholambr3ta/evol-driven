@@ -59,10 +59,12 @@ delegación medida (ola 3).
 ## Criterios de aceptación
 
 1. **CA-128**: `evol init` detecta el lenguaje de un proyecto sin `evol.config.json` propio —
-   Python por `pyproject.toml`/`requirements*.txt`, shell por la presencia de `*.sh` — y remapea las
-   rutas y el comando de TDD en consecuencia; `--lenguaje <id>` manda sobre la detección.
-2. **CA-129**: en un proyecto remapeado a Python o shell, `evol verify build` ejecuta el comando de
-   pruebas de ese lenguaje (pytest, bats) y da BLOCK si falla, nombrando la prueba que falló.
+   Python por `pyproject.toml`, `requirements*.txt` o un `.py` en la raíz, shell por la presencia
+   de `*.sh` — y remapea las rutas y el comando de TDD en consecuencia; `--lenguaje <id>` manda
+   sobre la detección.
+2. **CA-129**: en un proyecto remapeado a Python o shell, `evol verify` (en la fase build) ejecuta
+   el comando de pruebas de ese lenguaje (pytest, bats) y da BLOCK si falla, nombrando la prueba
+   que falló.
 3. **CA-130**: `evol coverage` reconoce un criterio `CA-n` citado en el nombre de una prueba de
    pytest (`def test_ca_n_…`) o en la descripción de un `@test` de bats.
 4. **CA-131**: el perfil `script` solo activa BDD en la fase briefing (ni FDD ni ATDD).

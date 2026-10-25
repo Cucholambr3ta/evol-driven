@@ -70,6 +70,24 @@ describe("lectura de criterios, escenarios y pruebas", () => {
       { nombre: "CA-2", criterios: ["CA-2"] },
     ]);
   });
+
+  it("encuentra un criterio citado en el nombre de una prueba de pytest (criterio 130)", () => {
+    const source = "def test_ca_200_rechaza_un_pedido_vacio():\n    assert True\n";
+    expect(parseTestTitles(source)).toEqual([
+      { nombre: "def test_ca_200_rechaza_un_pedido_vacio", criterios: ["CA-200"] },
+    ]);
+  });
+
+  it("encuentra un criterio citado en un @test de bats (criterio 130)", () => {
+    const source = '@test "CA-201: rechaza un pedido vacío" {\n  true\n}\n';
+    expect(parseTestTitles(source)).toEqual([
+      { nombre: "CA-201: rechaza un pedido vacío", criterios: ["CA-201"] },
+    ]);
+  });
+
+  it("un @test de bats sin criterio no aporta nada", () => {
+    expect(parseTestTitles('@test "algo sin número" {\n  true\n}\n')).toEqual([]);
+  });
 });
 
 describe("evol coverage (criterio 33)", () => {

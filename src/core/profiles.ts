@@ -46,6 +46,11 @@ export const PROFILES: Record<string, Profile> = {
     resumen: "librería: sin features ni aceptación; añade versionado y deprecaciones",
     disciplinas: ["SDD", "DDD", "THREAT", "BDD", "TDD", "STDD", "SecDD", "APIVDD", "DeprecationDD"],
   },
+  script: {
+    resumen:
+      "un script suelto: sin features de persona ni pruebas de aceptación; el briefing solo pide un escenario de BDD",
+    disciplinas: ["SDD", "BDD", "TDD", "SecDD", "THREAT"],
+  },
 };
 
 export function profileNames(): string[] {

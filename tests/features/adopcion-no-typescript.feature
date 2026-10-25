@@ -17,9 +17,9 @@ Feature: Adoptar un proyecto que no es TypeScript
 
   @CA-129
   Scenario: la fase build ejecuta pytest en un proyecto Python
-    Given un proyecto adoptado con "evol init --lenguaje python"
+    Given un proyecto remapeado a Python, en la fase build
     And una prueba "tests/unit/test_ca_200.py" que falla a propósito
-    When la persona ejecuta "evol verify build"
+    When la persona ejecuta "evol verify"
     Then el veredicto es "BLOCK"
     And el informe nombra la prueba que falló
 

@@ -2,6 +2,8 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { artifactPaths } from "./disciplines.js";
 import type { DisciplineRegistry } from "./disciplines.js";
+import { detectStack, STACKS } from "./stacks.js";
+import type { StackId } from "./stacks.js";
 
 /** Where projects that predate evol usually keep the documents evol expects under docs/. */
 const ALTERNATIVES: Record<string, string[]> = {
@@ -44,6 +46,7 @@ export function detectLayout(
   moduleDir: string,
   disciplinas: string[],
   registry: DisciplineRegistry,
+  opts: { lenguaje?: StackId } = {},
 ): Detection {
   const detection: Detection = { rutas: {}, comandos: {}, notes: [] };
   const wanted = artifactPaths(registry, disciplinas);
@@ -59,22 +62,38 @@ export function detectLayout(
 
   const testing = disciplinas.filter((id) => TEST_DISCIPLINES.includes(id));
   if (testing.length > 0) {
-    const pkg = readPackage(moduleDir);
-    const deps = { ...pkg?.dependencies, ...pkg?.devDependencies };
-    const script = pkg?.scripts?.["test"];
-    if (!pkg) {
+    const stack = opts.lenguaje ?? detectStack(moduleDir);
+    if (stack === "python" || stack === "shell") {
+      const s = STACKS[stack];
+      if (disciplinas.includes("TDD") && s.rutaPrueba && s.comando) {
+        detection.rutas["tests/unit/*.test.ts"] = s.rutaPrueba;
+        detection.comandos["TDD"] = s.comando;
+      }
       detection.notes.push(
-        "no hay package.json: las pruebas usan «npx vitest run …» salvo que lo cambies en «comandos»",
+        `Lenguaje detectado: ${stack} — TDD ejecuta «${s.comando}» sobre «${s.rutaPrueba}»`,
       );
-    } else if ("vitest" in deps) {
-      detection.notes.push("Vitest detectado: se usan los comandos por defecto");
-    } else if (script && !/no test specified/i.test(script)) {
-      for (const id of testing) detection.comandos[id] = "npm test";
-      detection.notes.push(`sin Vitest: ${testing.join(", ")} ejecutan «npm test» (${script})`);
+    } else if (stack === "generico") {
+      detection.notes.push(
+        "no se detectó un lenguaje de pruebas conocido: define «comandos» en evol.config.json o usa --lenguaje",
+      );
     } else {
-      detection.notes.push(
-        "no se detectó un comando de pruebas: define «comandos» en evol.config.json",
-      );
+      const pkg = readPackage(moduleDir);
+      const deps = { ...pkg?.dependencies, ...pkg?.devDependencies };
+      const script = pkg?.scripts?.["test"];
+      if (!pkg) {
+        detection.notes.push(
+          "no hay package.json: las pruebas usan «npx vitest run …» salvo que lo cambies en «comandos»",
+        );
+      } else if ("vitest" in deps) {
+        detection.notes.push("Vitest detectado: se usan los comandos por defecto");
+      } else if (script && !/no test specified/i.test(script)) {
+        for (const id of testing) detection.comandos[id] = "npm test";
+        detection.notes.push(`sin Vitest: ${testing.join(", ")} ejecutan «npm test» (${script})`);
+      } else {
+        detection.notes.push(
+          "no se detectó un comando de pruebas: define «comandos» en evol.config.json",
+        );
+      }
     }
   }
   return detection;

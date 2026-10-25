@@ -84,12 +84,12 @@ describe("evol init sobre un proyecto existente (criterio 19)", () => {
     expect(loadConfig(root).memory.wing).toBe("erp_ventas");
   });
 
-  it("funciona en un proyecto que no es de Node", () => {
+  it("funciona en un proyecto que no es de Node (lo reconoce como Python, criterio 128)", () => {
     const root = tempDir("evol-nonode-");
     write(root, "main.py", "print('hola')\n");
     const r = init(root, "--name", "python-app");
     expect(r.status, r.stderr).toBe(0);
-    expect(r.stdout).toContain("no hay package.json");
+    expect(r.stdout).toContain("Lenguaje detectado: python");
   });
 
   it("detecta documentos en otra ruta y comando de pruebas distinto (criterio 20)", () => {
@@ -155,6 +155,49 @@ describe("evol init sobre un proyecto existente (criterio 19)", () => {
     write(root, "docs/specs/SPEC.md", "# s\n");
     write(root, "SPEC.md", "# otra\n");
     expect(detectLayout(root, ["SDD"], loadDisciplines()).rutas).toEqual({});
+  });
+});
+
+describe("lenguaje del proyecto (criterio 128)", () => {
+  const registry = loadDisciplines();
+
+  it("un pyproject.toml remapea TDD a pytest", () => {
+    const root = tempDir();
+    write(root, "pyproject.toml", "[project]\nname = 'demo'\n");
+    const d = detectLayout(root, ["TDD"], registry);
+    expect(d.rutas).toEqual({ "tests/unit/*.test.ts": "tests/unit/test_*.py" });
+    expect(d.comandos).toEqual({ TDD: "python -m pytest tests/unit" });
+  });
+
+  it("un .sh en la raíz remapea TDD a bats", () => {
+    const root = tempDir();
+    write(root, "deploy.sh", "#!/bin/sh\n");
+    const d = detectLayout(root, ["TDD"], registry);
+    expect(d.rutas).toEqual({ "tests/unit/*.test.ts": "tests/unit/*.bats" });
+    expect(d.comandos).toEqual({ TDD: "bats tests/unit" });
+  });
+
+  it("--lenguaje manda sobre la detección automática", () => {
+    const root = tempDir();
+    write(root, "pyproject.toml", "[project]\nname = 'demo'\n");
+    write(root, "deploy.sh", "#!/bin/sh\n");
+    const d = detectLayout(root, ["TDD"], registry, { lenguaje: "shell" });
+    expect(d.comandos).toEqual({ TDD: "bats tests/unit" });
+  });
+
+  it("sin TDD activo, un proyecto Python no remapea nada", () => {
+    const root = tempDir();
+    write(root, "pyproject.toml", "[project]\nname = 'demo'\n");
+    const d = detectLayout(root, ["SDD"], registry);
+    expect(d.comandos).toEqual({});
+  });
+
+  it("nada reconocido avisa de que no se detectó lenguaje, sin inventar nada", () => {
+    const root = tempDir();
+    write(root, "README.md", "# demo\n");
+    const d = detectLayout(root, ["TDD"], registry);
+    expect(d.comandos).toEqual({});
+    expect(d.notes.some((n) => /no se detectó un lenguaje/.test(n))).toBe(true);
   });
 });
 
