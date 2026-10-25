@@ -1064,7 +1064,7 @@ siempre igual, con las mismas opciones fijadas.
 | cualquiera | `incorporar-skill`; `evaluar-skill` antes de auditar                                                               | seguridad, verificador  |
 
 **Más adelante (ola 2):** `probar-inyeccion` (garak o promptfoo contra las funciones de modelo de un proyecto), `analizar-contenedor` (trivy),
-`probar-api` (schemathesis y zaproxy pasivo), `sbom-y-licencias` (syft y reuse) y, si llega RAGFlow, `ingerir-documentos`.
+`probar-api` (schemathesis y zaproxy pasivo), `sbom-y-licencias` (syft y reuse) y `ingerir-documentos` (sobre `evol knowledge`).
 
 **Hitos**
 
@@ -1353,8 +1353,8 @@ siempre igual, con las mismas opciones fijadas.
 ### Conocimiento propio: documentación con origen, fecha y licencia (RAG propio)
 
 > **Estado: PROPUESTA de diseño.** No hay código. Parte de lo que pediste: «toda la documentación posible», y que cada fuente quede registrada con
-> su **origen, su fecha y su licencia**. Esta sección va **antes** que RAGFlow porque es la que se hace primero; RAGFlow queda como alternativa
-> para PDF y escaneados.
+> su **origen, su fecha y su licencia**. Esta sección va **antes** que RAGFlow porque es la que se hace primero; RAGFlow se estudió
+> como alternativa para PDF y escaneados y se descartó (2026-10-24).
 
 > **Decisión del 2026-10-23: no se construye el motor; se adopta [docs-mcp-server](https://github.com/arabold/docs-mcp-server) (MIT,
 > TypeScript, 3.3.0).** Hace el trabajo pesado: descarga documentación de repositorios, sitios, npm y carpetas, la parte por versión de
@@ -1441,9 +1441,7 @@ proyecto nuevo cuando lo pida, y siempre con la misma regla de origen, fecha y l
 5 primeros resultados (recall@5) y en qué puesto aparece (MRR). **Los vectores solo entran si la búsqueda híbrida mejora al menos 15 puntos de
 recall@5 al texto completo**; si no, se queda con el texto completo, que no necesita pgvector ni modelo.
 
-**Relación con lo demás.** RAGFlow (sección siguiente) y este diseño son **dos proveedores de la misma interfaz** `evol knowledge`: los criterios
-97 a 101 valen para los dos, y K1 y K2 reutilizan lo que se haga aquí. Este va primero porque cubre Markdown, HTML y OpenAPI sin servicio
-extra; RAGFlow solo se justifica si importan los PDF y los escaneados. **Open Notebook** sigue siendo una herramienta personal de lectura:
+**Relación con lo demás.** RAGFlow se descartó (2026-10-24): este diseño es el único proveedor de `evol knowledge`, y los criterios 97 a 99 valen para él. Cubre Markdown, HTML y OpenAPI sin servicio extra; los PDF y los escaneados quedan fuera por ahora. **Open Notebook** sigue siendo una herramienta personal de lectura:
 no entra al framework, porque un agente necesita resultados repetibles y con cita, no un chat.
 
 **Qué cuesta (sin inventar cifras).** El disco sobra (408 GB libres). La memoria es lo justo: 15 GiB en total y unos 5 libres con todo abierto;
@@ -1485,7 +1483,9 @@ procedencia. Son candidatas del piloto: ninguna es todavía una dependencia de `
 
 ### Conocimiento documental con RAGFlow
 
-> **Decisión: complemento opcional, no reemplazo de la memoria, y solo después de un piloto.**
+> **DESCARTADO (2026-10-24).** No se construye ni se hace piloto: el conocimiento documental lo cubre docs-mcp-server con SQLite (sección anterior). Esta sección se conserva solo como registro de la investigación. Los criterios 100 y 101 ya no aplican; los 97 a 99 valen para `evol knowledge`.
+
+> ~~**Decisión: complemento opcional, no reemplazo de la memoria, y solo después de un piloto.**~~
 
 > **Ver antes** «Conocimiento propio»: el RAG propio va primero y comparte con este la interfaz `evol knowledge` y los criterios 97 a 101.
 
@@ -1540,8 +1540,6 @@ en uso, y RAGFlow recomienda 16 GB solo para él. El piloto cabe si se cierra lo
   primera ola a 23?
 - ¿`evol security scan` como único punto de entrada, o prefieres un comando por herramienta?
 - ¿Qué proyectos tuyos tienen API (OpenAPI), para saber si `schemathesis` entra pronto?
-- ¿Qué documentos tuyos justificarían RAGFlow? Si son sobre todo Markdown y código, MemPalace más el grafo de código ya bastan.
-- ¿Dónde correría el piloto de RAGFlow: esta máquina, con la memoria justa, u otra?
 - **RAG propio, almacén:** ¿añadimos pgvector con una imagen propia de PostgreSQL (recomendado: ya usas PostgreSQL y la búsqueda híbrida cabe en la
   misma base), o prefieres un archivo local sin servidor (SQLite con `sqlite-vec`), que no toca tu `compose.yaml`?
 - **RAG propio, dónde vive:** ¿una base por usuario compartida por todos tus proyectos (recomendado), o una por proyecto?
