@@ -13,6 +13,11 @@ import {
   readyPath,
   writeRegistry,
 } from "../knowledge/store.js";
+import { embeddingsReachable, engineInstalled, ingestLibrary } from "../knowledge/engine.js";
+import { searchKnowledge } from "../knowledge/search.js";
+import { knowledgeStatus } from "../knowledge/status.js";
+import { findProjectRoot } from "../core/paths.js";
+import { loadConfig } from "../core/config.js";
 import { out } from "./shared.js";
 
 const USAGE = [
@@ -24,6 +29,10 @@ const USAGE = [
   "  evol knowledge source retire <id> --motivo <texto>",
   "  evol knowledge review <id> [--json]",
   "  evol knowledge accept <id> <ruta> --motivo <texto> --por <responsable>",
+  "  evol knowledge source package <id> <paquete-npm>   (para avisar si el proyecto usa otra versión)",
+  "  evol knowledge ingest <id> | --todas   (indexa lo revisado; lento: los vectores se calculan en CPU)",
+  '  evol knowledge search "<pregunta>" [--fuente <id>]... [--limite <n>] [--json]',
+  "  evol knowledge status [--json]",
 ].join("\n");
 
 const SPDX = /^[A-Za-z0-9][A-Za-z0-9.+-]*(\s+(OR|AND|WITH)\s+[A-Za-z0-9][A-Za-z0-9.+-]*)*$/;
@@ -279,10 +288,151 @@ function accept(argv: string[]): number {
   return 0;
 }
 
+function setPackage(argv: string[]): number {
+  const [id = "", pkg = ""] = argv;
+  if (!/^(@[a-z0-9-~][a-z0-9-._~]*\/)?[a-z0-9-~][a-z0-9-._~]*$/.test(pkg))
+    throw new UserError(`«${pkg}» no parece un paquete de npm.\n\n${USAGE}`);
+  const registry = readRegistry();
+  const source = getSource(registry, id);
+  source.paquete = pkg;
+  writeRegistry(registry);
+  out(`«${id}» documenta el paquete ${pkg}.`);
+  return 0;
+}
+
+async function ingest(argv: string[]): Promise<number> {
+  const { values, positionals } = parseArgs({
+    args: argv,
+    allowPositionals: true,
+    options: { todas: { type: "boolean", default: false } },
+  });
+  const registry = readRegistry();
+  const ids = values.todas
+    ? Object.values(registry.fuentes)
+        .filter((s) => s.estado === "revisada")
+        // the small ones first: they are usable sooner and the long ones do not hold them up
+        .sort((a, b) => a.archivos - b.archivos)
+        .map((s) => s.id)
+    : [positionals[0] ?? ""];
+  if (ids.length === 0 || ids[0] === "")
+    throw new UserError(`Indica una fuente o --todas.\n\n${USAGE}`);
+  for (const id of ids) {
+    const source = getSource(registry, id);
+    if (source.estado !== "revisada")
+      throw new UserError(
+        `La fuente «${id}» está ${source.estado}: solo se indexa lo que pasó la revisión (evol knowledge review ${id}).`,
+      );
+  }
+  if (!engineInstalled())
+    throw new UserError("No está instalado el motor de conocimiento. Mira DEPENDENCIES.md.");
+  if (!(await embeddingsReachable()))
+    throw new UserError(
+      "El servidor local de embeddings (Ollama) no responde en 127.0.0.1:11434. Arráncalo e inténtalo de nuevo.",
+    );
+  let failed = 0;
+  for (const id of ids) {
+    out(`Indexando «${id}»… (puede tardar horas: los vectores se calculan en CPU)`);
+    const started = Date.now();
+    const r = await ingestLibrary(id);
+    const minutes = Math.round((Date.now() - started) / 60_000);
+    if (r.code === 0 && r.fallidos === 0) out(`  ✓ ${id}: indexada en ${minutes} min`);
+    else if (r.code === 0) {
+      failed++;
+      out(
+        `  ✗ ${id}: ${r.fallidos} documento(s) no se pudieron guardar (${r.primerFallo ?? "sin detalle"}). La fuente queda incompleta.`,
+      );
+    } else {
+      failed++;
+      out(`  ✗ ${id}: falló (${(r.stderr || r.stdout).trim().split("\n")[0] ?? "sin detalle"})`);
+    }
+  }
+  return failed === 0 ? 0 : 1;
+}
+
+/** In a project that narrows its sources, a search without --fuente stays within them. */
+function projectSources(): string[] | undefined {
+  const root = findProjectRoot();
+  if (!root) return undefined;
+  try {
+    return loadConfig(root).knowledge?.fuentes;
+  } catch {
+    return undefined;
+  }
+}
+
+async function search(argv: string[]): Promise<number> {
+  const { values, positionals } = parseArgs({
+    args: argv,
+    allowPositionals: true,
+    options: {
+      fuente: { type: "string", multiple: true },
+      limite: { type: "string" },
+      json: { type: "boolean", default: false },
+    },
+  });
+  const consulta = positionals.join(" ").trim();
+  if (consulta === "") throw new UserError(`Falta la pregunta.\n\n${USAGE}`);
+  const limite = values.limite === undefined ? undefined : Number(values.limite);
+  if (limite !== undefined && (!Number.isInteger(limite) || limite < 1 || limite > 20))
+    throw new UserError("--limite debe ser un entero entre 1 y 20.");
+  const fuentes = values.fuente ?? projectSources();
+  const result = await searchKnowledge({
+    consulta,
+    ...(fuentes ? { fuentes } : {}),
+    ...(limite ? { limite } : {}),
+  });
+  if (values.json) {
+    out(JSON.stringify(result, null, 2));
+    return 0;
+  }
+  if (result.sinIndexar.length > 0)
+    out(`(sin indexar, no consultadas: ${result.sinIndexar.join(", ")})`);
+  if (result.resultados.length === 0) {
+    out("Sin resultados.");
+    return 0;
+  }
+  for (const [i, h] of result.resultados.entries()) {
+    out(`\n${i + 1}. ${h.nombre} ${h.version} — ${h.archivo}${h.seccion ? ` › ${h.seccion}` : ""}`);
+    out(
+      `   ${h.enlace}\n   capturada el ${h.capturadoEl.slice(0, 10)}, licencia ${h.licencia}${h.citable ? "" : " (no citable)"}`,
+    );
+    out(`   ${h.texto.replace(/\s+/g, " ").slice(0, 300)}…`);
+  }
+  out(`\n${result.aviso}`);
+  return 0;
+}
+
+async function status(argv: string[]): Promise<number> {
+  const { values } = parseArgs({
+    args: argv,
+    options: { json: { type: "boolean", default: false } },
+  });
+  const rows = await knowledgeStatus({ root: findProjectRoot() });
+  if (values.json) {
+    out(JSON.stringify(rows, null, 2));
+    return 0;
+  }
+  if (rows.length === 0) {
+    out("No hay fuentes registradas.");
+    return 0;
+  }
+  for (const r of rows) {
+    const mark = r.avisos.length === 0 ? "✓" : "!";
+    out(
+      `${mark} ${r.id.padEnd(28)} ${r.estado.padEnd(9)} ${r.indexada ? `${r.documentos} fragmentos` : "sin indexar"}  (${r.edadDias} días)`,
+    );
+    for (const a of r.avisos) out(`    ${a}`);
+  }
+  return 0;
+}
+
 export default async function run(argv: string[]): Promise<number> {
   const [area, ...rest] = argv;
   if (area === "review") return review(rest);
   if (area === "accept") return accept(rest);
+  if (area === "ingest") return ingest(rest);
+  if (area === "search") return search(rest);
+  if (area === "status") return status(rest);
   if (area !== "source") throw new UserError(USAGE);
   const [action, ...args] = rest;
   switch (action) {
@@ -292,6 +442,8 @@ export default async function run(argv: string[]): Promise<number> {
       return list(args);
     case "retire":
       return retire(args);
+    case "package":
+      return setPackage(args);
     default:
       throw new UserError(USAGE);
   }

@@ -10,6 +10,7 @@ import { readLessons } from "../core/lessons.js";
 import { matchFiles } from "../core/verify.js";
 import { componentOf, groupedLinks, sourceFiles } from "../diagrams/data.js";
 import type { Diagram, DiagramInput } from "../diagrams/model.js";
+import { readRegistry } from "../knowledge/store.js";
 import type { Block, Brand, DiagramFigure, ReportDoc } from "./model.js";
 import { oneLine } from "./model.js";
 
@@ -373,6 +374,38 @@ function decisionsSection(r: ReportInput): Block[] {
   return blocks;
 }
 
+/**
+ * The third-party documentation the project's agents may consult. Only listed when the project turns
+ * it on; a «uso privado» source is named but marked as not quotable.
+ */
+function knowledgeBlocks(r: ReportInput): Block[] {
+  const knowledge = r.input.ctx.config.knowledge;
+  if (knowledge?.activo !== true) return [];
+  const registry = readRegistry();
+  const chosen = knowledge.fuentes ?? Object.keys(registry.fuentes);
+  const rows = chosen
+    .flatMap((id) => {
+      const s = registry.fuentes[id];
+      return s?.estado === "revisada" ? [s] : [];
+    })
+    .map((s) => [
+      s.nombre,
+      s.version,
+      day(s.capturadoEl),
+      s.licencia.spdx,
+      s.citable ? "sí" : "no (uso privado)",
+    ]);
+  if (rows.length === 0) return [];
+  return [
+    { t: "h2", text: "Documentación de referencia consultable" },
+    {
+      t: "table",
+      columns: ["Fuente", "Versión", "Capturada", "Licencia", "Se puede citar"],
+      rows,
+    },
+  ];
+}
+
 function annexSection(r: ReportInput): Block[] {
   const { ctx } = r.input;
   const blocks: Block[] = [{ t: "h1", text: "8. Anexos" }];
@@ -398,6 +431,7 @@ function annexSection(r: ReportInput): Block[] {
       rows: diagrams.map((d) => [`${d.numero}. ${d.tipo}`, `${sha256(d.svg ?? "").slice(0, 32)}…`]),
     });
   }
+  blocks.push(...knowledgeBlocks(r));
   blocks.push({
     t: "p",
     muted: true,

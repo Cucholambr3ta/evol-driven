@@ -12,6 +12,9 @@ import { withMemPalace } from "../memory/mempalace.js";
 import { securityToolStatus } from "../security/tools.js";
 import { describeVersion, versionInfo, compareVersions } from "../release/version.js";
 import { verifyIntegrity } from "../release/integrity.js";
+import { embeddingsReachable, engineInstalled, storeDir } from "../knowledge/engine.js";
+import { readRegistry } from "../knowledge/store.js";
+import { indexedLibraries } from "../knowledge/engine.js";
 import { out } from "./shared.js";
 
 type Level = "ok" | "aviso" | "error";
@@ -142,6 +145,26 @@ export default async function run(): Promise<number> {
       "MemPalace",
       `${detail} — instálalo con «uv tool install mempalace»`,
     );
+  }
+
+  // The reference documentation is optional: without it nothing else fails, so these are never errors.
+  try {
+    const sources = Object.values(readRegistry().fuentes).filter((s) => s.estado === "revisada");
+    if (sources.length === 0)
+      add("aviso", "Conocimiento", "no hay fuentes revisadas (evol knowledge source add)");
+    else if (!engineInstalled())
+      add("aviso", "Conocimiento", `${sources.length} fuente(s) revisada(s), pero falta el motor`);
+    else {
+      const indexed = (await indexedLibraries()).filter((l) => l.documentos > 0).length;
+      const embeds = await embeddingsReachable();
+      add(
+        indexed === sources.length && embeds ? "ok" : "aviso",
+        "Conocimiento",
+        `${indexed} de ${sources.length} fuente(s) indexadas en ${storeDir()}; embeddings locales ${embeds ? "disponibles" : "no responden (la búsqueda por significado no funcionará)"}`,
+      );
+    }
+  } catch (error) {
+    add("aviso", "Conocimiento", (error as Error).message.split("\n")[0] ?? "no disponible");
   }
 
   // `evol security scan` and `evol skills audit` lean on these; a missing one is a warning here,

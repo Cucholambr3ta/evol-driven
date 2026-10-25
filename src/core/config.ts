@@ -32,6 +32,16 @@ export const ConfigSchema = z.object({
     })
     .default({ requireTestsForChangedSymbols: false, requireCriteriaCoverage: false }),
   modules: z.array(ModuleSchema).min(1),
+  /**
+   * The reference documentation the agents of this project may query (`evol knowledge`). Off unless
+   * the project turns it on; `fuentes` narrows it to the sources the project really uses.
+   */
+  knowledge: z
+    .object({
+      activo: z.boolean().default(false),
+      fuentes: z.array(z.string().min(1)).optional(),
+    })
+    .optional(),
   /** How `evol report` looks. Without a brand the report is neutral. */
   report: z
     .object({

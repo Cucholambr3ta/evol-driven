@@ -1370,9 +1370,19 @@ siempre igual, con las mismas opciones fijadas.
 > **Hecho (2026-10-23):** `evol knowledge source add | list | retire` y `evol knowledge review` (criterios 109 y 110): el registro vive en
 > `~/.config/evol/knowledge/`, la captura se fija por commit de 40 caracteres o por carpeta, cada documento pasa por gitleaks y por las reglas
 > de inyección de la auditoría de skills, y solo lo aceptado llega a `ready/<fuente>/`, la única carpeta que un indexador puede leer.
-> **Falta:** ejecutar el motor sobre `ready/` (R1 restante), `evol knowledge search` y `status` por encima de él, `doctor` y las citas en el
-> informe (R3), y el piloto R0 con las 30 preguntas.
->
+> **Hecho (2026-10-24):** `evol knowledge ingest <fuente> | --todas`, `search "<pregunta>" [--fuente] [--limite] [--json]` y `status [--json]`
+> (criterios 111 y 112), `source package <fuente> <paquete-npm>` (para que `status` compare con el archivo de bloqueo), el aviso de `evol doctor`
+> (criterio 115, sin pgvector: informa de las fuentes indexadas y de los embeddings locales, y nunca es un error), la herramienta
+> `evol_knowledge_search` del MCP (criterio 114: solo lee, y está **apagada** salvo que el proyecto ponga `knowledge.activo: true` en
+> `evol.config.json`, que también puede limitarla a unas `fuentes`; criterio 97) y la lista de fuentes consultables en los anexos de `evol report`
+> cuando el proyecto la activó (las de «uso privado» salen marcadas como no citables). Cada resultado de `search` trae fuente, archivo, sección,
+> enlace (con el commit capturado y el ancla cuando el origen es GitHub), versión, fecha de captura y licencia, y va marcado como **dato**.
+> El servidor de embeddings tiene que ser local (loopback): si no, evol se niega. Las pruebas usan un motor simulado (`tests/knowledge-search.test.ts`).
+> **Dos cosas que se descubrieron al indexar de verdad:** (1) el motor crea el almacén con vectores de **1 536** dimensiones y bge-m3 devuelve
+> **1 024**, así que cada documento fallaba al guardarse y el motor **salía con código 0 igualmente**; ahora evol fija la dimensión y `ingest`
+> cuenta los documentos que fallan y no da la fuente por buena. (2) Indexar es lento: unos 29 fragmentos por minuto en CPU.
+> **Falta:** indexar todas las fuentes (horas; el ArchWiki, la más grande, es lo último), la medición del piloto sobre el almacén final y
+> `evol knowledge verify`.
 > **Fuentes de la primera ola capturadas y revisadas (2026-10-24).** Además de OWASP, TypeScript y React: Next.js, Vite, Fastify, NestJS (MIT), Express
 > (CC-BY-4.0), Docker y Compose, OpenAPI (Apache-2.0), 18 RFC elegidas (HTTP, OAuth 2, JWT, TLS 1.3, URI, JSON y cookies; licencia del IETF Trust,
 > TLP 5, registrada como `LicenseRef-IETF-TLP-5` porque no tiene identificador SPDX) y el **ArchWiki en inglés** (paquete `arch-wiki-docs`

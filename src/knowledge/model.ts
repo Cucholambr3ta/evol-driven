@@ -13,6 +13,8 @@ export interface KnowledgeSource {
     /** Where and when it was checked at the source; absent only for an unknown license. */
     comprobada?: { url: string; el: string };
   };
+  /** The npm package this documentation describes: lets `status` compare it with the project's lockfile. */
+  paquete?: string;
   /** Hash of the captured tree: the path and content of every file, in order. */
   hash: string;
   archivos: number;
