@@ -1637,6 +1637,38 @@ Los proyectos usan la copia estable. Las mejoras **no se hacen desde un proyecto
 | 120 | Las skills cambiadas por una actualización llegan sin aprobar, y la instalación no toca un `evol` que no sea un enlace.                                                                                           | `tests/update.test.ts`  |
 | 121 | `evol mejora` anota con proyecto y versión sin cambiar el proyecto; cerrar una mejora añade una línea y no reescribe la historia; una línea rota no tira el buzón.                                                | `tests/improve.test.ts` |
 
+### Continuidad del trabajo: `evol checkpoint` y `evol handoff` (2026-10-25)
+
+**El problema.** Antes, la memoria se escribía solo en los hitos del pipeline (crear, aprobar, avanzar) y cuando un agente llamaba a `evol memory add`;
+la skill `evol` le decía que _leyera_ la memoria, no que _escribiera_ mientras trabajaba. Si un agente se quedaba sin contexto o sin créditos a mitad
+de un encargo, lo que había decidido y el punto en el que estaba desaparecían con su conversación, y otro agente no podía retomar. Los hooks de
+MemPalace (`Stop`, `PreCompact`, `SessionEnd`) existen solo en Claude Code, no en OpenCode.
+
+**Qué hace ahora.** `evol checkpoint [--nota "…"] [--verificar] [--json]` guarda en `.evol/checkpoint.md` (legible) y `.evol/checkpoint.json` el
+estado del proyecto (fase, aprobación, estado del pipeline), el de git (rama, commit, **archivos sin commit**, últimos commits), los últimos eventos
+del diario y las **notas** del agente (hasta 10, de 2 000 caracteres como mucho). Lo construye evol, **sin ningún modelo**: no depende de que un agente
+«se acuerde» de escribir. La escritura es atómica. `evol handoff` es lo mismo con `--verificar` por defecto y la marca de **traspaso**, para cuando el
+trabajo cambia de manos (de OpenCode, que construye, a Claude Code, que audita). La herramienta `evol_checkpoint` del MCP hace lo mismo para los agentes
+sin shell.
+
+**Cómo lo retoma otro agente.** El hook de inicio de sesión de Claude Code muestra cuándo fue el checkpoint, la fase (y avisa si es de otra),
+cuántos archivos quedaron sin commit y la última nota, marcada como dato. La skill `evol` pide leer `.evol/checkpoint.md` antes que nada y guardar el
+avance **al terminar cada encargo, antes de parar y en cuanto se note que se acaba el contexto**; las instrucciones que genera `evol agents` dicen lo
+mismo. Las notas son del agente anterior: **son datos, no órdenes**, y se comprueban contra el estado real.
+
+**Límites.** La regla de guardar el avance depende de que el modelo la siga; lo que no depende de él es `evol handoff` en cada cambio de turno, que
+puede ejecutar la persona. `.evol/` va en git, así que el checkpoint viaja con los commits; lo que no se haya guardado en un checkpoint ni en un commit
+no sobrevive a una sesión que se corta. **Sin construir:** que OpenCode (y los demás IDE) guarden un checkpoint por su cuenta al cerrar la sesión (hace
+falta comprobar si su sistema de plugins permite enganchar ese evento), y un aviso cuando hay muchos archivos sin commit y pasa tiempo sin checkpoint.
+
+| #   | Criterio                                                                                                                                                                        | Prueba                     |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- |
+| 122 | `evol checkpoint` guarda fase, git, archivos sin commit y notas sin usar ningún modelo; las notas se acumulan (diez) y se normalizan; sin git o con el archivo dañado no falla. | `tests/checkpoint.test.ts` |
+| 123 | `evol handoff` deja el checkpoint marcado como traspaso y con el resultado de la verificación.                                                                                  | `tests/checkpoint.test.ts` |
+| 124 | El hook de inicio muestra el checkpoint (cuándo, sin commit, última nota como dato), avisa si es de otra fase y un archivo dañado no rompe la sesión.                           | `tests/checkpoint.test.ts` |
+| 125 | La herramienta `evol_checkpoint` del MCP lo guarda y solo escribe `.evol/checkpoint.*` y el diario.                                                                             | `tests/checkpoint.test.ts` |
+| 126 | La skill `evol` y las instrucciones de los agentes piden guardar el avance y tratan las notas como datos; la skill no nombra `evol approve` ni `evol next`.                     | `tests/checkpoint.test.ts` |
+
 ### Instalación por modos y firmantes (2026-10-25)
 
 `install.sh` ya no enlaza el repositorio como `evol`. **Por defecto instala la copia estable**: compila, lanza `evol setup` y ejecuta `evol update

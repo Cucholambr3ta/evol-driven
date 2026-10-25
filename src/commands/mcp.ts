@@ -15,6 +15,7 @@ import { appendLesson, remember } from "../memory/events.js";
 import type { MemoryKind } from "../memory/events.js";
 import { withMemPalace } from "../memory/mempalace.js";
 import { searchKnowledge } from "../knowledge/search.js";
+import { buildCheckpoint, writeCheckpoint } from "../core/checkpoint.js";
 
 /** The names of the tools this server offers. None of them approves, advances or initializes. */
 export const TOOL_NAMES = [
@@ -30,6 +31,7 @@ export const TOOL_NAMES = [
   "evol_memory_search",
   "evol_memory_add",
   "evol_knowledge_search",
+  "evol_checkpoint",
 ] as const;
 
 type Reply = { content: { type: "text"; text: string }[]; isError?: boolean };
@@ -244,6 +246,35 @@ export function createServer(projectArg?: string): McpServer {
         if (tipo === "leccion") appendLesson(root, titulo?.trim() || texto.slice(0, 60), texto);
         const id = await remember(ctx.config, tipo, titulo ? `${titulo}\n\n${texto}` : texto);
         return json({ guardado: true, id, tipo });
+      },
+    ),
+  );
+
+  server.registerTool(
+    "evol_checkpoint",
+    {
+      description:
+        "Guarda el estado del trabajo (fase, git, archivos sin commit y tu nota) en .evol/checkpoint.md y .evol/checkpoint.json, sin usar ningún modelo, para que otro agente o sesión lo retome si este se queda sin contexto. Llámalo después de cada encargo y antes de parar; en `nota` di qué hacías y qué sigue (sin secretos). Solo escribe esos dos archivos y el diario.",
+      inputSchema: {
+        nota: z.string().max(2000).optional().describe("Qué hacías y qué sigue"),
+        verificar: z
+          .boolean()
+          .optional()
+          .describe("Añade el resultado de evol verify (puede tardar)"),
+      },
+    },
+    guard(
+      async ({
+        nota,
+        verificar,
+      }: {
+        nota?: string | undefined;
+        verificar?: boolean | undefined;
+      }) => {
+        const { root } = context();
+        const checkpoint = await buildCheckpoint(root, { nota, verificar: verificar === true });
+        writeCheckpoint(root, checkpoint);
+        return json(checkpoint);
       },
     ),
   );

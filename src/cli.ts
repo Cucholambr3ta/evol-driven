@@ -110,6 +110,15 @@ const COMMANDS: Record<string, CommandSpec> = {
     summary: "Crea o refresca la integración con Claude Code y MCP",
     load: async () => await import("./commands/agents.js"),
   },
+  checkpoint: {
+    summary:
+      "Guarda el estado del trabajo (fase, git, notas) para que otro agente o sesión lo retome (--nota, --verificar)",
+    load: async () => await import("./commands/checkpoint.js"),
+  },
+  handoff: {
+    summary: "Traspaso entre agentes: checkpoint con el resultado de la verificación",
+    load: async () => await import("./commands/handoff.js"),
+  },
   hook: {
     summary: "Salida para los hooks de Claude Code (session-start)",
     load: async () => await import("./commands/hook.js"),

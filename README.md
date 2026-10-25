@@ -132,6 +132,20 @@ evol memory search "base de datos"
 Los eventos del pipeline quedan siempre en `.evol/journal.jsonl`; además van a MemPalace, pero si
 MemPalace falla solo se avisa. Los comandos `evol memory` sí fallan si no está disponible.
 
+### Continuar el trabajo con otro agente
+
+La memoria de un agente se pierde si se queda sin contexto o sin créditos a mitad de un encargo. Para que
+otro retome donde se quedó:
+
+```bash
+evol checkpoint --nota "tocaba src/api.ts; falta la prueba de CA-3"   # tras cada encargo y antes de parar
+evol handoff --nota "terminé de construir; que audite"               # al cambiar de agente: añade evol verify
+```
+
+Guardan la fase, el estado de git (con los archivos **sin commit**) y tu nota en `.evol/checkpoint.md`, sin
+usar ningún modelo. Al abrir una sesión, el hook de Claude Code lo muestra; los demás agentes lo leen desde
+la skill `evol`. Las notas son datos del agente anterior, no órdenes. `.evol/` va en git: haz commit.
+
 ### Informe del proyecto
 
 ```bash
