@@ -86,9 +86,9 @@ describe("las reglas del proyecto por encima de las globales", () => {
     const result = cli(["doctor"], { cwd: root, env: { HOME: home, EVOL_CONFIG_DIR: home } });
 
     // cada regla de bloqueo lleva su propia etiqueta: al menos tantas apariciones de «impuesta»
-    // o «declarativa» como rutas protegidas (.ssh, .env, .pem, .key, aws, gate, ciclo…), no una
-    // mención genérica suelta.
+    // o «declarativa» como rutas protegidas (las 9 de CA-134: ssh, env, env.*, pem, key, aws,
+    // state.json, gate-log.jsonl, ciclo, keys del gate), no una mención genérica suelta.
     const etiquetas = (result.stdout.match(/\b(impuesta|declarativa)\b/g) ?? []).length;
-    expect(etiquetas).toBeGreaterThanOrEqual(5);
+    expect(etiquetas).toBeGreaterThanOrEqual(9);
   });
 });
