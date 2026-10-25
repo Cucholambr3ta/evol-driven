@@ -284,7 +284,12 @@ export function runSemgrep(root: string): RunResult {
           return `${e.path ? rel(root, e.path) : "una regla"}${kind}`;
         })
         .slice(0, 3)
-        .join(", ")}`,
+        .join(", ")}${
+        // with no file named the engine failed on its own: the end of its error output explains it
+        broken.some((e) => e.path)
+          ? ""
+          : `; salida de error: ${r.stderr.trim().split("\n").slice(-2).join(" | ").slice(0, 240)}`
+      }`,
       version,
     );
   const findings: SecFinding[] = (parsed.results ?? []).map((hit) => {

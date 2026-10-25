@@ -192,6 +192,24 @@ function filesUnder(dir: string, base = ""): string[] {
  * reports which files it really read, so any script it did not read is a failure, not a pass.
  * EVOL_SEMGREP_CONFIG adds more rule sets (for example `p/security-audit`), at the price of the network.
  */
+/** What semgrep says went wrong, without quoting the code it choked on: its error type and code. */
+function errorKind(e: { type?: unknown; code?: number }): string {
+  const type = Array.isArray(e.type) ? e.type[0] : e.type;
+  const parts = [
+    typeof type === "string" ? type : "",
+    e.code !== undefined ? `código ${e.code}` : "",
+  ];
+  const text = parts.filter((p) => p !== "").join(", ");
+  return text === "" ? "" : ` (${text})`;
+}
+
+/** When no file is named the engine failed on its own: the end of its error output is what explains it. */
+function engineTail(stderr: string, broken: { path?: string }[]): string {
+  if (broken.some((e) => e.path)) return "";
+  const tail = stderr.trim().split("\n").slice(-2).join(" | ").slice(0, 240);
+  return tail === "" ? "" : `; salida de error: ${tail}`;
+}
+
 export function runSemgrep(dir: string): ToolRun {
   const bin = toolPath("semgrep");
   if (!bin) return { report: missing("semgrep"), findings: [] };
@@ -213,7 +231,7 @@ export function runSemgrep(dir: string): ToolRun {
         start?: { line?: number };
         extra?: { severity?: string; message?: string };
       }[];
-      errors?: { level?: string; message?: string; path?: string }[];
+      errors?: { level?: string; message?: string; path?: string; type?: unknown; code?: number }[];
       paths?: { scanned?: string[] };
     };
     const once = (): { r: SpawnSyncReturns<string>; parsed: Semgrep | null } => {
@@ -274,12 +292,10 @@ export function runSemgrep(dir: string): ToolRun {
           `semgrep no pudo analizar ${broken
             .map(
               (e) =>
-                (e.path ? relative(scan, resolve(e.path)) : (e.message ?? "una regla")).split(
-                  "\n",
-                )[0],
+                `${(e.path ? relative(scan, resolve(e.path)) : (e.message ?? "una regla")).split("\n")[0]}${errorKind(e)}`,
             )
             .slice(0, 3)
-            .join(", ")}`,
+            .join(", ")}${engineTail(r.stderr, broken)}`,
           version,
         ),
         findings: [],
