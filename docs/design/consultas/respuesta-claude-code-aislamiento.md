@@ -1,4 +1,4 @@
-# Ensayo: ¿mandan las reglas del proyecto sobre las globales en Claude Code?
+# Ensayo: ¿mandan las reglas del proyecto sobre las globales en Claude Code y en OpenCode?
 
 - Versión: Claude Code 2.1.306.
 - Fecha: 2026-10-25.
@@ -98,6 +98,41 @@ laxo:
    el `"*": "allow"` global; si lo permite, no.
 6. Quita el `"*": "allow"` global cuando termines.
 
-Con el resultado de los dos (Claude Code y OpenCode), dime qué viste y actualizo
-`docs/specs/SPEC.md` (sección Supuestos) y `docs/specs/THREATS.md` (T-1, T-3) con el resultado
-confirmado, antes de construir M3 a M6.
+## Resultado del ensayo, hecho por la persona (2026-10-25)
+
+### Claude Code [OBS, confirmado por la persona]
+
+Con `permissions.defaultMode: "bypassPermissions"` en `~/.claude/settings.json` y una regla
+`deny` para `touch /tmp/marca-prohibida` en el proyecto: el comando **no se ejecutó**, y la
+respuesta de Claude Code fue «No se pudo ejecutar: denegaste el permiso para ese comando»,
+**sin ningún diálogo de confirmación previo** — la persona confirmó explícitamente que no le
+preguntó nada, fue un bloqueo directo.
+
+**Conclusión:** el supuesto queda **confirmado** para Claude Code. `permissions.deny` de
+proyecto manda sobre `bypassPermissions` global, en silencio. CA-134 se clasifica «impuesta»
+de verdad en Claude Code.
+
+### OpenCode [OBS, confirmado por la persona]
+
+Con `"permission": {"bash": {"*": "allow"}}` en la configuración global y `default_agent:
+"evol-prueba"` más una regla `deny` para el mismo comando en el proyecto:
+
+- La barra de estado mostró **«Evol-Prueba»** como agente activo, no el agente global: confirma
+  que `default_agent`/`agent.<id>` del proyecto prevalece.
+- El comando tampoco se ejecutó: «No pude ejecutar el comando touch /tmp/marca-prohibida: el
+  entorno de ejecución de shell está denegado en esta sesión (permiso rechazado)».
+
+**Conclusión, con matiz:** el bloqueo ocurrió, pero el mensaje («el entorno de ejecución de
+shell está denegado») no dice si fue por la regla `deny` concreta o porque un agente nuevo
+(`mode: primary`) no tiene `bash` por defecto sin un `allow` explícito, al margen de esa regla.
+**Queda «a verificar»** hasta que M5 cree el agente «evol» real y se repita la prueba con un
+`allow` de otro comando junto al `deny`, para distinguir ambos casos.
+
+## Qué se actualizó con este resultado
+
+- `docs/specs/SPEC.md`, sección Supuestos: el de `outputStyle`/`agent` por proyecto queda
+  confirmado para el agente de OpenCode (CA-137, CA-140 parcial); el de `permissions.deny` bajo
+  `bypassPermissions` queda confirmado para Claude Code y «a verificar» para OpenCode hasta M5.
+- `docs/specs/THREATS.md`, T-1 y T-3: «impuesta» en Claude Code, «a verificar» en OpenCode.
+- El `outputStyle` de Claude Code (si prevalece el del proyecto) no se probó en este ensayo:
+  sigue «por confirmar», con una prueba más barata al construir M4/M6.

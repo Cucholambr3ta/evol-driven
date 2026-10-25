@@ -45,14 +45,24 @@ delegación medida (ola 3).
 
 ## Supuestos
 
-- El agente principal de Claude Code, OpenCode y sus equivalentes acepta un `outputStyle`/`agent`
-  por proyecto que prevalece sobre el del usuario dentro de ese proyecto: **por confirmar** con un
-  ensayo real antes de build (criterios CA-135, CA-137, CA-140).
-- Una regla `permissions.deny` del proyecto sigue aplicándose aunque el `defaultMode` **global**
-  sea `bypassPermissions` (el caso real encontrado en la máquina de la persona): **por confirmar**
-  con el mismo ensayo, antes de build. De esto depende que las reglas de CA-134 sean «impuestas» de
-  verdad (T-1, T-3 de `docs/specs/THREATS.md`) y no solo declarativas; si el ensayo lo desmiente, se
-  degrada su clasificación y se avisa en `evol doctor`.
+- **Confirmado (ensayo real, 2026-10-25, `docs/design/consultas/respuesta-claude-code-aislamiento.md`):**
+  en Claude Code, una regla `permissions.deny` de `.claude/settings.json` del proyecto bloquea el
+  comando **de forma silenciosa, sin ningún diálogo de confirmación**, aunque `permissions.defaultMode`
+  sea `bypassPermissions` a nivel de usuario. De esto dependía que CA-134 pudiera llamarse
+  «impuesta» de verdad (T-1, T-3 de `docs/specs/THREATS.md`): queda confirmado para Claude Code.
+- **Confirmado, con un matiz (mismo ensayo, en OpenCode):** el `default_agent` y el `agent.<id>` que
+  escribe el proyecto prevalecen sobre los que trae la configuración global (la barra de estado
+  mostró el agente del proyecto, no el global) — confirma la parte de CA-137/CA-140 sobre
+  OpenCode. El bloqueo de un comando de shell también ocurrió con un permiso global laxo
+  (`"bash": {"*": "allow"}`), pero el mensaje de OpenCode («el entorno de ejecución de shell está
+  denegado en esta sesión») no distingue si lo bloqueó la regla `deny` del proyecto o si, por
+  defecto, un agente nuevo (`mode: primary`) sin permiso de `bash` concedido explícitamente no lo
+  tiene, con independencia de esa regla. **Queda «a verificar»** si es específicamente la regla
+  `deny` la que protege, no solo la ausencia de un `allow` explícito para el agente «evol» que M5
+  creará.
+- Lo mismo para `outputStyle` de Claude Code: no se comprobó en el ensayo (solo se probó la regla de
+  bloqueo). Se mantiene «por confirmar» para CA-135/CA-140, con una prueba más barata de hacer
+  cuando se construya M4/M6 (preguntar por el estilo activo, o mirar un indicio visual).
 - «La persona» en los criterios de `evol ciclo nuevo` y de las instrucciones según el repositorio es
   quien mantiene o usa evol, no un rol nuevo del pipeline.
 

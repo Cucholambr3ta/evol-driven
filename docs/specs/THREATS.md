@@ -66,11 +66,17 @@
 | T-12 | `evol doctor` lista los servidores MCP activos (del proyecto y los globales heredados) con su transporte, y marca los remotos como salida de datos (CA-149)                                                                                                                                                                                                                                                                                                      | `tests/acceptance/aislamiento-proyecto.acceptance.test.ts`                                                                                                                  |
 | T-13 | **Riesgo aceptado:** el manifiesto de un respaldo no lleva firma ni usuario del sistema operativo, solo fecha. Responsable: quien mantiene evol. No se construye en esta ola porque el impacto es bajo (no afecta al registro firmado del gate, que sí tiene esta protección desde T-1/T-2); se revisa si hace falta al construir el registro de propiedad de la ola 2                                                                                           | — (riesgo aceptado, sin prueba; revisar al construir la ola 2)                                                                                                              |
 
-T-1 y T-3 dan por hecho que una regla `deny` de proyecto manda incluso bajo `bypassPermissions`
-global (el supuesto «por confirmar» de `docs/specs/SPEC.md`, sección Supuestos). Si el ensayo real
-de antes de build lo desmiente, estas dos mitigaciones se degradan de «impuesta» a «a verificar» —
-igual que ya se clasifican, en `evol doctor`, las protecciones que no se pudieron comprobar — hasta
-confirmarlo.
+**T-1 y T-3, actualizado (ensayo real, 2026-10-25):** para Claude Code, el supuesto queda
+**confirmado**: una regla `deny` de proyecto bloqueó el comando de forma silenciosa, sin diálogo,
+con `bypassPermissions` activo globalmente. Las mitigaciones de T-1 y T-3 se clasifican «impuesta»
+en Claude Code.
+
+Para OpenCode, el mismo ensayo bloqueó el comando con un permiso global laxo (`"bash": {"*": "allow"}`),
+pero el mensaje no distingue si fue la regla `deny` del proyecto o la ausencia de un `allow` de
+`bash` para el agente nuevo que creará M5. T-1 y T-3 se mantienen **«a verificar» en OpenCode**
+hasta que M5 construya el agente «evol» de verdad y se repita la prueba contra esa configuración
+exacta (con un `allow` explícito para otro comando, para distinguir «deniega por la regla» de
+«deniega por falta de un permiso concedido»).
 
 ## Privacidad
 
