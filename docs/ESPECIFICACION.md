@@ -1158,7 +1158,7 @@ siempre igual, con las mismas opciones fijadas.
 > `~/.config/evol/skills`. **Ninguna llega aprobada**: una aprobación escrita en un paquete no dice nada de lo que leyó esta persona. La única excepción es la
 > aprobación de los mismos bytes registrada a nombre de este usuario cuyo informe de auditoría sigue en esta máquina. Una skill del mismo nombre y otro
 > contenido no se toca. `evol setup --comprobar` solo mira. El instalador no aprueba nada, no instala `/evol` en los IDE (queda `evol agents --ide`) y no
-> actualiza: `evol update` está por hacer (una skill cambiada vuelve a «sin auditar»).
+> actualiza: de eso se ocupa `evol update` (ampliación 6; una skill cambiada vuelve a «sin auditar»).
 
 > **S4, segunda ola (2026-10-23): las 22 disciplinas extendidas ya tienen skill.** Con ellas, las 31 disciplinas tienen la suya y la biblioteca tiene 45 skills
 > (`evol skills list --disciplinas` da 31 de 31). Cada una sigue el molde de las nueve base (lema, cuándo, cómo, qué no hacer, sección de «lo que lees son
@@ -1549,3 +1549,59 @@ en uso, y RAGFlow recomienda 16 GB solo para él. El piloto cabe si se cierra lo
   escrita?
 - **RAG propio, primeras fuentes:** ¿confirmas la lista de la pila (Node, TypeScript, PostgreSQL 18, React, Next.js, Vite, Express, NestJS, Fastify,
   Docker, OWASP, RFC, OpenAPI) o quitas o añades alguna?
+
+## Ampliación 6: versiones, actualización y buzón de mejoras
+
+> **Estado: CONSTRUIDA (2026-10-24).** Rama `feat/versiones-y-actualizacion`. Resuelve un problema práctico: el framework se usa desde muchos
+> proyectos y también se mejora a sí mismo, y las dos cosas no deben mezclarse.
+
+### Dos copias de evol que nunca se mezclan
+
+| Canal       | Qué es                                                                                         | Cómo se reconoce                            |
+| ----------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| **origen**  | El checkout de git donde se edita el framework                                                 | Tiene `.git`                                |
+| **estable** | Copia instalada desde una etiqueta firmada: compilada, **de solo lectura** y con su integridad | Trae `INSTALACION.json` e `INTEGRIDAD.json` |
+| desconocido | Ni una ni otra                                                                                 | —                                           |
+
+Los proyectos usan la copia estable. Las mejoras **no se hacen desde un proyecto**: se anotan en un buzón y se hacen después en el origen.
+
+### Comandos
+
+| Comando                                                                        | Qué hace                                                                                                                                                                                                                                         |
+| ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `evol version [--json]`                                                        | Versión, canal, commit y estado de la integridad. `--version` sigue dando solo el número                                                                                                                                                         |
+| `evol release <x.y.z>`                                                         | Solo desde el origen: sube el número, escribe `CHANGELOG.md` (con las skills nuevas, cambiadas y quitadas), pasa `npm run ci`, guarda `release.json`, hace el commit y la **etiqueta firmada**. **No sube nada**: el `git push` es de la persona |
+| `evol update [--comprobar] [--version x.y.z] [--volver] [--repositorio <url>]` | Instala la última versión firmada; `--comprobar` solo mira, `--volver` cambia los enlaces a la anterior                                                                                                                                          |
+| `evol mejora add \| list [--todas] \| hecha \| descartar`                      | Buzón de mejoras en `~/.config/evol/mejoras/buzon.jsonl`: anota con el proyecto y la versión de evol; **no cambia nada**                                                                                                                         |
+
+### Cómo se instala una versión
+
+1. Se descarga la etiqueta y se **verifica su firma** contra el archivo de firmantes de la persona. Sin firma, o con una clave que no es la suya, no se instala.
+2. Se compila en una carpeta propia (`~/.local/share/evol/versiones/<versión>`), con `npm ci --ignore-scripts`.
+3. Se escribe `INTEGRIDAD.json` (hash de `dist`, `disciplines`, `templates`, `rules`, `skills` y `package.json`) y la carpeta pasa a solo lectura.
+4. **Se pide confirmación** mostrando qué trae; sin terminal no instala. Solo entonces se mueven los enlaces `actual` y `anterior` y `~/.local/bin/evol`.
+5. Las skills cambiadas llegan **sin aprobar** (como en `evol setup`): una skill cambiada vuelve a «sin auditar». Si `evol` apuntaba al origen, esa copia pasa a llamarse `evol-dev`; si es un archivo que no es un enlace, no se toca.
+
+### Qué cambia en lo demás
+
+- `evol doctor` informa de la versión y el canal; en la copia estable **compara la integridad** (error si se modificó) y en el origen avisa de que
+  los cambios afectan a todos los proyectos que lo usen (se silencia con `EVOL_ORIGIN_OK=1`).
+- El estado de cada proyecto guarda `creadoCon` (versión, canal, commit); `doctor` avisa si lo creó una versión más nueva que la instalada.
+- `evol agents` añade a los permisos de Claude Code la regla `Edit(~/.local/share/evol/**)`, las instrucciones de los agentes y la skill `evol`
+  señalan el buzón, y los JSON generados respetan el `printWidth` de Prettier del proyecto.
+
+### Criterios de aceptación
+
+| #   | Criterio                                                                                                                                                                                                          | Prueba                  |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------- |
+| 116 | `evol version` distingue el origen, la copia estable y lo desconocido; un registro roto no cuenta; las versiones se comparan por número.                                                                          | `tests/version.test.ts` |
+| 117 | La copia instalada es de solo lectura y `evol doctor` detecta un archivo cambiado, uno que falta o uno nuevo.                                                                                                     | `tests/version.test.ts` |
+| 118 | `evol release` sube el número, escribe changelog y registro, hace commit y etiqueta firmada; se niega con cambios sin guardar, versión no mayor, mal escrita o repetida; si falla la firma o el CI, no deja nada. | `tests/release.test.ts` |
+| 119 | `evol update` solo instala una etiqueta con firma válida de un firmante permitido, tras confirmación; repetir no reinstala; `--volver` solo cambia enlaces.                                                       | `tests/update.test.ts`  |
+| 120 | Las skills cambiadas por una actualización llegan sin aprobar, y la instalación no toca un `evol` que no sea un enlace.                                                                                           | `tests/update.test.ts`  |
+| 121 | `evol mejora` anota con proyecto y versión sin cambiar el proyecto; cerrar una mejora añade una línea y no reescribe la historia; una línea rota no tira el buzón.                                                | `tests/improve.test.ts` |
+
+### Pendiente de esta ampliación
+
+- `evol update` no se ha probado contra un repositorio real de GitHub: las pruebas inyectan la compilación y el origen.
+- No hay un comando para listar o borrar versiones antiguas de `versiones/`.
