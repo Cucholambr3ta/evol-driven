@@ -1009,13 +1009,19 @@ printf '{"results":[],"errors":[],"paths":{"scanned":%s}}' "$SCANNED"`,
     expect(s.runs()).toBe(2);
   });
 
-  it("si vuelve a fallar no se reintenta más y la skill queda «no auditada»", () => {
+  it("si vuelve a fallar no se reintenta más, la skill queda «no auditada» y la causa se guarda aparte", () => {
     const s = flaky(5);
     useTools({ EVOL_TOOL_SEMGREP: s.bin });
     const { report } = auditSkill(folder({ "scripts/run.py": "print(1)\n" }), { propia: true });
     expect(report.herramientas["semgrep"]?.estado).toBe("fallo");
     expect(report.veredicto).toBe("no-auditada");
-    expect(s.runs()).toBe(2);
+    // two runs to decide, and a third with its debug output kept in a file, not in the report
+    expect(s.runs()).toBe(3);
+    const detail = report.herramientas["semgrep"]?.detalle ?? "";
+    const log = /salida de depuración en (\S+\.log)/.exec(detail)?.[1];
+    expect(log).toBeDefined();
+    expect(log && existsSync(log)).toBe(true);
+    expect(log).toContain("diagnostics");
   });
 
   it("un error que sí nombra un archivo no se reintenta", () => {
@@ -1042,8 +1048,12 @@ exit 2`,
     process.env["EVOL_TOOL_SEMGREP"] = REAL_SEMGREP ?? "";
   };
 
+  // The real semgrep sometimes fails on its own under load (an engine error that names no file; the
+  // cause is still unknown and its debug output is kept under diagnostics/). Both tests retry as a
+  // whole: a real regression fails every attempt, a transient failure of the tool does not.
   it.skipIf(!real)(
     "semgrep real: las reglas propias detectan un script peligroso, también dentro de tests/",
+    { retry: 3 },
     () => {
       realEnv();
       for (const where of ["scripts/run.py", "tests/escondido.py"]) {
@@ -1063,21 +1073,25 @@ exit 2`,
     },
   );
 
-  it.skipIf(!real)("semgrep real: un script limpio pasa y la auditoría no necesita red", () => {
-    realEnv();
-    const { report } = auditSkill(
-      folder({
-        "scripts/ok.py": 'import subprocess\nsubprocess.run(["ls"])\n',
-        "scripts/ok.mjs": "export const x = 1;\n",
-      }),
-      { propia: true },
-    );
-    expect(
-      report.herramientas["semgrep"]?.estado,
-      JSON.stringify(report.herramientas["semgrep"]),
-    ).toBe("ok");
-    expect(report.hallazgos.filter((h) => h.regla === "semgrep")).toEqual([]);
-  });
+  it.skipIf(!real)(
+    "semgrep real: un script limpio pasa y la auditoría no necesita red",
+    { retry: 3 },
+    () => {
+      realEnv();
+      const { report } = auditSkill(
+        folder({
+          "scripts/ok.py": 'import subprocess\nsubprocess.run(["ls"])\n',
+          "scripts/ok.mjs": "export const x = 1;\n",
+        }),
+        { propia: true },
+      );
+      expect(
+        report.herramientas["semgrep"]?.estado,
+        JSON.stringify(report.herramientas["semgrep"]),
+      ).toBe("ok");
+      expect(report.hallazgos.filter((h) => h.regla === "semgrep")).toEqual([]);
+    },
+  );
 });
 
 describe("gitleaks real", () => {

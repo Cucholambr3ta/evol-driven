@@ -14,7 +14,7 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { delimiter, isAbsolute, join, relative, resolve } from "node:path";
-import { packageRoot } from "../core/paths.js";
+import { packageRoot, userConfigDir } from "../core/paths.js";
 import type { Entry } from "./inventory.js";
 import type { AuditFinding, ToolReport } from "./report.js";
 import type { Ecosystem } from "./analyze.js";
@@ -234,14 +234,14 @@ export function runSemgrep(dir: string): ToolRun {
       errors?: { level?: string; message?: string; path?: string; type?: unknown; code?: number }[];
       paths?: { scanned?: string[] };
     };
-    const once = (): { r: SpawnSyncReturns<string>; parsed: Semgrep | null } => {
+    const once = (debug = false): { r: SpawnSyncReturns<string>; parsed: Semgrep | null } => {
       const r = spawnSync(
         bin,
         [
           "scan",
           ...configs,
           "--json",
-          "--quiet",
+          debug ? "--debug" : "--quiet",
           "--metrics",
           "off",
           "--disable-version-check",
@@ -266,13 +266,26 @@ export function runSemgrep(dir: string): ToolRun {
     // The engine sometimes fails on its own, with an error that names no file («Error while
     // matching…»), and does not on the next run. One retry is safe: only a clean second run
     // counts, and a second failure leaves the skill «no auditada».
-    if (
-      !r.error &&
-      parsed !== null &&
-      failing(parsed) &&
-      (parsed.errors ?? []).every((e) => !e.path)
-    )
-      ({ r, parsed } = once());
+    const engineOnly = (p: Semgrep | null): boolean =>
+      p !== null && failing(p) && (p.errors ?? []).every((e) => !e.path);
+    if (!r.error && engineOnly(parsed)) ({ r, parsed } = once());
+    // Still failing on its own: run it once more with its debug output, kept in a file of its own
+    // (it can quote the code under audit, so it never goes into the report), to learn why it fails.
+    let diagnostic = "";
+    if (!r.error && engineOnly(parsed)) {
+      const debugRun = once(true).r;
+      try {
+        const folder = process.env["EVOL_DIAGNOSTICS_DIR"] ?? join(userConfigDir(), "diagnostics");
+        mkdirSync(folder, { recursive: true });
+        const file = join(folder, `semgrep-${Date.now()}.log`);
+        // how it ended comes first: an empty output with a signal or a status says as much as a trace
+        const ended = `# estado=${debugRun.status} señal=${debugRun.signal} error=${debugRun.error?.message ?? "ninguno"} stdout=${debugRun.stdout.length} bytes stderr=${debugRun.stderr.length} bytes\n`;
+        writeFileSync(file, ended + debugRun.stderr.slice(-200_000));
+        diagnostic = `; salida de depuración en ${file}`;
+      } catch {
+        /* the diagnosis is a courtesy: never let it hide the real failure */
+      }
+    }
     if (r.error) return { report: failed(r.error.message, version), findings: [] };
     if (parsed === null) {
       return {
@@ -295,7 +308,7 @@ export function runSemgrep(dir: string): ToolRun {
                 `${(e.path ? relative(scan, resolve(e.path)) : (e.message ?? "una regla")).split("\n")[0]}${errorKind(e)}`,
             )
             .slice(0, 3)
-            .join(", ")}${engineTail(r.stderr, broken)}`,
+            .join(", ")}${engineTail(r.stderr, broken)}${diagnostic}`,
           version,
         ),
         findings: [],

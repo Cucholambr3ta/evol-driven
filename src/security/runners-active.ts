@@ -197,17 +197,27 @@ export function runZapPassive(_root: string, targets: Target[]): RunResult {
       const env = { ...process.env };
       delete env["DISPLAY"];
       delete env["WAYLAND_DISPLAY"];
+      // ZAP opens a local proxy even headless, on 8080 unless told otherwise: a busy port is a failure
+      // that has nothing to do with the target, so it gets a port of its own
+      const port = String(20_000 + Math.floor(Math.random() * 40_000));
       const r = spawnSync(
         bin,
-        ["-Xmx1g", "-cmd", "-silent", "-dir", join(work, "home"), "-autorun", plan],
+        ["-Xmx1g", "-cmd", "-silent", "-dir", join(work, "home"), "-port", port, "-autorun", plan],
         { cwd: dirname(bin), encoding: "utf8", timeout: 900_000, maxBuffer: 64 * 1024 * 1024, env },
       );
       const report = join(work, "zap.json");
       const parsed = existsSync(report) ? json<ZapReport>(readFileSync(report, "utf8")) : null;
       // exit 2 only means the plan had warnings (a 404 at the root, for instance)
       if (r.error || parsed === null || (r.status !== 0 && r.status !== 2)) {
+        // what ZAP itself says went wrong (its own error lines, not the target's responses)
+        const why = `${r.stdout}\n${r.stderr}`
+          .split("\n")
+          .filter((l) => /\b(ERROR|FATAL|SEVERE)\b|Exception|Address already in use/.test(l))
+          .slice(-3)
+          .join(" | ")
+          .slice(0, 300);
         problems.push(
-          `${t.nombre}: ${r.error?.message ?? `no produjo un informe (código ${r.status})`}`,
+          `${t.nombre}: ${r.error?.message ?? `no produjo un informe (código ${r.status})${why ? `: ${why}` : ""}`}`,
         );
         continue;
       }
