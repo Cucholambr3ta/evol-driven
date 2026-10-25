@@ -20,8 +20,12 @@ describe("evol como agente propio en OpenCode", () => {
     expect(result.status).toBe(0);
     const config = readOpencode(root);
     expect(config["default_agent"]).toBe("evol");
-    const agent = (config["agent"] as Record<string, { mode?: string }>)["evol"];
+    const agent = (config["agent"] as Record<string, { mode?: string; description?: string }>)[
+      "evol"
+    ];
     expect(agent?.mode).toBe("primary");
+    expect(agent?.description).toMatch(/orquesta|orquestador/i);
+    expect(agent?.description).toMatch(/evol/i);
   });
 
   it("CA-138: ejecutar evol agents otra vez no cambia opencode.json", () => {

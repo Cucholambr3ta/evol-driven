@@ -15,6 +15,12 @@ Feature: Rutas sensibles bloqueadas por defecto
     Then el IDE deniega la edición
 
   @CA-134
+  Scenario: el agente no puede leer la clave del gate
+    Given un proyecto con evol instalado por "evol agents"
+    When el agente intenta leer "~/.config/evol/keys/<projectId>"
+    Then el IDE deniega la lectura, porque quien lee esa clave puede falsificar aprobaciones
+
+  @CA-134
   Scenario: alterar el estado del pipeline por fuera se detecta
     Given un proyecto con una aprobación válida de la fase "briefing"
     When alguien edita ".evol/state.json" a mano para simular una fase ya aprobada

@@ -35,6 +35,7 @@ describe("rutas sensibles bloqueadas por defecto", () => {
         expect.stringContaining(".evol/state.json"),
         expect.stringContaining(".evol/gate-log.jsonl"),
         expect.stringContaining("evol ciclo"),
+        expect.stringMatching(/\.config[/\\]evol[/\\]keys/),
       ]),
     );
   });

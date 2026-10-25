@@ -6,11 +6,22 @@ import { ensureKey, readLog, verifyChain } from "../../src/core/gate.js";
 import { advance, approvePhase, loadContext } from "../../src/core/pipeline.js";
 import type { Confirm, PipelineContext } from "../../src/core/pipeline.js";
 import { loadState } from "../../src/core/state.js";
-import { CLI, cli, isolateUserConfig, makeProject, writeValidArtifacts } from "../helpers.js";
+import {
+  CLI,
+  cli,
+  interrogatePlan,
+  isolateUserConfig,
+  makeProject,
+  write,
+  writeValidArtifacts,
+} from "../helpers.js";
 
 const DISC = ["SDD", "FDD", "DDD", "THREAT", "BDD", "ATDD", "TDD", "STDD", "SecDD"];
 const yes: Confirm = () => Promise.resolve({ approver: "ana" });
 const passing = () => ({ ok: true, output: "" });
+// mismo convenio que tests/e2e.test.ts: sin "script" no hay como simular una terminal real, y
+// approve/ciclo nuevo exigen una. Sin él, CA-146 se queda sin ninguna evidencia (riesgo señalado
+// por la revisión del briefing); se acepta porque el propio e2e.test.ts ya depende de lo mismo.
 const hasScript = spawnSync("script", ["--version"], { encoding: "utf8" }).status === 0;
 
 function ctxFor(root: string): PipelineContext {
@@ -21,7 +32,9 @@ function ctxFor(root: string): PipelineContext {
 async function finishACycle(root: string): Promise<void> {
   const phases = ["briefing", "spec", "plan", "build", "qa", "retro"] as const;
   for (const id of DISC) writeValidArtifacts(root, id);
+  write(root, "lecciones.md", "# Lecciones\n\n### Una lección del ciclo — 2026-01-01\n\ntexto\n");
   for (const phase of phases) {
+    if (phase === "plan") interrogatePlan(root);
     await approvePhase(ctxFor(root), phase, yes);
     await advance(ctxFor(root));
   }
@@ -67,7 +80,13 @@ describe("seguir trabajando en un segundo ciclo", () => {
     async () => {
       const root = makeProject(DISC);
       await finishACycle(root);
-      cicloNuevoEnTerminal(root);
+      const beforeEntries = readLog(root).length;
+      const terminal = cicloNuevoEnTerminal(root);
+      // si «ciclo nuevo» no abrió nada (no es todavía un comando real, por ejemplo), esta prueba no
+      // demuestra nada: el registro firmado del primer ciclo sería trivialmente válido de todos
+      // modos. Solo cuenta como evidencia cuando el comando de verdad añadió algo al registro.
+      expect(terminal.status, terminal.stdout + terminal.stderr).toBe(0);
+      expect(readLog(root).length).toBeGreaterThan(beforeEntries);
       const state = loadState(root);
       const key = ensureKey(state.projectId);
 
@@ -77,15 +96,23 @@ describe("seguir trabajando en un segundo ciclo", () => {
     },
   );
 
-  it("CA-147: sin una persona en una terminal, el comando se niega (como approve)", async () => {
-    const root = makeProject(DISC);
-    await finishACycle(root);
+  it.skipIf(!hasScript)(
+    "CA-147: sin una persona en una terminal, el comando se niega por eso, no por otro motivo",
+    async () => {
+      const root = makeProject(DISC);
+      await finishACycle(root);
 
-    // cli() no adjunta una terminal a stdin, igual que un agente que invoca el comando directo.
-    const result = cli(["ciclo", "nuevo"], { cwd: root, env: env() });
+      // cli() no adjunta una terminal a stdin, igual que un agente que invoca el comando directo.
+      const sinTerminal = cli(["ciclo", "nuevo"], { cwd: root, env: env() });
+      // referencia: en una terminal real, el mismo comando sí abre el ciclo (confirma que la
+      // negación de arriba es por falta de terminal, no porque "ciclo nuevo" no exista).
+      const conTerminal = cicloNuevoEnTerminal(root);
 
-    expect(result.status).not.toBe(0);
-  });
+      expect(conTerminal.status, conTerminal.stdout + conTerminal.stderr).toBe(0);
+      expect(sinTerminal.status).not.toBe(0);
+      expect(sinTerminal.stdout + sinTerminal.stderr).toMatch(/terminal|confirmaci[oó]n/i);
+    },
+  );
 
   it("CA-147: el MCP no registra ninguna herramienta para abrir un ciclo", async () => {
     const root = makeProject(DISC);

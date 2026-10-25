@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { cli, isolateUserConfig, makeProject } from "../helpers.js";
@@ -48,6 +48,11 @@ describe("escribir con copia, ensayo y vuelta atrás", () => {
     expect(result.status).toBe(0);
     expect(existsSync(join(root, "CLAUDE.md"))).toBe(false);
     expect(existsSync(join(root, ".claude", "settings.json"))).toBe(false);
+    const respaldosDir = join(root, ".evol", "respaldos");
+    expect(existsSync(respaldosDir)).toBe(true);
+    const copias = readdirSync(respaldosDir);
+    expect(copias.length).toBeGreaterThan(0);
+    expect(existsSync(join(respaldosDir, copias[0]!, "manifest.json"))).toBe(true);
   });
 
   it("CA-133: deshacer no pisa un archivo que la persona editó después", () => {
