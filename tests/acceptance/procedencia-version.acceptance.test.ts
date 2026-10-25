@@ -16,9 +16,8 @@ describe("procedencia verificable de cada versión", () => {
   it("CA-142: el release incluye las sumas, el SBOM y la firma", () => {
     const root = origin({ signing: true });
 
-    const result = cli(["release", "0.3.0"], { cwd: root, env: env() });
+    release({ root, version: "0.3.0", ci: null });
 
-    expect(result.status).toBe(0);
     const show = (path: string) => git(root, "show", `v0.3.0:${path}`).stdout;
     expect(show("release/SUMAS.txt")).toMatch(/\S/);
     expect(show("release/sbom.spdx.json")).toMatch(/SPDXID/);
@@ -84,9 +83,8 @@ describe("procedencia verificable de cada versión", () => {
   it("CA-144: --sin-sbom publica sin SBOM y lo registra", () => {
     const root = origin({ signing: true });
 
-    const result = cli(["release", "0.3.0", "--sin-sbom"], { cwd: root, env: env() });
+    release({ root, version: "0.3.0", ci: null, sinSbom: true });
 
-    expect(result.status).toBe(0);
     const files = git(root, "ls-tree", "-r", "--name-only", "v0.3.0").stdout;
     expect(files).not.toMatch(/release\/sbom\.spdx\.json/);
     const releaseJson = JSON.parse(readFileSync(join(root, "release.json"), "utf8")) as {

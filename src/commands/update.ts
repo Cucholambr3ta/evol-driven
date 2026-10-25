@@ -74,7 +74,14 @@ export default async function run(argv: string[]): Promise<number> {
       out(
         `Última: ${info.candidata.version}, firma: ${info.candidata.firma.ok ? "válida" : `NO válida (${info.candidata.firma.detail})`}`,
       );
+      out(
+        `Sumas: ${info.candidata.sumas.ok ? "verificadas" : `NO coinciden (${info.candidata.sumas.detail})`}`,
+      );
       out(info.candidata.cambios);
+      if (!info.candidata.firma.ok || !info.candidata.sumas.ok)
+        throw new UserError(
+          `${info.candidata.etiqueta} no se instalaría: ${!info.candidata.firma.ok ? info.candidata.firma.detail : info.candidata.sumas.detail}.`,
+        );
     }
     out("Solo se ha comprobado. Para instalar: evol update");
     return 0;

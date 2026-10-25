@@ -6,10 +6,14 @@ import { versionInfo } from "../release/version.js";
 import { out } from "./shared.js";
 
 export const USAGE =
-  "Uso: evol release <x.y.z>   (desde el origen, con el árbol guardado y la firma de git configurada)";
+  "Uso: evol release <x.y.z> [--sin-sbom]   (desde el origen, con el árbol guardado y la firma de git configurada)";
 
 export default function run(argv: string[]): Promise<number> {
-  const { positionals } = parseArgs({ args: argv, allowPositionals: true, options: {} });
+  const { positionals, values } = parseArgs({
+    args: argv,
+    allowPositionals: true,
+    options: { "sin-sbom": { type: "boolean" } },
+  });
   const version = positionals[0];
   if (!version) throw new UserError(USAGE);
   const info = versionInfo();
@@ -19,7 +23,13 @@ export default function run(argv: string[]): Promise<number> {
     );
   // EVOL_RELEASE_CI lets the tests skip the full CI; a person never sets it
   const ci = process.env["EVOL_RELEASE_CI"] === "" ? null : ["npm", "run", "ci"];
-  const result = release({ root: packageRoot(), version, ci, log: out });
+  const result = release({
+    root: packageRoot(),
+    version,
+    ci,
+    log: out,
+    sinSbom: values["sin-sbom"] === true,
+  });
   out(`Versión ${version} lista: etiqueta ${result.etiqueta} firmada en ${result.commit}.`);
   const c = result.cambios;
   out(

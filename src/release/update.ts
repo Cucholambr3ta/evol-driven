@@ -15,6 +15,7 @@ import {
 import { homedir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { UserError } from "../core/errors.js";
+import { sha256 } from "../core/hash.js";
 import { readManifest, writeManifest } from "../skills/manifest.js";
 import { readSkill, SKILL_FILE } from "../skills/skill.js";
 import { makeReadOnly, makeWritable, writeIntegrity } from "./integrity.js";
@@ -118,7 +119,50 @@ export interface Candidate {
   etiqueta: string;
   version: string;
   firma: { ok: boolean; detail: string };
+  sumas: { ok: boolean; detail: string };
   cambios: string;
+}
+
+/** Raw bytes of `ref` (a git `show` target), never through `run()`, which trims text output. */
+function rawShow(src: string, ref: string): Buffer | null {
+  const r = spawnSync("git", ["-C", src, "show", ref], { maxBuffer: 256 * 1024 * 1024 });
+  return r.status === 0 ? r.stdout : null;
+}
+
+const SUMAS_LINE = /^([0-9a-f]{64}) {2}(.+)$/;
+
+/**
+ * Recomputes every tracked file's hash at `tag` (outside `release/`, which cannot describe its own
+ * bytes) and compares it against what `release/SUMAS.txt` claims. Catches a tree that was changed
+ * after signing without regenerating the sums — a thing a valid tag signature alone does not rule
+ * out when someone force-moves the tag with the same key (criterio 143).
+ */
+export function verifySums(src: string, tag: string): { ok: boolean; detail: string } {
+  const sumas = rawShow(src, `${tag}:release/SUMAS.txt`);
+  if (!sumas)
+    return { ok: true, detail: "sin sumas que verificar (versión anterior a esta protección)" };
+  const expected = new Map<string, string>();
+  for (const line of sumas.toString("utf8").split("\n")) {
+    const m = SUMAS_LINE.exec(line);
+    if (m) expected.set(m[2] as string, m[1] as string);
+  }
+  const files = run(src, "git", ["ls-tree", "-r", "--name-only", tag])
+    .out.split("\n")
+    .filter((f) => f !== "" && !f.startsWith("release/"));
+  if (expected.size !== files.length)
+    return {
+      ok: false,
+      detail: `release/SUMAS.txt describe ${expected.size} archivo(s) y el árbol tiene ${files.length}`,
+    };
+  for (const f of files) {
+    const want = expected.get(f);
+    if (!want) return { ok: false, detail: `release/SUMAS.txt no incluye ${f}` };
+    const bytes = rawShow(src, `${tag}:${f}`);
+    if (!bytes) return { ok: false, detail: `no se pudo leer ${f} en ${tag}` };
+    if (sha256(bytes) !== want)
+      return { ok: false, detail: `${f} no coincide con la suma de release/SUMAS.txt` };
+  }
+  return { ok: true, detail: "sumas verificadas" };
 }
 
 function changelogOf(src: string, tag: string, version: string): string {
@@ -165,6 +209,7 @@ export function inspectUpdate(
       etiqueta: tag,
       version,
       firma: verifyTag(src, tag, deps.signers),
+      sumas: verifySums(src, tag),
       cambios: changelogOf(src, tag, version),
     },
   };
@@ -293,6 +338,10 @@ export async function update(
   }
   if (!c.firma.ok)
     throw new UserError(`La etiqueta ${c.etiqueta} no se instala: ${c.firma.detail}.`);
+  if (!c.sumas.ok)
+    throw new UserError(
+      `La etiqueta ${c.etiqueta} no se instala: suma alterada (${c.sumas.detail}).`,
+    );
   const summary = `Versión ${c.version} (de ${info.actual}), firma verificada.\n\n${c.cambios}`;
   if (!(await deps.confirm(summary))) return { estado: "cancelada" };
 

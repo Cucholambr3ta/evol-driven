@@ -1,8 +1,10 @@
 import { spawnSync } from "node:child_process";
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { z } from "zod";
 import { UserError } from "../core/errors.js";
+import { sha256 } from "../core/hash.js";
+import { runSyftTo } from "../security/runners-infra.js";
 import { listSkills } from "../skills/library.js";
 import { compareVersions } from "./version.js";
 
@@ -18,8 +20,24 @@ const ReleaseSchema = z.object({
   version: z.string(),
   fecha: z.string(),
   skills: z.record(z.string(), z.string()),
+  sbom: z.enum(["incluido", "omitido"]).default("incluido"),
 });
 export type ReleaseRecord = z.infer<typeof ReleaseSchema>;
+
+/** Every tracked file at `ref` except `release/` itself, which cannot describe its own bytes. */
+function treeFiles(root: string, ref: string): string[] {
+  return git(root, ["ls-tree", "-r", "--name-only", ref])
+    .out.split("\n")
+    .filter((f) => f !== "" && !f.startsWith("release/"));
+}
+
+/** `sha256  path` lines, sorted, for every tracked file at HEAD outside `release/`. */
+function sumasOf(root: string): string {
+  const lines = treeFiles(root, "HEAD")
+    .sort()
+    .map((f) => `${sha256(readFileSync(join(root, f)))}  ${f}`);
+  return `${lines.join("\n")}\n`;
+}
 
 function git(
   root: string,
@@ -125,6 +143,8 @@ export interface ReleaseOptions {
   ci: string[] | null;
   now?: Date;
   log?: (line: string) => void;
+  /** Publishes without a SBOM. Recorded in release.json: never a silent omission. */
+  sinSbom?: boolean;
 }
 
 export interface ReleaseResult {
@@ -199,7 +219,8 @@ export function release(opts: ReleaseOptions): ReleaseResult {
     changelogFile,
     `${head}${changelogEntry(version, date, subjects, changes)}\n${old}`,
   );
-  const record: ReleaseRecord = { version, fecha: date, skills: after };
+  const sbom: "incluido" | "omitido" = opts.sinSbom ? "omitido" : "incluido";
+  const record: ReleaseRecord = { version, fecha: date, skills: after, sbom };
   writeFileSync(join(root, RELEASE_FILE), `${JSON.stringify(record, null, 2)}\n`);
   touched.push(CHANGELOG, RELEASE_FILE);
 
@@ -207,6 +228,51 @@ export function release(opts: ReleaseOptions): ReleaseResult {
   if (!add.ok) throw new UserError(`git add falló: ${add.err}`);
   const commit = git(root, ["commit", "-q", "-m", `release: v${version}`]);
   if (!commit.ok) throw new UserError(`No se pudo guardar la versión: ${commit.err}`);
+
+  // the sums describe the tree HEAD now points to, so they are computed after the commit above and
+  // folded into it (git commit --amend) before the tag is signed, keeping exactly one release commit
+  const releaseDir = join(root, "release");
+  mkdirSync(releaseDir, { recursive: true });
+  const sumasFile = join(releaseDir, "SUMAS.txt");
+  writeFileSync(sumasFile, sumasOf(root));
+  const releaseFiles = ["release/SUMAS.txt"];
+  if (sbom === "incluido") {
+    const result = runSyftTo(root, join(releaseDir, "sbom.spdx.json"), "spdx-json", [
+      ".evol",
+      ".git",
+    ]);
+    if (!result.ok) {
+      git(root, ["reset", "-q", "--hard", "HEAD~1"]);
+      rmSync(releaseDir, { recursive: true, force: true });
+      throw new UserError(
+        `No se pudo generar el SBOM: ${result.error}\nUsa --sin-sbom para publicar sin él (queda registrado). Se deshizo el commit de la versión.`,
+      );
+    }
+    releaseFiles.push("release/sbom.spdx.json");
+  }
+  const signingKey = git(root, ["config", "--get", "user.signingkey"]).out;
+  const sign = spawnSync("ssh-keygen", [
+    "-Y",
+    "sign",
+    "-n",
+    "evol-release",
+    "-f",
+    signingKey,
+    sumasFile,
+  ]);
+  if (sign.status !== 0) {
+    git(root, ["reset", "-q", "--hard", "HEAD~1"]);
+    rmSync(releaseDir, { recursive: true, force: true });
+    throw new UserError(
+      `No se pudo firmar release/SUMAS.txt: ${String(sign.stderr)}\nSe deshizo el commit de la versión.`,
+    );
+  }
+  releaseFiles.push("release/SUMAS.txt.sig");
+  const addReleaseFiles = git(root, ["add", ...releaseFiles]);
+  if (!addReleaseFiles.ok) throw new UserError(`git add falló: ${addReleaseFiles.err}`);
+  const amended = git(root, ["commit", "--amend", "-q", "--no-edit"]);
+  if (!amended.ok) throw new UserError(`No se pudo guardar las sumas y el SBOM: ${amended.err}`);
+
   const signed = git(root, ["tag", "-s", tag, "-m", `evol-driven ${version}`]);
   if (!signed.ok) {
     // leave the repository as it was: the commit is undone, the files return to their state

@@ -9,7 +9,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { toolPath } from "../skills/tools.js";
 import type { RunResult, SecFinding, Severity } from "./model.js";
 import { done, failedRun, firstLine, json, missingRun, notApplicable, rel } from "./runners.js";
@@ -209,6 +209,47 @@ interface CycloneDx {
     version?: string;
     licenses?: { license?: { id?: string }; expression?: string }[];
   }[];
+}
+
+export interface SbomResult {
+  ok: boolean;
+  /** Present only when `ok`. */
+  file?: string;
+  error?: string;
+  version: string | null;
+}
+
+/**
+ * The part of running syft that the security scan (CycloneDX, for its own licence check) and a
+ * release's SBOM (SPDX, for provenance) share: find the binary, run it against `root` with a
+ * chosen output format and path, and say plainly why it did not work.
+ */
+export function runSyftTo(
+  root: string,
+  outFile: string,
+  format: string,
+  excludeDirs: string[] = [".evol"],
+): SbomResult {
+  const bin = toolPath("syft");
+  if (!bin) return { ok: false, error: "syft no está instalado", version: null };
+  const version = securityToolVersion("syft", bin) ?? null;
+  mkdirSync(dirname(outFile), { recursive: true });
+  const args = [`dir:${root}`, "-o", `${format}=${outFile}`, "-q"];
+  for (const d of excludeDirs) args.push("--exclude", `./${d}/**`);
+  const r = spawnSync(bin, args, {
+    cwd: root,
+    encoding: "utf8",
+    timeout: 300_000,
+    env: { ...process.env, SYFT_CHECK_FOR_APP_UPDATE: "false" },
+  });
+  if (r.error || r.status !== 0 || !existsSync(outFile)) {
+    return {
+      ok: false,
+      error: r.error?.message ?? `no generó el SBOM (código ${r.status}): ${firstLine(r.stderr)}`,
+      version,
+    };
+  }
+  return { ok: true, file: outFile, version };
 }
 
 /**
