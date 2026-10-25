@@ -41,7 +41,9 @@ export function statusReport(ctx: PipelineContext): StatusReport {
       state: "no-integro",
       detail: `entrada ${chain.seq}: ${chain.reason}`,
     };
-  } else if (findValidApproval(log, overview.phase, currentArtifacts(ctx, overview.phase))) {
+  } else if (
+    findValidApproval(log, overview.phase, currentArtifacts(ctx, overview.phase), ctx.state.ciclo)
+  ) {
     report.approval = { state: "vigente" };
   } else if (log.some((e) => e.phase === overview.phase)) {
     report.approval = { state: "obsoleta", detail: "los artefactos cambiaron" };

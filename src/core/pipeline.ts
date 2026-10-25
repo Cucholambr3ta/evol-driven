@@ -194,6 +194,7 @@ export async function approvePhase(
     approver,
     artifacts,
     ...(anulacion ? { anulacion } : {}),
+    ...(ctx.state.ciclo > 1 ? { ciclo: ctx.state.ciclo } : {}),
   });
   await ctx.record?.("approved", {
     phase,
@@ -230,7 +231,7 @@ export async function advance(ctx: PipelineContext): Promise<NextResult> {
     problems.push(
       `El registro de aprobaciones no es íntegro (entrada ${chain.seq}): ${chain.reason}.`,
     );
-  } else if (!findValidApproval(log, phase, currentArtifacts(ctx, phase))) {
+  } else if (!findValidApproval(log, phase, currentArtifacts(ctx, phase), ctx.state.ciclo)) {
     problems.push(
       `No hay una aprobación vigente de «${phase}». Si los artefactos cambiaron después de aprobar, hay que volver a aprobar: evol approve ${phase}`,
     );

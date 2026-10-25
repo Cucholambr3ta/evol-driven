@@ -48,8 +48,12 @@ export function prerequisites(
     return { fase: phase, anterior: null, listo: true, anteriorAprobada: true, faltan: [] };
   const index = PHASES.indexOf(phase);
   const anterior = index > 0 ? (PHASES[index - 1] ?? null) : null;
-  if (anterior === null)
-    return { fase: phase, anterior, listo: true, anteriorAprobada: true, faltan: [] };
+  if (anterior === null) {
+    // the first phase of a second cycle onward (criterio 146) is not trivially ready: it only
+    // counts as such once this cycle's own retro gets completed, same as any other phase
+    const aprobada = ctx.state.ciclo <= 1 || ctx.state.completed.some((c) => c.phase === "retro");
+    return { fase: phase, anterior, listo: true, anteriorAprobada: aprobada, faltan: [] };
+  }
 
   const faltan: MissingArtifact[] = [];
   for (const d of describePhase(ctx, anterior)) {

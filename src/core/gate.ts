@@ -22,9 +22,15 @@ export interface GateEntry {
   timestamp: string;
   phase: Phase;
   approver: string;
-  action: "approved";
+  action: "approved" | "ciclo-nuevo";
   /** Set when the approval skipped a check that normally stops it; part of what is signed. */
   anulacion?: string;
+  /**
+   * The cycle this entry belongs to, set from the cycle a project opens its second one onward
+   * (criterio 146). Absent on every entry of the first cycle, and on every entry written before
+   * this field existed: both count as cycle 1.
+   */
+  ciclo?: number;
   /** path (relative to the project) -> sha256 of the file at approval time */
   artifacts: Record<string, string>;
   nonce: string;
@@ -71,8 +77,9 @@ function canonicalPayload(entry: Omit<GateEntry, "payload_hash" | "signature">):
     phase: entry.phase,
     approver: entry.approver,
     action: entry.action,
-    // undefined is left out of the JSON, so the entries written before this field still verify
+    // undefined is left out of the JSON, so the entries written before these fields still verify
     anulacion: entry.anulacion,
+    ciclo: entry.ciclo,
     artifacts: sortedArtifacts(entry.artifacts),
     nonce: entry.nonce,
     previous_hash: entry.previous_hash,
@@ -100,6 +107,30 @@ export function readLog(root: string): GateEntry[] {
     .map((line) => JSON.parse(line) as GateEntry);
 }
 
+function appendEntry(
+  root: string,
+  key: Buffer,
+  base: Omit<GateEntry, "seq" | "nonce" | "previous_hash" | "payload_hash" | "signature">,
+): GateEntry {
+  const log = readLog(root);
+  const last = log[log.length - 1];
+  const withChain: Omit<GateEntry, "payload_hash" | "signature"> = {
+    ...base,
+    seq: log.length,
+    nonce: randomBytes(16).toString("base64"),
+    previous_hash: last ? entryHash(last) : GENESIS,
+  };
+  const canonical = canonicalPayload(withChain);
+  const entry: GateEntry = {
+    ...withChain,
+    payload_hash: sha256(canonical),
+    signature: sign(key, canonical),
+  };
+  mkdirSync(dirname(logPath(root)), { recursive: true });
+  appendFileSync(logPath(root), `${JSON.stringify(entry)}\n`);
+  return entry;
+}
+
 export function appendApproval(
   root: string,
   key: Buffer,
@@ -108,30 +139,38 @@ export function appendApproval(
     approver?: string;
     artifacts: Record<string, string>;
     anulacion?: string;
+    ciclo?: number;
   },
 ): GateEntry {
-  const log = readLog(root);
-  const last = log[log.length - 1];
-  const base: Omit<GateEntry, "payload_hash" | "signature"> = {
-    seq: log.length,
+  return appendEntry(root, key, {
     timestamp: new Date().toISOString(),
     phase: data.phase,
     approver: data.approver ?? userInfo().username,
     action: "approved",
     ...(data.anulacion ? { anulacion: data.anulacion } : {}),
+    ...(data.ciclo ? { ciclo: data.ciclo } : {}),
     artifacts: sortedArtifacts(data.artifacts),
-    nonce: randomBytes(16).toString("base64"),
-    previous_hash: last ? entryHash(last) : GENESIS,
-  };
-  const canonical = canonicalPayload(base);
-  const entry: GateEntry = {
-    ...base,
-    payload_hash: sha256(canonical),
-    signature: sign(key, canonical),
-  };
-  mkdirSync(dirname(logPath(root)), { recursive: true });
-  appendFileSync(logPath(root), `${JSON.stringify(entry)}\n`);
-  return entry;
+  });
+}
+
+/**
+ * Marks, in the signed log, that a new cycle opened (criterio 146): always from «briefing», the
+ * first phase, and with no artifacts of its own — it is not an approval, just a boundary a later
+ * `findValidApproval` uses to stop an approval from the previous cycle from still counting.
+ */
+export function appendCycleOpen(
+  root: string,
+  key: Buffer,
+  data: { approver?: string; ciclo: number; phase: Phase },
+): GateEntry {
+  return appendEntry(root, key, {
+    timestamp: new Date().toISOString(),
+    phase: data.phase,
+    approver: data.approver ?? userInfo().username,
+    action: "ciclo-nuevo",
+    ciclo: data.ciclo,
+    artifacts: {},
+  });
 }
 
 /** Fail-closed: any inconsistency makes the whole chain invalid. */
@@ -165,6 +204,8 @@ export function verifyChain(entries: GateEntry[], key: Buffer): ChainResult {
 export function expectedPhase(entries: GateEntry[]): Phase | "done" | null {
   const last = entries.at(-1);
   if (!last) return null;
+  // a cycle opening is not a completed phase moving to the next one: it resets to its own phase
+  if (last.action === "ciclo-nuevo") return last.phase;
   return nextPhase(last.phase) ?? "done";
 }
 
@@ -174,15 +215,21 @@ export function sameArtifacts(a: Record<string, string>, b: Record<string, strin
   return ka.length === kb.length && ka.every((k) => a[k] === b[k]);
 }
 
-/** The most recent approval of `phase` whose artifact hashes still match the files on disk. */
+/**
+ * The most recent approval of `phase` whose artifact hashes still match the files on disk. An
+ * entry from before `cycle` (criterio 146) never counts, even with matching hashes: an approval
+ * belongs to the cycle it was given in, and a new cycle starts every phase unapproved again.
+ */
 export function findValidApproval(
   entries: GateEntry[],
   phase: Phase,
   current: Record<string, string>,
+  cycle = 1,
 ): GateEntry | null {
   for (let i = entries.length - 1; i >= 0; i--) {
     const entry = entries[i];
-    if (entry && entry.phase === phase) {
+    if (entry && (entry.ciclo ?? 1) < cycle) return null;
+    if (entry && entry.action === "approved" && entry.phase === phase) {
       return sameArtifacts(entry.artifacts, current) ? entry : null;
     }
   }

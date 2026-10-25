@@ -132,6 +132,10 @@ const COMMANDS: Record<string, CommandSpec> = {
       "Buzón de mejoras del framework: anota desde cualquier proyecto, no cambia nada (add | list | hecha | descartar)",
     load: async () => await import("./commands/mejora.js"),
   },
+  ciclo: {
+    summary: "Abre un segundo ciclo del pipeline tras terminar el primero (nuevo)",
+    load: async () => await import("./commands/ciclo.js"),
+  },
   update: {
     summary: "Instala una versión firmada del framework desde GitHub (--comprobar, --volver)",
     load: async () => await import("./commands/update.js"),

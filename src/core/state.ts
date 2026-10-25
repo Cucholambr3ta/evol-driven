@@ -19,6 +19,12 @@ const StateSchema = z.object({
   creadoCon: z
     .object({ version: z.string(), canal: z.string(), commit: z.string().nullable() })
     .optional(),
+  /** Which pass through the pipeline this is (criterio 146); 1 until `evol ciclo nuevo` opens a second. */
+  ciclo: z.number().int().positive().default(1),
+  /** Cycles already closed, each with when it closed; the signed log keeps the real history. */
+  ciclos: z
+    .array(z.object({ ciclo: z.number().int().positive(), cerradoEl: z.string() }))
+    .default([]),
 });
 
 export type PipelineState = z.infer<typeof StateSchema>;
@@ -39,6 +45,8 @@ export function initState(root: string, phase: Phase = PHASES[0]): PipelineState
     currentPhase: phase,
     completed: PHASES.slice(0, PHASES.indexOf(phase)).map((p) => ({ phase: p, at, adopted: true })),
     creadoCon: (({ version, canal, commit }) => ({ version, canal, commit }))(versionInfo()),
+    ciclo: 1,
+    ciclos: [],
   };
   saveState(root, state);
   return state;
