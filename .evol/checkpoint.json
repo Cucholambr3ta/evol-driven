@@ -1,52 +1,64 @@
 {
   "version": 1,
-  "ts": "2026-10-25T09:41:03.422Z",
+  "ts": "2026-10-25T18:02:21.021Z",
   "proyecto": "evol-driven",
-  "fase": "briefing",
+  "fase": "build",
   "aprobacion": "pendiente",
   "estado": [
     "Proyecto: evol-driven",
-    "Pipeline: briefing → spec → plan → build → qa → retro",
-    "Fase actual: briefing",
-    "  [app] FDD — Feature-Driven Development",
-    "      ✓ docs/features/FEATURES.md  (1 encontrado(s), ≥1)",
-    "  [app] BDD — Behavior-Driven Development",
-    "      ✓ tests/features/*.feature  (10 encontrado(s), ≥1)",
-    "  [app] ATDD — Acceptance Test-Driven Development",
-    "      ✓ tests/acceptance/*.acceptance.test.ts  (10 encontrado(s), ≥1)",
-    "Aprobación de «briefing»: pendiente"
+    "Pipeline: ✓briefing → ✓spec → ✓plan → build → qa → retro",
+    "Fase actual: build",
+    "  [app] SDD — Spec-Driven Development",
+    "      ✓ docs/specs/SPEC.md  (1 encontrado(s), ≥1)",
+    "  [app] TDD — Test-Driven Development",
+    "      ✗ tests/*.test.ts  (43 encontrado(s), ≥1, 4 con [[COMPLETAR]])",
+    "  [app] STDD — Security-Test-Driven Development",
+    "      ✓ tests/security*.test.ts  (2 encontrado(s), ≥1)",
+    "Aprobación de «build»: pendiente"
   ],
   "git": {
     "rama": "ola-0/adopcion",
-    "commit": "694ff54",
-    "sinCommit": [
-      "?? docs/features/",
-      "?? tests/acceptance/",
-      "?? tests/features/"
-    ],
-    "totalSinCommit": 3,
+    "commit": "64f9348",
+    "sinCommit": [],
+    "totalSinCommit": 0,
     "ultimos": [
-      "chore: nota de aislamiento en CLAUDE.md y excepciones del escáner de seguridad",
-      "chore: evol se desarrolla con evol",
-      "fix: la segunda lectura da la línea real de la cita y avisa si la frase está junto a una prohibición",
-      "release: v0.3.2",
-      "fix: el CI deja de romperse por la versión en la documentación y por dos herramientas inestables"
+      "build(M1): proyectos que no son TypeScript (CA-128 a CA-131)",
+      "plan: orden de construcción de la ola 1, interrogado dos veces",
+      "chore: aprobación de spec y avance a plan",
+      "spec: corrige los hallazgos de la revisión de seguridad en THREATS.md",
+      "spec: especificación, dominio y amenazas de la ola 1 (CA-128 a CA-148)"
     ]
   },
   "notas": [
     {
       "ts": "2026-10-25T09:41:03.422Z",
       "texto": "Briefing de la ola 1 (CA-128 a CA-148): escritos docs/features/FEATURES.md (10 features), tests/features/*.feature (10) y tests/acceptance/*.acceptance.test.ts (10, 29 pruebas). evol status confirma los tres artefactos (FDD/BDD/ATDD) completos. Lint y typecheck en verde; las 29 pruebas de aceptación fallan por la razón correcta (funcionalidad aún no construida). Pendiente: revisión del rol verificador (agente en curso) antes de proponer evol approve briefing. Siguiente paso tras la revisión: corregir lo que señale, y pedir la aprobación en terminal."
+    },
+    {
+      "ts": "2026-10-25T18:02:21.021Z",
+      "texto": "M1 (CA-128 a CA-131, proyectos que no son TypeScript) construido y comiteado (64f9348). Faltan M2 a M10 de la ola 1 en fase build. Próximo paso: Paso 0 del plan (ensayo real de outputStyle/agent y permissions.deny bajo bypassPermissions en Claude Code y OpenCode, documentado en docs/design/consultas/), necesario antes de M3 a M6."
     }
   ],
   "eventos": [
     {
-      "ts": "2026-10-25T09:22:16.126Z",
-      "type": "project-adopted"
+      "ts": "2026-10-25T10:21:51.021Z",
+      "type": "approved"
     },
     {
-      "ts": "2026-10-25T09:22:16.133Z",
-      "type": "project-adopted"
+      "ts": "2026-10-25T10:21:52.518Z",
+      "type": "phase-completed"
+    },
+    {
+      "ts": "2026-10-25T15:45:57.729Z",
+      "type": "plan-interrogated"
+    },
+    {
+      "ts": "2026-10-25T17:44:38.688Z",
+      "type": "approved"
+    },
+    {
+      "ts": "2026-10-25T17:44:40.231Z",
+      "type": "phase-completed"
     }
   ],
   "traspaso": false
