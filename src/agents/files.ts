@@ -1,6 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { BackupCollector } from "./backup.js";
+import { detectGlobalAgents } from "./convivencia.js";
 import { orchestratorBody } from "./orchestrator.js";
 import { claudeSubagent, SUBAGENT_FILES } from "./roles.js";
 
@@ -125,6 +126,46 @@ Lo que la persona pide ahora: $ARGUMENTS
 `,
     ...COMMANDS,
   };
+}
+
+export const AISLAR_BEGIN = "<!-- evol:aislamiento:begin -->";
+export const AISLAR_END = "<!-- evol:aislamiento:end -->";
+
+/**
+ * The project's own rules, independent of the `evol:begin`/`evol:end` block above so a project can
+ * refresh one without the other: what mandates this project when it sits next to another agent
+ * framework's global configuration (criterio 135). Always written, whether or not evol found
+ * anything global to coexist with — it is a standing declaration, not a reaction.
+ */
+export function aislamientoBlock(): string {
+  return `${AISLAR_BEGIN}
+
+## Reglas de este proyecto (prevalecen sobre las globales)
+
+- **Idioma**: español, en el código y los documentos que se escriben para la persona, y en la
+  conversación.
+- **Commits**: convencionales (\`feat:\`, \`fix:\`, \`docs:\`, \`chore:\`…), sin líneas de atribución a
+  un agente de IA que no vengan de las propias instrucciones de la persona.
+- **Memoria**: MemPalace es la memoria de este proyecto. No uses ninguna otra.
+- **Revisión**: \`evol verify\` y las disciplinas de este pipeline son la revisión de este proyecto;
+  no se usan herramientas de revisión de terceros instaladas de forma global.
+
+${AISLAR_END}
+`;
+}
+
+/** Replaces the content between `begin`/`end` if both are there; appends `block` at the end otherwise. */
+export function replaceOrAppendBlock(
+  current: string,
+  begin: string,
+  end: string,
+  block: string,
+): string {
+  const start = current.indexOf(begin);
+  const stop = current.indexOf(end);
+  return start !== -1 && stop > start
+    ? `${current.slice(0, start)}${block.trimEnd()}${current.slice(stop + end.length)}`
+    : `${current.trimEnd()}\n\n${block}`;
 }
 
 function claudeBlock(): string {
@@ -278,19 +319,23 @@ function runAgentFiles(root: string, ctx: WriteCtx): AgentReport {
     write(root, rel, claudeSubagent(role, GENERATED), ctx);
   }
 
+  const global = detectGlobalAgents();
+
   const claudeFile = join(root, "CLAUDE.md");
   const block = claudeBlock();
+  const aislar = aislamientoBlock();
   if (!existsSync(claudeFile)) {
-    write(root, "CLAUDE.md", `# Instrucciones para agentes\n\n${block}`, ctx);
+    write(
+      root,
+      "CLAUDE.md",
+      `# Instrucciones para agentes\n\n${block.trimEnd()}\n\n${aislar}`,
+      ctx,
+    );
   } else {
-    const current = readFileSync(claudeFile, "utf8");
-    const start = current.indexOf(BEGIN);
-    const end = current.indexOf(END);
-    const next =
-      start !== -1 && end > start
-        ? `${current.slice(0, start)}${block.trimEnd()}${current.slice(end + END.length)}`
-        : `${current.trimEnd()}\n\n${block}`;
-    write(root, "CLAUDE.md", next, ctx);
+    let current = readFileSync(claudeFile, "utf8");
+    current = replaceOrAppendBlock(current, BEGIN, END, block);
+    current = replaceOrAppendBlock(current, AISLAR_BEGIN, AISLAR_END, aislar);
+    write(root, "CLAUDE.md", current, ctx);
   }
 
   const settings = readJson(root, ".claude/settings.json", ctx);
@@ -311,7 +356,30 @@ function runAgentFiles(root: string, ctx: WriteCtx): AgentReport {
       const deny = Array.isArray(permissions["deny"]) ? (permissions["deny"] as unknown[]) : [];
       next["permissions"] = { ...permissions, deny: [...deny, ...lacking] };
     }
-    if (hasHook(settings.data) && lacking.length === 0)
+    // aislar el proyecto (criterio 135): sin telemetría de otro framework dentro de este proyecto,
+    // y solo apaga, en el proyecto, los plugins de usuario que de verdad encontró activados
+    const env = (settings.data["env"] ?? {}) as Record<string, unknown>;
+    const envNext = {
+      DO_NOT_TRACK: "1",
+      GENTLE_AI_TELEMETRY: "0",
+      CODEGRAPH_TELEMETRY: "0",
+      ...env,
+    };
+    const envChanged = JSON.stringify(envNext) !== JSON.stringify(env);
+    if (envChanged) next["env"] = envNext;
+    let pluginsChanged = false;
+    if (global.pluginsActivados.length > 0) {
+      const enabled = (settings.data["enabledPlugins"] ?? {}) as Record<string, unknown>;
+      const enabledNext = { ...enabled };
+      for (const id of global.pluginsActivados) {
+        if (enabledNext[id] !== false) {
+          enabledNext[id] = false;
+          pluginsChanged = true;
+        }
+      }
+      if (pluginsChanged) next["enabledPlugins"] = enabledNext;
+    }
+    if (hasHook(settings.data) && lacking.length === 0 && !envChanged && !pluginsChanged)
       report.unchanged.push(".claude/settings.json");
     else writeJson(root, ".claude/settings.json", next, ctx);
   }

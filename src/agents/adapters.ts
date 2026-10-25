@@ -5,6 +5,7 @@ import { SUBAGENT_ROLES } from "../core/roles.js";
 import type { RoleId } from "../core/roles.js";
 import { orchestratorBody, orchestratorDescription } from "./orchestrator.js";
 import { roleDescription } from "./roles.js";
+import { AISLAR_BEGIN, AISLAR_END, aislamientoBlock, replaceOrAppendBlock } from "./files.js";
 
 /**
  * One adapter per IDE. The orchestrator and the roles are written once (as skills); an adapter only
@@ -330,17 +331,15 @@ export function writeAgentsMd(root: string): AdapterReport {
   const report: AdapterReport = { created: [], updated: [], unchanged: [], skipped: [] };
   const file = join(root, "AGENTS.md");
   const block = instructionsBlock();
+  const aislar = aislamientoBlock();
   let next: string;
-  if (!existsSync(file)) next = `# Instrucciones para agentes\n\n${block}`;
-  else {
-    const current = readFileSync(file, "utf8");
-    const start = current.indexOf(BEGIN);
-    const end = current.indexOf(END);
-    next =
-      start !== -1 && end > start
-        ? `${current.slice(0, start)}${block.trimEnd()}${current.slice(end + END.length)}`
-        : `${current.trimEnd()}\n\n${block}`;
-    if (next === current) {
+  if (!existsSync(file)) {
+    next = `# Instrucciones para agentes\n\n${block.trimEnd()}\n\n${aislar}`;
+  } else {
+    const original = readFileSync(file, "utf8");
+    next = replaceOrAppendBlock(original, BEGIN, END, block);
+    next = replaceOrAppendBlock(next, AISLAR_BEGIN, AISLAR_END, aislar);
+    if (next === original) {
       report.unchanged.push("AGENTS.md");
       return report;
     }

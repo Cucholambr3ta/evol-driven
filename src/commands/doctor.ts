@@ -7,6 +7,7 @@ import { CONFIG_FILE, findProjectRoot } from "../core/paths.js";
 import { loadState } from "../core/state.js";
 import { adapterMissing, CLAUDE_CODE, detectIdes, OTHER_ADAPTERS } from "../agents/adapters.js";
 import { agentFilesComplete } from "../agents/files.js";
+import { detectGlobalAgents, projectMcpServers } from "../agents/convivencia.js";
 import { GitNexusProvider } from "../codeintel/gitnexus.js";
 import { withMemPalace } from "../memory/mempalace.js";
 import { securityToolStatus } from "../security/tools.js";
@@ -28,6 +29,19 @@ interface Check {
 }
 
 const ICON: Record<Level, string> = { ok: "✓", aviso: "!", error: "✗" };
+
+/** The 9 categories CA-134 protects, as `evol doctor` names them in the convivencia section. */
+const RUTAS_PROTEGIDAS = [
+  "~/.ssh",
+  ".env / .env.*",
+  "*.pem",
+  "*.key",
+  "~/.aws/credentials",
+  ".evol/state.json",
+  ".evol/gate-log.jsonl",
+  "evol ciclo*",
+  "la clave del gate (~/.config/evol/keys)",
+];
 
 function tool(command: string, args: string[]): string | null {
   const result = spawnSync(command, args, { encoding: "utf8", timeout: 20_000 });
@@ -130,6 +144,47 @@ export default async function run(): Promise<number> {
         "Integración con agentes",
         agents.ok ? "completa" : `falta ${agents.missing.join(", ")} (evol agents lo crea)`,
       );
+
+      // Convivencia con otra configuración global de agentes (criterios 135, 136, 149): solo lee
+      // y clasifica, nunca cambia nada fuera del proyecto.
+      const globalAgents = detectGlobalAgents();
+      for (const h of globalAgents.hooksAjenos) {
+        add(
+          "aviso",
+          "Convivencia",
+          `hook global «${h.evento}» (${h.comando}) no anulable: solo se informa`,
+        );
+      }
+      if (globalAgents.bypassPermissions) {
+        add(
+          "aviso",
+          "Convivencia",
+          "el modo de permisos global es bypassPermissions: ejecuta todo sin preguntar en cualquier proyecto, incluido este",
+        );
+      }
+      if (globalAgents.denyRelativos.length > 0) {
+        add(
+          "aviso",
+          "Convivencia",
+          `regla de bloqueo global con ruta relativa (${globalAgents.denyRelativos.join(", ")}): solo protege si se trabaja desde la carpeta personal`,
+        );
+      }
+      for (const ruta of RUTAS_PROTEGIDAS) {
+        add(
+          "ok",
+          "Convivencia",
+          `${ruta}: regla impuesta por el IDE (leer por un script fuera de él no queda cubierto)`,
+        );
+      }
+      const mcpServers = [...globalAgents.mcpServers, ...projectMcpServers(root)];
+      for (const s of mcpServers) {
+        add(
+          s.transporte === "remoto" ? "aviso" : "ok",
+          "Convivencia",
+          `servidor MCP «${s.nombre}» (${s.origen}, ${s.transporte})${s.transporte === "remoto" ? ": salida de datos del proyecto hacia un servicio remoto" : ""}`,
+        );
+      }
+
       if (config.codeIntel === "gitnexus") {
         const availability = await new GitNexusProvider().available();
         add(
