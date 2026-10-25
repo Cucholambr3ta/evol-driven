@@ -132,6 +132,12 @@ evol memory search "base de datos"
 Los eventos del pipeline quedan siempre en `.evol/journal.jsonl`; además van a MemPalace, pero si
 MemPalace falla solo se avisa. Los comandos `evol memory` sí fallan si no está disponible.
 
+### Qué aprobar después de actualizar
+
+Una skill que cambia en una versión nueva llega **sin aprobar**. `evol update` termina nombrando las que **tenías
+aprobadas y pierden la aprobación**, con los comandos para darla otra vez; `evol doctor` lo recuerda, y
+`evol skills list --pendientes` lo muestra todo agrupado (las nunca auditadas van solo por nombre: aprueba las que uses).
+
 ### Continuar el trabajo con otro agente
 
 La memoria de un agente se pierde si se queda sin contexto o sin créditos a mitad de un encargo. Para que

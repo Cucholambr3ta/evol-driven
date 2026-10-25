@@ -1637,6 +1637,27 @@ Los proyectos usan la copia estable. Las mejoras **no se hacen desde un proyecto
 | 120 | Las skills cambiadas por una actualización llegan sin aprobar, y la instalación no toca un `evol` que no sea un enlace.                                                                                           | `tests/update.test.ts`  |
 | 121 | `evol mejora` anota con proyecto y versión sin cambiar el proyecto; cerrar una mejora añade una línea y no reescribe la historia; una línea rota no tira el buzón.                                                | `tests/improve.test.ts` |
 
+### Qué hay que aprobar tras actualizar (2026-10-25)
+
+**Un fallo que lo ocultaba.** La skill del rol constructor se llama `constructor`, y en un objeto plano de JavaScript `skills["constructor"]` no es «sin
+entrada» sino la función `constructor` de `Object`. `evol skills list` se caía con un `TypeError` al llegar a ella (nadie veía el nombre de la skill `evol`
+que había que aprobar), y el changelog de la 0.3.0 marcaba solo a `constructor` como «cambiada» mientras las otras 59 eran «nuevas». El manifiesto
+devuelve ahora sus entradas en un objeto sin prototipo, y `diffSkills` compara con claves propias. Estaba en todas las versiones publicadas hasta entonces.
+
+**Cómo sabe quien actualiza qué debe aprobar.** Antes, al reemplazar una skill, `evol update` borraba su aprobación sin dejar rastro y solo decía cuántas
+había. Ahora:
+
+- El manifiesto guarda `aprobacionPerdida` (la fecha) en la skill que **tenía la aprobación de la persona** (la huella auditada era la de los bytes
+  reemplazados) y la perdió. La marca se conserva hasta que se aprueba la nueva y deja de contar al aprobarla.
+- `evol update` termina listando por nombre las skills que **pierden la aprobación**, cada una con sus dos comandos (`evol skills audit …` y
+  `evol skills approve …`), y remite a `evol skills list --pendientes`.
+- `evol skills list --pendientes [--json]` agrupa lo que espera aprobación: primero lo que tenías aprobado y perdiste, luego lo que cambió después de
+  auditarlo, y por último lo nunca auditado (solo por nombre: no hace falta aprobar sesenta skills, solo las que se usan).
+- `evol doctor` avisa de las que perdieron la aprobación, así que se ve aunque no se leyera la salida de la actualización.
+
+Lo que sigue sin existir es una lista única de **todo** lo que espera a una persona (skills, documentos de conocimiento rechazados que esperan
+`evol knowledge accept`, fases de un proyecto): hoy son tres consultas distintas.
+
 ### Continuidad del trabajo: `evol checkpoint` y `evol handoff` (2026-10-25)
 
 **El problema.** Antes, la memoria se escribía solo en los hitos del pipeline (crear, aprobar, avanzar) y cuando un agente llamaba a `evol memory add`;

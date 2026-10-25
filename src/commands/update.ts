@@ -6,7 +6,7 @@ import { parseArgs } from "node:util";
 import { UserError } from "../core/errors.js";
 import { packageRoot, userConfigDir } from "../core/paths.js";
 import { libraryDir } from "../skills/library.js";
-import { homeDir, inspectUpdate, rollback, update } from "../release/update.js";
+import { homeDir, inspectUpdate, rollback, syncSummary, update } from "../release/update.js";
 import { readInstallRecord, versionInfo } from "../release/version.js";
 import { out } from "./shared.js";
 import { hasTerminal, typingSession } from "./tty.js";
@@ -108,10 +108,7 @@ export default async function run(argv: string[]): Promise<number> {
         `Versión ${result.version} instalada en ${join(homeDir(), "versiones", result.version ?? "")} (solo lectura).`,
       );
       const s = result.skills;
-      if (s)
-        out(
-          `Skills: ${s.nuevas.length} nuevas y ${s.cambiadas.length} cambiadas llegan SIN aprobar; ${s.iguales.length} sin cambios. Apruébalas tú: evol skills approve <nombre>.`,
-        );
+      if (s) for (const line of syncSummary(s, libraryDir())) out(line);
       if (result.devLink) out(`Tu copia del origen sigue disponible como: ${result.devLink}`);
       out("Volver a la anterior: evol update --volver");
     }

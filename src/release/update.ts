@@ -176,6 +176,30 @@ export interface SyncResult {
   nuevas: string[];
   cambiadas: string[];
   iguales: string[];
+  /** The changed ones the person had approved: the approval is gone and they must give it again. */
+  perdieronAprobacion: string[];
+}
+
+/** What to tell the person after an update: what lost their approval, with the commands to give it again. */
+export function syncSummary(result: SyncResult, library: string, limit = 8): string[] {
+  const lines = [
+    `Skills: ${result.nuevas.length} nuevas, ${result.cambiadas.length} cambiadas, ${result.iguales.length} sin cambios (las nuevas y las cambiadas llegan sin aprobar).`,
+  ];
+  if (result.perdieronAprobacion.length > 0) {
+    lines.push(
+      `Pierden la aprobación que habías dado (${result.perdieronAprobacion.length}); apruébalas otra vez:`,
+    );
+    for (const name of result.perdieronAprobacion.slice(0, limit))
+      lines.push(
+        `  ${name}`,
+        `    evol skills audit ${library}/${name} --propia --subproceso`,
+        `    evol skills approve ${name}`,
+      );
+    if (result.perdieronAprobacion.length > limit)
+      lines.push(`  … y ${result.perdieronAprobacion.length - limit} más`);
+  }
+  lines.push("Todo lo pendiente de aprobar, con sus motivos: evol skills list --pendientes");
+  return lines;
 }
 
 /**
@@ -187,7 +211,7 @@ export function syncLibrary(
   libraryDir: string,
   now: Date = new Date(),
 ): SyncResult {
-  const result: SyncResult = { nuevas: [], cambiadas: [], iguales: [] };
+  const result: SyncResult = { nuevas: [], cambiadas: [], iguales: [], perdieronAprobacion: [] };
   if (!existsSync(source)) return result;
   mkdirSync(libraryDir, { recursive: true });
   const manifest = readManifest(libraryDir);
@@ -203,10 +227,18 @@ export function syncLibrary(
   for (const name of names) {
     const from = join(source, name);
     const to = join(libraryDir, name);
+    // the approval the person had given to the bytes that are about to be replaced, if any
+    const before = manifest.skills[name];
+    let lostApproval: string | undefined = before?.aprobacionPerdida;
     if (existsSync(to)) {
-      if (readSkill(to).huella === readSkill(from).huella) {
+      const old = readSkill(to);
+      if (old.huella === readSkill(from).huella) {
         result.iguales.push(name);
         continue;
+      }
+      if (before?.auditoria && before.auditoria.huella === old.huella) {
+        result.perdieronAprobacion.push(name);
+        lostApproval = now.toISOString();
       }
       makeWritable(to);
       renameSync(to, join(libraryDir, `.${name}.previa-${now.getTime()}`));
@@ -214,16 +246,16 @@ export function syncLibrary(
     } else result.nuevas.push(name);
     cpSync(from, to, { recursive: true });
     makeWritable(to);
-    // the entry keeps its place in the pipeline but never its approval: that was of other bytes
+    // the entry keeps its place in the pipeline but never its approval (that was of other bytes);
+    // what it does keep is the fact that the person had approved it, until they approve the new one
     const entry = sourceManifest.skills[name];
-    manifest.skills[name] = entry
-      ? {
-          alcance: entry.alcance,
-          fases: entry.fases,
-          ...(entry.disciplina ? { disciplina: entry.disciplina } : {}),
-          ...(entry.origen ? { origen: entry.origen } : {}),
-        }
-      : { alcance: "paquete", fases: [] };
+    manifest.skills[name] = {
+      alcance: entry?.alcance ?? "paquete",
+      fases: entry?.fases ?? [],
+      ...(entry?.disciplina ? { disciplina: entry.disciplina } : {}),
+      ...(entry?.origen ? { origen: entry.origen } : {}),
+      ...(lostApproval ? { aprobacionPerdida: lostApproval } : {}),
+    };
   }
   writeManifest(libraryDir, manifest);
   return result;

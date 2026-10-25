@@ -155,10 +155,13 @@ export async function approveSkill(
   if (accepted) await confirm.warnings(warnings);
 
   const estado = accepted ? "con-avisos" : "aprobada";
+  // approving gives back what an update took away: the «you had approved this» mark is no longer needed
+  const kept = { ...manifest.skills[skill.id] };
+  delete kept.aprobacionPerdida;
   manifest.skills[skill.id] = {
     alcance: "personal",
     fases: [],
-    ...manifest.skills[skill.id],
+    ...kept,
     auditoria: {
       estado,
       huella: skill.huella,

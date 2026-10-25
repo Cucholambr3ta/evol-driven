@@ -9,7 +9,8 @@ import { VEREDICTO_LABEL } from "../skills/report.js";
 import { checkSkill } from "../skills/check.js";
 import type { CheckResult, Level } from "../skills/check.js";
 import { disciplineSkills, findSkill, listSkills, resolveSkillsDir } from "../skills/library.js";
-import { AUDIT_LABEL, auditState, readManifest } from "../skills/manifest.js";
+import { AUDIT_LABEL, auditState, pendingApprovals, readManifest } from "../skills/manifest.js";
+import type { PendingReason, PendingSkill } from "../skills/manifest.js";
 import { userInfo } from "node:os";
 import { NotInteractiveError } from "../core/errors.js";
 import { requireReaders } from "../skills/auditor/config.js";
@@ -31,7 +32,7 @@ import { dirname, join } from "node:path";
 import { out } from "./shared.js";
 
 export const USAGE =
-  "Uso: evol skills <list|check|export|audit|approve|incorporar|install|uninstall> [nombre|origen] [--dir <carpeta>] [--json] [--disciplinas] [--salida <archivo.zip>] [--propia] [--capacidades <archivo.json>] [--subproceso] [--autoprueba] [--lector <id>] [--agente <id|all>] [--global] [--reemplazar] [--estado]";
+  "Uso: evol skills <list|check|export|audit|approve|incorporar|install|uninstall> [nombre|origen] [--dir <carpeta>] [--json] [--disciplinas] [--salida <archivo.zip>] [--propia] [--capacidades <archivo.json>] [--subproceso] [--autoprueba] [--lector <id>] [--agente <id|all>] [--global] [--reemplazar] [--estado] [--pendientes]";
 
 const MARK: Record<Level, string> = { ok: "✓", aviso: "!", error: "×" };
 
@@ -96,6 +97,50 @@ function list(dir: string, json: boolean, byDiscipline: boolean): number {
   }
   out(
     `Disciplinas con su skill: ${covered} de ${disciplines.length} (evol skills list --disciplinas).`,
+  );
+  return 0;
+}
+
+/**
+ * What is waiting for an approval and why. The ones that had the person's approval and lost it after
+ * an update come first, each with the two commands that give it back; the rest are listed by name,
+ * since approving sixty skills at once is not the point: only the ones in use.
+ */
+function pending(dir: string, json: boolean): number {
+  const waiting = pendingApprovals(listSkills(dir), readManifest(dir));
+  if (json) {
+    out(JSON.stringify({ carpeta: dir, pendientes: waiting }, null, 2));
+    return 0;
+  }
+  if (waiting.length === 0) {
+    out(`Todo lo que hay en ${dir} está aprobado.`);
+    return 0;
+  }
+  out(`Pendientes de aprobar en ${dir}: ${waiting.length}`);
+  const group = (reason: PendingReason): PendingSkill[] =>
+    waiting.filter((w) => w.motivo === reason);
+  const lost = group("perdio-aprobacion");
+  if (lost.length > 0) {
+    out(`\nPerdieron la aprobación que habías dado, tras una actualización (${lost.length}):`);
+    for (const w of lost) {
+      out(`  ${w.id}${w.desde ? `  (desde ${w.desde.slice(0, 10)})` : ""}`);
+      out(`    evol skills audit ${dir}/${w.id} --propia --subproceso`);
+      out(`    evol skills approve ${w.id}`);
+    }
+  }
+  const changed = group("cambio");
+  if (changed.length > 0) {
+    out(
+      `\nCambiaron después de auditarlas (${changed.length}): ${changed.map((w) => w.id).join(", ")}`,
+    );
+  }
+  const rest = group("sin-auditar");
+  if (rest.length > 0) {
+    out(`\nNunca auditadas (${rest.length}); solo hace falta aprobar las que vayas a usar:`);
+    out(`  ${rest.map((w) => w.id).join(", ")}`);
+  }
+  out(
+    "\nPara cada una: evol skills audit <carpeta> --propia --subproceso, y luego evol skills approve <nombre>.",
   );
   return 0;
 }
@@ -432,12 +477,14 @@ export default async function run(argv: string[]): Promise<number> {
       global: { type: "boolean" },
       reemplazar: { type: "boolean" },
       estado: { type: "boolean" },
+      pendientes: { type: "boolean" },
     },
   });
   const [action, name] = positionals;
   const dir = resolveSkillsDir(values.dir);
   switch (action) {
     case "list":
+      if (values.pendientes === true) return pending(dir, values.json === true);
       return list(dir, values.json === true, values.disciplinas === true);
     case "check":
       return check(dir, name, values.json === true);

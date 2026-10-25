@@ -67,15 +67,17 @@ export function diffSkills(
   before: Record<string, string>,
   after: Record<string, string>,
 ): SkillChanges {
+  // own keys only: `"constructor" in {}` is true, and a skill is called exactly that
+  const has = (map: Record<string, string>, name: string): boolean => Object.hasOwn(map, name);
   return {
     nuevas: Object.keys(after)
-      .filter((n) => !(n in before))
+      .filter((n) => !has(before, n))
       .sort(),
     cambiadas: Object.keys(after)
-      .filter((n) => n in before && before[n] !== after[n])
+      .filter((n) => has(before, n) && before[n] !== after[n])
       .sort(),
     quitadas: Object.keys(before)
-      .filter((n) => !(n in after))
+      .filter((n) => !has(after, n))
       .sort(),
   };
 }

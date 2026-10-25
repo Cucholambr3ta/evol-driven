@@ -15,6 +15,8 @@ import { verifyIntegrity } from "../release/integrity.js";
 import { embeddingsReachable, engineInstalled, storeDir } from "../knowledge/engine.js";
 import { readRegistry } from "../knowledge/store.js";
 import { indexedLibraries } from "../knowledge/engine.js";
+import { libraryDir, listSkills } from "../skills/library.js";
+import { pendingApprovals, readManifest } from "../skills/manifest.js";
 import { out } from "./shared.js";
 
 type Level = "ok" | "aviso" | "error";
@@ -144,6 +146,31 @@ export default async function run(): Promise<number> {
       memoryEnabled ? "error" : "aviso",
       "MemPalace",
       `${detail} — instálalo con «uv tool install mempalace»`,
+    );
+  }
+
+  // Skills that had the person's approval and lost it in an update: what they must give again.
+  try {
+    const library = libraryDir();
+    const waiting = pendingApprovals(listSkills(library), readManifest(library));
+    const lost = waiting.filter((w) => w.motivo === "perdio-aprobacion");
+    if (lost.length > 0)
+      add(
+        "aviso",
+        "Skills",
+        `${lost.length} perdieron tu aprobación tras actualizar (${lost.map((w) => w.id).join(", ")}): evol skills list --pendientes`,
+      );
+    else if (waiting.length > 0)
+      add(
+        "ok",
+        "Skills",
+        `${waiting.length} sin aprobar (evol skills list --pendientes); ninguna de las que ya habías aprobado`,
+      );
+  } catch (error) {
+    add(
+      "aviso",
+      "Skills",
+      (error as Error).message.split("\n")[0] ?? "no se pudo leer la biblioteca",
     );
   }
 
