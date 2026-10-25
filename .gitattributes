@@ -1,0 +1,19 @@
+# This repo develops itself with evol (see docs/ESPECIFICACION.md, Ampliación 7). These paths are
+# evol's own project state, not part of the published package: they stay out of `git archive`, so
+# `evol update` (which installs with `git archive`) never ships this repo's local pipeline state.
+.evol export-ignore
+.evol/** export-ignore
+evol.config.json export-ignore
+CLAUDE.md export-ignore
+AGENTS.md export-ignore
+.claude export-ignore
+.claude/** export-ignore
+.mcp.json export-ignore
+.agents export-ignore
+.agents/** export-ignore
+.codex export-ignore
+.codex/** export-ignore
+.opencode export-ignore
+.opencode/** export-ignore
+opencode.json export-ignore
+lecciones.md export-ignore

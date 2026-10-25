@@ -1,0 +1,37 @@
+{
+  "name": "evol-driven",
+  "version": 1,
+  "codeIntel": "native",
+  "memory": {
+    "wing": "evol_driven",
+    "enabled": true
+  },
+  "qa": {
+    "requireTestsForChangedSymbols": false,
+    "requireCriteriaCoverage": true
+  },
+  "modules": [
+    {
+      "name": "app",
+      "root": ".",
+      "disciplinas": [
+        "SDD",
+        "FDD",
+        "DDD",
+        "THREAT",
+        "BDD",
+        "ATDD",
+        "TDD",
+        "STDD",
+        "SecDD"
+      ],
+      "rutas": {
+        "tests/unit/*.test.ts": "tests/*.test.ts",
+        "tests/security/**/*.security.test.ts": "tests/security*.test.ts"
+      },
+      "comandos": {
+        "TDD": "npm run ci"
+      }
+    }
+  ]
+}

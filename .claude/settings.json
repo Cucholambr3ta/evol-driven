@@ -1,0 +1,18 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "evol hook session-start",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  },
+  "permissions": {
+    "deny": ["Bash(evol approve:*)", "Bash(evol next:*)", "Edit(~/.local/share/evol/**)"]
+  }
+}

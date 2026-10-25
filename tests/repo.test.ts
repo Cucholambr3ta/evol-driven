@@ -41,6 +41,8 @@ describe("una sola fuente de versión (criterio 16)", () => {
       "release.json",
       // Mockups of the interface: snapshots of real data (a diagram prints the version it was made with).
       "design",
+      // This repo's own pipeline state: state.json records the evol version it was created with.
+      ".evol",
     ]);
     const holders = walk(REPO, skip)
       .filter((f) => readFileSync(f, "utf8").includes(pkg.version))

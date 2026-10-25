@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "evol": {
+      "command": "evol",
+      "args": ["mcp"]
+    }
+  }
+}

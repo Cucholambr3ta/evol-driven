@@ -15,3 +15,7 @@ docs/design/consultas
 # Pruebas de las reglas de semgrep: código malo a propósito
 rules/semgrep/*.py
 rules/semgrep/*.js
+
+# evol
+evol.config.json
+.evol
