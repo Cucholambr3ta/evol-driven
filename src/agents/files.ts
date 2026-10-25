@@ -27,6 +27,7 @@ export function quoteFrontmatter(content: string): string {
 const BEGIN = "<!-- evol:begin -->";
 const END = "<!-- evol:end -->";
 export const HOOK_COMMAND = "evol hook session-start";
+export const STATUS_LINE_COMMAND = "evol status --linea";
 /**
  * What Claude Code is told never to do, by default (criterio 134). Approving a phase, moving the
  * pipeline on and opening a new cycle are for a person, never an agent. The installed framework is
@@ -166,6 +167,28 @@ export function replaceOrAppendBlock(
   return start !== -1 && stop > start
     ? `${current.slice(0, start)}${block.trimEnd()}${current.slice(stop + end.length)}`
     : `${current.trimEnd()}\n\n${block}`;
+}
+
+/**
+ * The project's own output style for Claude Code (criterio 140): «Evol» replaces whatever persona
+ * the user's own global style sets, inside this project only. Kept short on purpose — the
+ * orchestrator skill (`/evol`) is still where the actual instructions live; this is the visible
+ * identity, not a second copy of the orchestrator.
+ */
+function outputStyleFile(): string {
+  return `---
+name: Evol
+description: >-
+  La identidad de evol en este proyecto: sigue el pipeline (briefing a retro), nunca aprueba ni
+  avanza de fase, y muestra el estado con \`evol status\` antes de proponer el siguiente paso.
+---
+
+Trabajas en un proyecto con \`evol\`. Antes de proponer algo, mira la fase con \`evol status\` (o
+\`/evol-status\`). Reparte el trabajo por disciplina y pide las verificaciones con \`evol verify\`.
+
+**Nunca ejecutes \`evol approve\` ni \`evol next\`**: aprobar una fase y avanzar el pipeline los hace
+siempre una persona, en su propia terminal. Tu trabajo es dejar la fase lista y decírselo.
+`;
 }
 
 function claudeBlock(): string {
@@ -326,6 +349,8 @@ export function runAgentFiles(root: string, ctx: WriteCtx): AgentReport {
 
   const global = detectGlobalAgents();
 
+  write(root, ".claude/output-styles/evol.md", outputStyleFile(), ctx);
+
   const claudeFile = join(root, "CLAUDE.md");
   const block = claudeBlock();
   const aislar = aislamientoBlock();
@@ -356,11 +381,17 @@ export function runAgentFiles(root: string, ctx: WriteCtx): AgentReport {
       next["hooks"] = hooks;
     }
     const lacking = missingDenyRules(settings.data);
+    const permissions = (settings.data["permissions"] ?? {}) as Record<string, unknown>;
+    const permissionsNext: Record<string, unknown> = { ...permissions };
     if (lacking.length > 0) {
-      const permissions = (settings.data["permissions"] ?? {}) as Record<string, unknown>;
       const deny = Array.isArray(permissions["deny"]) ? (permissions["deny"] as unknown[]) : [];
-      next["permissions"] = { ...permissions, deny: [...deny, ...lacking] };
+      permissionsNext["deny"] = [...deny, ...lacking];
     }
+    // identidad propia (criterio 140): sin pisar una elección explícita de la persona, solo rellena
+    // el hueco si el proyecto nunca dijo nada sobre el modo de permisos.
+    const defaultModeChanged = !("defaultMode" in permissions);
+    if (defaultModeChanged) permissionsNext["defaultMode"] = "default";
+    if (lacking.length > 0 || defaultModeChanged) next["permissions"] = permissionsNext;
     // aislar el proyecto (criterio 135): sin telemetría de otro framework dentro de este proyecto,
     // y solo apaga, en el proyecto, los plugins de usuario que de verdad encontró activados
     const env = (settings.data["env"] ?? {}) as Record<string, unknown>;
@@ -384,7 +415,21 @@ export function runAgentFiles(root: string, ctx: WriteCtx): AgentReport {
       }
       if (pluginsChanged) next["enabledPlugins"] = enabledNext;
     }
-    if (hasHook(settings.data) && lacking.length === 0 && !envChanged && !pluginsChanged)
+    // identidad propia en Claude Code (criterio 140): estilo y línea de estado del proyecto
+    const outputStyleChanged = settings.data["outputStyle"] !== "Evol";
+    if (outputStyleChanged) next["outputStyle"] = "Evol";
+    const statusLine = settings.data["statusLine"] as { command?: unknown } | undefined;
+    const statusLineChanged = statusLine?.command !== STATUS_LINE_COMMAND;
+    if (statusLineChanged) next["statusLine"] = { type: "command", command: STATUS_LINE_COMMAND };
+    if (
+      hasHook(settings.data) &&
+      lacking.length === 0 &&
+      !defaultModeChanged &&
+      !envChanged &&
+      !pluginsChanged &&
+      !outputStyleChanged &&
+      !statusLineChanged
+    )
       report.unchanged.push(".claude/settings.json");
     else writeJson(root, ".claude/settings.json", next, ctx);
   }

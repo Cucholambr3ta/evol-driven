@@ -7,6 +7,7 @@ import {
   DENY_RULES,
   formatJson,
   HOOK_COMMAND,
+  STATUS_LINE_COMMAND,
   writeAgentFiles,
 } from "../src/agents/files.js";
 import {
@@ -33,6 +34,7 @@ const ALL = [
   ".claude/commands/evol-fase.md",
   ".claude/commands/evol-impacto.md",
   ".claude/commands/evol-memoria.md",
+  ".claude/output-styles/evol.md",
   "CLAUDE.md",
   ".mcp.json",
   ".claude/settings.json",
@@ -115,7 +117,11 @@ describe("archivos para agentes (criterio 23)", () => {
     expect(commands.filter((c) => c === HOOK_COMMAND)).toHaveLength(1);
     expect(commands).toContain("echo hola");
     // the person's own rule stays, and evol adds what keeps an agent from approving or moving on
-    expect(settings.permissions).toEqual({ allow: ["Bash(npm test)"], deny: DENY_RULES });
+    expect(settings.permissions).toEqual({
+      allow: ["Bash(npm test)"],
+      deny: DENY_RULES,
+      defaultMode: "default",
+    });
   });
 
   it(".mcp.json: añade el servidor evol y conserva los demás; no pisa uno propio", () => {
@@ -269,6 +275,42 @@ describe("los archivos generados no rompen el formato del proyecto (criterio 23)
   it("formatJson sigue el estilo de Prettier", () => {
     expect(formatJson({ a: ["x", "y"], b: [], c: {}, d: [{ e: 1 }] })).toBe(
       '{\n  "a": ["x", "y"],\n  "b": [],\n  "c": {},\n  "d": [\n    {\n      "e": 1\n    }\n  ]\n}',
+    );
+  });
+});
+
+describe("identidad propia en Claude Code (criterio 140)", () => {
+  it("escribe el estilo de salida y lo declara en settings.json", () => {
+    const root = tempDir();
+    writeAgentFiles(root);
+    expect(existsSync(join(root, ".claude", "output-styles", "evol.md"))).toBe(true);
+    const settings = JSON.parse(readFileSync(join(root, ".claude", "settings.json"), "utf8")) as {
+      outputStyle: string;
+      statusLine: { type: string; command: string };
+      permissions: { defaultMode: string };
+    };
+    expect(settings.outputStyle).toBe("Evol");
+    expect(settings.statusLine).toEqual({ type: "command", command: STATUS_LINE_COMMAND });
+    expect(settings.permissions.defaultMode).toBe("default");
+  });
+
+  it("no pisa un defaultMode que la persona ya había elegido", () => {
+    const root = tempDir();
+    write(root, ".claude/settings.json", JSON.stringify({ permissions: { defaultMode: "plan" } }));
+    writeAgentFiles(root);
+    const settings = JSON.parse(readFileSync(join(root, ".claude", "settings.json"), "utf8")) as {
+      permissions: { defaultMode: string };
+    };
+    expect(settings.permissions.defaultMode).toBe("plan");
+  });
+
+  it("es idempotente: una segunda pasada no vuelve a escribir nada de esto", () => {
+    const root = tempDir();
+    writeAgentFiles(root);
+    const second = writeAgentFiles(root);
+    expect(second.updated).toEqual([]);
+    expect(second.unchanged).toEqual(
+      expect.arrayContaining([".claude/output-styles/evol.md", ".claude/settings.json"]),
     );
   });
 });

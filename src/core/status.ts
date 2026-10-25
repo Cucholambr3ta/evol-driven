@@ -57,6 +57,25 @@ const APPROVAL_TEXT: Record<ApprovalState, string> = {
   "no-integro": "REGISTRO NO ÍNTEGRO",
 };
 
+/**
+ * One short line for the IDE's status bar (criterio 140): `evol status --linea`. Counts what still
+ * blocks the current phase (a missing artifact, or one with `[[COMPLETAR]]`); with nothing pending,
+ * shows the approval state instead.
+ */
+export function renderStatusLine(report: StatusReport): string {
+  if (report.phase === "done") return "Evol · listo (done)";
+  const pendientes = report.disciplines.reduce(
+    (sum, d) =>
+      sum + d.artefactos.reduce((s, a) => s + Math.max(0, a.min - a.encontrados) + a.pendientes, 0),
+    0,
+  );
+  const resumen =
+    pendientes > 0
+      ? `${pendientes} pendiente${pendientes === 1 ? "" : "s"}`
+      : APPROVAL_TEXT[report.approval.state];
+  return `Evol · ${report.phase} · ${resumen}`;
+}
+
 export function renderStatus(report: StatusReport): string[] {
   const lines = [`Proyecto: ${report.project}`];
   const phases = ["briefing", "spec", "plan", "build", "qa", "retro"] as const;
