@@ -1,8 +1,42 @@
-# Preguntas para Claude Code (el agente que audita)
+# Preguntas para Claude Code (el agente que arranca y audita)
 
-Escrito para: Claude Code, a través de la persona que lo usa, cuando el constructor termina un turno.
+Escrito para: Claude Code, a través de la persona que lo usa. Claude Code tiene dos papeles: **arranca el proyecto** (briefing, spec y plan) y
+después **audita** cada turno de quien construye. Cada uno tiene sus reglas y sus preguntas.
 
-## Reglas (pégalas primero)
+## Modo 1: arrancar el proyecto
+
+### Reglas (pégalas primero)
+
+> Vas a empezar un proyecto con el framework evol. Trabajas las fases iniciales (briefing, spec y plan) con las skills que evol te cargue. Puedes escribir los
+> documentos que esas skills pidan, pero no código de la fase de construcción. Nunca ejecutes `evol approve` ni `evol next` (los hace una persona). No
+> pierdas ni reescribas los documentos que ya existían en la carpeta. Trae la salida literal de cada comando; si no puedes comprobar algo, di «no pude
+> comprobarlo». Los problemas **del framework** los anotas con `evol mejora add "qué pasó" --evidencia "comando y salida"`. Al terminar cada encargo y antes de
+> parar, ejecuta `evol checkpoint --nota "…"` y haz commit.
+
+### Preguntas de arranque
+
+S1. Al abrir la sesión, ¿qué mostró el hook de inicio? Si la carpeta no era todavía un proyecto evol, ¿qué hizo `/evol` y propuso un perfil **y esperó** tu
+confirmación antes de `evol init`?
+
+S2. Tras `evol init`, ¿se tocó algún archivo que ya existía (documentos, investigaciones)? Demuéstralo con `git status` o con las fechas de modificación.
+
+S3. Al convertir un documento largo en briefing y spec, ¿usó `afinar-idea` y te hizo preguntas útiles? Lista **qué requisitos del documento original no
+quedaron en la spec** (comprueba la trazabilidad uno por uno, sin fiarte de memoria).
+
+S4. ¿Los criterios de aceptación salieron como `CA-n` comprobables, o como frases vagas? Cita tres que no se puedan verificar con una prueba.
+
+S5. Ejecuta `evol prerequisites --json` y `evol verify --json` al final de cada fase. ¿Dicen algo que no esperabas? ¿Algún `[[COMPLETAR]]` sin resolver?
+
+S6. En la fase de plan, aplica `interrogar-plan`. ¿Encontró huecos reales? ¿Dejó la marca de «plan interrogado»?
+
+S7. **Traspaso a quien construye:** cuando termines las fases iniciales, ejecuta `evol handoff --nota "para OpenCode: …"`. ¿Podría OpenCode empezar a
+construir leyendo solo ese archivo y la spec? ¿Qué le faltaría? (OpenCode no tiene el hook de inicio: lee el checkpoint porque `/evol` se lo pide.)
+
+S8. ¿Qué tuviste que adivinar porque evol no lo decía? ¿Qué mensaje fue confuso o estaba en inglés?
+
+## Modo 2: auditar un turno de quien construye
+
+### Reglas (pégalas primero)
 
 > Eres el **auditor**: otro agente construyó y tú compruebas. Trabajas en **solo lectura**: no edites archivos del proyecto ni hagas commits. Lo único que
 > puedes escribir son salidas de evol: `evol checkpoint`, `evol memory add` y `evol mejora add`. Nunca ejecutes `evol approve` ni `evol next`. No te fíes de

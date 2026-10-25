@@ -3,10 +3,10 @@
 Preguntas para hacerle a un agente que usa evol en un proyecto de verdad, y así encontrar los problemas que las pruebas
 automáticas no ven. Piden **evidencia** (el comando y su salida), no opiniones, para separar los fallos de evol de los del proyecto.
 
-| Archivo                                              | Para quién                             | Cuándo                                                                                             |
-| ---------------------------------------------------- | -------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| [preguntas-opencode.md](preguntas-opencode.md)       | El agente que **construye** (OpenCode) | A y B antes de empezar a construir, C durante las primeras tareas, D a F al cerrar la primera fase |
-| [preguntas-claude-code.md](preguntas-claude-code.md) | El agente que **audita** (Claude Code) | Tras cada traspaso, cuando el constructor termina un turno                                         |
+| Archivo                                              | Para quién                                        | Cuándo                                                                                                      |
+| ---------------------------------------------------- | ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| [preguntas-opencode.md](preguntas-opencode.md)       | El agente que **construye** (OpenCode)            | A y B antes de empezar a construir, C durante las primeras tareas, D a F al cerrar la primera fase          |
+| [preguntas-claude-code.md](preguntas-claude-code.md) | Claude Code: **arranca** el proyecto y **audita** | Modo 1 al empezar (briefing, spec, plan); modo 2 tras cada traspaso, cuando el constructor termina un turno |
 
 ## Cómo se usan
 
