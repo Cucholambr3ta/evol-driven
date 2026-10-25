@@ -106,12 +106,13 @@ export function changelogEntry(
   const lines = [`## ${version} — ${date}`, ""];
   if (subjects.length === 0) lines.push("- (sin cambios registrados)");
   for (const s of subjects) lines.push(`- ${s}`);
+  // in the shape Prettier writes (a blank line, no indent): the project checks its own formatting in CI
   const skillLines = [
-    ...changes.nuevas.map((n) => `  - nueva: ${n}`),
-    ...changes.cambiadas.map((n) => `  - cambiada (vuelve a «sin auditar»): ${n}`),
-    ...changes.quitadas.map((n) => `  - quitada: ${n}`),
+    ...changes.nuevas.map((n) => `- nueva: ${n}`),
+    ...changes.cambiadas.map((n) => `- cambiada (vuelve a «sin auditar»): ${n}`),
+    ...changes.quitadas.map((n) => `- quitada: ${n}`),
   ];
-  if (skillLines.length > 0) lines.push("", "Skills:", ...skillLines);
+  if (skillLines.length > 0) lines.push("", "Skills:", "", ...skillLines);
   return `${lines.join("\n")}\n`;
 }
 

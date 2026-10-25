@@ -74,64 +74,64 @@
 - docs: especificación v1 y configuración del proyecto
 
 Skills:
-  - nueva: a11ydd
-  - nueva: add
-  - nueva: afinar-idea
-  - nueva: analista
-  - nueva: apivdd
-  - nueva: arqueologia-codigo
-  - nueva: arquitecto
-  - nueva: atdd
-  - nueva: bdd
-  - nueva: ccdd
-  - nueva: cdcdd
-  - nueva: chaos
-  - nueva: compliance
-  - nueva: construir-mcp
-  - nueva: costes-proyecto
-  - nueva: ddd
-  - nueva: debtbudgetdd
-  - nueva: deprecationdd
-  - nueva: descubrir-necesidades
-  - nueva: diseno-frontend
-  - nueva: documentacion
-  - nueva: dominio-finanzas
-  - nueva: dominio-marketing
-  - nueva: dominio-ventas
-  - nueva: eda
-  - nueva: effectcraft
-  - nueva: esdd
-  - nueva: evaluar-skill
-  - nueva: evol
-  - nueva: fdd
-  - nueva: filmcraft
-  - nueva: incorporar-dependencia
-  - nueva: incorporar-skill
-  - nueva: interrogar-plan
-  - nueva: iodd
-  - nueva: mdd
-  - nueva: odd-api
-  - nueva: odd-obs
-  - nueva: operaciones
-  - nueva: pdd
-  - nueva: pipeline
-  - nueva: privacydd
-  - nueva: rdd
-  - nueva: readme
-  - nueva: respuestas-compactas
-  - nueva: revisar-secretos
-  - nueva: sdd
-  - nueva: secdd
-  - nueva: seguridad
-  - nueva: seo-tecnico
-  - nueva: sin-sobreingenieria
-  - nueva: slo
-  - nueva: stdd
-  - nueva: tdd
-  - nueva: threat
-  - nueva: udd
-  - nueva: uxdd
-  - nueva: verificador
-  - nueva: verificar-afirmaciones
-  - cambiada (vuelve a «sin auditar»): constructor
 
+- nueva: a11ydd
+- nueva: add
+- nueva: afinar-idea
+- nueva: analista
+- nueva: apivdd
+- nueva: arqueologia-codigo
+- nueva: arquitecto
+- nueva: atdd
+- nueva: bdd
+- nueva: ccdd
+- nueva: cdcdd
+- nueva: chaos
+- nueva: compliance
+- nueva: construir-mcp
+- nueva: costes-proyecto
+- nueva: ddd
+- nueva: debtbudgetdd
+- nueva: deprecationdd
+- nueva: descubrir-necesidades
+- nueva: diseno-frontend
+- nueva: documentacion
+- nueva: dominio-finanzas
+- nueva: dominio-marketing
+- nueva: dominio-ventas
+- nueva: eda
+- nueva: effectcraft
+- nueva: esdd
+- nueva: evaluar-skill
+- nueva: evol
+- nueva: fdd
+- nueva: filmcraft
+- nueva: incorporar-dependencia
+- nueva: incorporar-skill
+- nueva: interrogar-plan
+- nueva: iodd
+- nueva: mdd
+- nueva: odd-api
+- nueva: odd-obs
+- nueva: operaciones
+- nueva: pdd
+- nueva: pipeline
+- nueva: privacydd
+- nueva: rdd
+- nueva: readme
+- nueva: respuestas-compactas
+- nueva: revisar-secretos
+- nueva: sdd
+- nueva: secdd
+- nueva: seguridad
+- nueva: seo-tecnico
+- nueva: sin-sobreingenieria
+- nueva: slo
+- nueva: stdd
+- nueva: tdd
+- nueva: threat
+- nueva: udd
+- nueva: uxdd
+- nueva: verificador
+- nueva: verificar-afirmaciones
+- cambiada (vuelve a «sin auditar»): constructor

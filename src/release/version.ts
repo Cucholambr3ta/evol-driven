@@ -88,7 +88,7 @@ export function versionInfo(root: string = packageRoot()): VersionInfo {
   };
 }
 
-/** One line a person can read: «0.3.0 (estable, v0.3.0, a1b2c3d)». */
+/** One line a person can read: «x.y.z (estable, vx.y.z, a1b2c3d)». */
 export function describeVersion(info: VersionInfo): string {
   const parts: string[] = [info.canal];
   if (info.etiqueta) parts.push(info.etiqueta);

@@ -36,6 +36,9 @@ describe("una sola fuente de versión (criterio 16)", () => {
       "templates",
       "package-lock.json",
       "coverage",
+      // What `evol release` writes: each one is a record of a published version, so it holds its number.
+      "CHANGELOG.md",
+      "release.json",
       // Mockups of the interface: snapshots of real data (a diagram prints the version it was made with).
       "design",
     ]);

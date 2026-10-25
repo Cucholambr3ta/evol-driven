@@ -1,3 +1,4 @@
+import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -9,7 +10,7 @@ import {
   signingProblem,
   RELEASE_FILE,
 } from "../src/release/release.js";
-import { tempDir, write } from "./helpers.js";
+import { REPO, tempDir, write } from "./helpers.js";
 import { git, origin, skill } from "./release-helpers.js";
 
 describe("evol release", () => {
@@ -104,5 +105,25 @@ describe("evol release", () => {
     expect(
       changelogEntry("1.0.0", "2026-01-01", [], { nuevas: [], cambiadas: [], quitadas: [] }),
     ).toContain("sin cambios registrados");
+  });
+
+  it("lo que escribe en CHANGELOG.md ya cumple el formato del proyecto (su CI lo comprueba)", () => {
+    const text = `# Changelog\n\n${changelogEntry(
+      "1.0.0",
+      "2026-01-01",
+      ["feat: algo", "fix: otra cosa"],
+      {
+        nuevas: ["a", "b"],
+        cambiadas: ["c"],
+        quitadas: ["d"],
+      },
+    )}`;
+    const dir = tempDir("evol-changelog-");
+    write(dir, "CHANGELOG.md", text);
+    const r = spawnSync("npx", ["prettier", "--check", "--no-config", join(dir, "CHANGELOG.md")], {
+      cwd: REPO,
+      encoding: "utf8",
+    });
+    expect(r.status, r.stdout + r.stderr).toBe(0);
   });
 });
