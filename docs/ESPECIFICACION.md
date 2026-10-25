@@ -1373,6 +1373,14 @@ siempre igual, con las mismas opciones fijadas.
 > **Falta:** ejecutar el motor sobre `ready/` (R1 restante), `evol knowledge search` y `status` por encima de él, `doctor` y las citas en el
 > informe (R3), y el piloto R0 con las 30 preguntas.
 >
+> **Fuentes de la primera ola capturadas y revisadas (2026-10-24).** Además de OWASP, TypeScript y React: Next.js, Vite, Fastify, NestJS (MIT), Express
+> (CC-BY-4.0), Docker y Compose, OpenAPI (Apache-2.0), 18 RFC elegidas (HTTP, OAuth 2, JWT, TLS 1.3, URI, JSON y cookies; licencia del IETF Trust,
+> TLP 5, registrada como `LicenseRef-IETF-TLP-5` porque no tiene identificador SPDX) y el **ArchWiki en inglés** (paquete `arch-wiki-docs`
+> 20261003-1, firma comprobada; la página de copyright del wiki dice GFDL 1.3 sin «o posterior», así que se registró `GFDL-1.3-only`). La revisión
+> rechazó 51 documentos, casi todos falsos positivos (claves y tokens de ejemplo): esperan `evol knowledge accept` de una persona. **No capturadas:**
+> PostgreSQL 18 (su documentación fuente es SGML, que la revisión no lee) y KDE Plasma 6 (el contenido de develop.kde.org no declara su licencia en
+> el repositorio, y la documentación de usuario es DocBook). Node.js sigue fuera por su licencia.
+
 > **Piloto R0 preparado (2026-10-23).**
 >
 > - **Motores instalados** con versión fija en `~/.local/share/evol/knowledge-engines/` (docs-mcp-server 3.3.0 y mcp-local-rag 0.23.1),
