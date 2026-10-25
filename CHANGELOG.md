@@ -1,0 +1,137 @@
+# Cambios
+
+## 0.3.0 — 2026-10-25
+
+- fix: el fallo de semgrep sin archivo nombrado dice su tipo, su código y su salida de error
+- feat: instalación estable separada del origen y paso de firmantes en evol setup
+- fix: --help en todos los comandos, errores de opciones legibles y reintento del motor de semgrep
+- feat: activar la consulta de documentación al crear un proyecto y notas de la especificación al día
+- test: diagnóstico del fallo intermitente de semgrep y tipo de error en el escaneo de seguridad
+- feat: evol security scan con contenedores, licencias, api y tls
+- feat: soporte de DocBook y SGML en el conocimiento (PostgreSQL 18, manual de Plasma)
+- feat: evol knowledge ingest, search y status; consulta de documentación por MCP, doctor e informe
+- docs: fuentes de conocimiento de la primera ola capturadas y revisadas
+- docs: descartar RAGFlow; docs-mcp-server es el único proveedor de conocimiento
+- docs: ampliación 6 de la especificación (versiones, actualización y buzón de mejoras)
+- feat: versiones, actualización, release y mejoras (evol version, update, release, mejora)
+- feat: skills de herramientas, proceso, documentación y dominio (S4, tercera ola)
+- feat: instalación del framework (install.sh y evol setup)
+- fix: imagen Docker completa y evol skills uninstall
+- feat: skills de las 22 disciplinas extendidas (S4, segunda ola)
+- chore: aprobar las 23 skills y quitar la ruta de la clave de los evals
+- feat: /evol en carpeta vacía e incorporar skills en un paso
+- feat: instalar skills aprobadas en los IDE por enlace simbólico (S5)
+- test: pruebas de portabilidad entre IDE (O5)
+- feat: adaptadores para Codex, Antigravity, OpenCode y Hermes (O2)
+- feat: PASS/WARN/BLOCK y marca de plan interrogado (O4)
+- feat: los seis roles (O3): skills, reparto de las 31 disciplinas y envoltorios de subagente de solo lectura
+- feat: contrato del orquestador (O1): skill evol como fuente única de /evol y consultas de solo lectura
+- feat: skills de razonamiento (afinar-idea, interrogar-plan, verificar-afirmaciones) y sus evaluaciones (S4)
+- feat: skills de las seis disciplinas base que faltaban (sdd, fdd, ddd, bdd, atdd, tdd) y sus evaluaciones (S4)
+- feat: segundo lector de la auditoría (Claude Code), prueba de aislamiento y resultados del piloto del conocimiento
+- feat: segunda pasada de la auditoría con un lector, autoprueba y `evol skills approve` (S3, primera parte)
+- feat: la pasada 1 de la auditoría de skills usa shellcheck, bandit, osv-scanner y guarddog (T1)
+- docs: tabla de dependencias al día con el motor de conocimiento, Ollama y los modelos
+- feat: aceptación de documentos por una persona, captura de subcarpetas y preguntas del piloto R0
+- feat: registro de fuentes de documentación y revisión previa (evol knowledge)
+- feat: skills secdd, stdd y threat y evaluaciones de las siete skills de seguridad (T4c)
+- feat: SecDD ejecuta el escaneo de seguridad y doctor informa de las herramientas (T4b)
+- feat: evol security scan (T4a) con secretos, código y dependencias
+- fix: incorporar-dependencia usa guarddog scan para paquetes por nombre
+- feat: gitleaks verificado con el binario real, herramientas instaladas y cuatro skills de seguridad
+- fix: la auditoría usa semgrep con reglas locales, sin red y sin huecos de cobertura
+- docs: investigación de BlackArch y RAGFlow, y ampliación 5 de la especificación
+- feat: auditor determinista evol skills audit (hito S2)
+- feat: biblioteca de skills y evol skills list, check y export (hito S1)
+- docs: auditoría reforzada con subproceso aislado, scripts de terceros y agentes propios decididos
+- docs: roles como skills con envoltorio de subagente y clasificación de las skills del sistema anterior
+- docs: respuestas de los IDE y matriz de compatibilidad confirmada
+- docs: orquestador /evol y compatibilidad con cualquier IDE (ampliación 4)
+- docs: constelaciones, skills sin herencia del sistema anterior y plan del agente auditor
+- docs: las skills solo entran por un agente auditor y la pantalla muestra los agentes
+- docs: pantalla de Skills en los mockups y su especificación
+- docs: centra el grafo de memoria en los mockups
+- docs: pantalla de documentación por proyecto en los mockups
+- feat: evol report en DOCX, PDF y Markdown (hito 5 de la ampliación 2)
+- feat: generador de los 14 diagramas UML y evol diagrams (hito 4 de la ampliación 2)
+- feat: evol lessons check (hito 3 de la ampliación 2)
+- feat: perfiles y evol disciplines (hito 2 de la ampliación 2)
+- feat: evol export, risk y coverage (hito 1 de la ampliación 2)
+- docs: borrador de la ampliación 2 (informe, UML y mejoras)
+- docs: mockups de la interfaz
+- docs: README y especificación de la adopción y la capa para agentes; versión 0.2.0
+- test: pruebas de init, archivos para agentes, hook y MCP (criterios 19 a 24)
+- feat(cli): registra init, agents, hook y mcp; evol new y doctor usan la capa de agentes
+- feat(agents): comandos /evol-*, hook de inicio, bloque de CLAUDE.md, .mcp.json y servidor MCP de solo lectura
+- feat(init): evol init para adoptar proyectos existentes sin tocar sus archivos
+- feat(core): rutas y comandos por módulo, fases adoptadas e informe de estado
+- build: Dockerfile, CI, README y dependencias
+- test: pruebas de los 18 criterios de aceptación
+- feat(cli): comandos de evol y plantilla del proyecto generado
+- feat(codeintel): indexador nativo, interfaz CodeIntelProvider y proveedor opcional de GitNexus
+- feat(memory): integración con MemPalace por MCP
+- feat(core): pipeline de seis fases, gate firmado y registro de las 31 disciplinas
+- docs: especificación v1 y configuración del proyecto
+
+Skills:
+  - nueva: a11ydd
+  - nueva: add
+  - nueva: afinar-idea
+  - nueva: analista
+  - nueva: apivdd
+  - nueva: arqueologia-codigo
+  - nueva: arquitecto
+  - nueva: atdd
+  - nueva: bdd
+  - nueva: ccdd
+  - nueva: cdcdd
+  - nueva: chaos
+  - nueva: compliance
+  - nueva: construir-mcp
+  - nueva: costes-proyecto
+  - nueva: ddd
+  - nueva: debtbudgetdd
+  - nueva: deprecationdd
+  - nueva: descubrir-necesidades
+  - nueva: diseno-frontend
+  - nueva: documentacion
+  - nueva: dominio-finanzas
+  - nueva: dominio-marketing
+  - nueva: dominio-ventas
+  - nueva: eda
+  - nueva: effectcraft
+  - nueva: esdd
+  - nueva: evaluar-skill
+  - nueva: evol
+  - nueva: fdd
+  - nueva: filmcraft
+  - nueva: incorporar-dependencia
+  - nueva: incorporar-skill
+  - nueva: interrogar-plan
+  - nueva: iodd
+  - nueva: mdd
+  - nueva: odd-api
+  - nueva: odd-obs
+  - nueva: operaciones
+  - nueva: pdd
+  - nueva: pipeline
+  - nueva: privacydd
+  - nueva: rdd
+  - nueva: readme
+  - nueva: respuestas-compactas
+  - nueva: revisar-secretos
+  - nueva: sdd
+  - nueva: secdd
+  - nueva: seguridad
+  - nueva: seo-tecnico
+  - nueva: sin-sobreingenieria
+  - nueva: slo
+  - nueva: stdd
+  - nueva: tdd
+  - nueva: threat
+  - nueva: udd
+  - nueva: uxdd
+  - nueva: verificador
+  - nueva: verificar-afirmaciones
+  - cambiada (vuelve a «sin auditar»): constructor
+
