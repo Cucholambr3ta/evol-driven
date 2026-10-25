@@ -12,7 +12,7 @@ import { join } from "node:path";
 import { out } from "./shared.js";
 import { hasTerminal, typingSession } from "./tty.js";
 
-const USAGE = "Uso: evol setup [--comprobar] [--sin-herramientas] [--sin-skills]";
+export const USAGE = "Uso: evol setup [--comprobar] [--sin-herramientas] [--sin-skills]";
 
 /** A yes/no question answered at the terminal; anything but «s», «si» or «sí» is no. */
 function terminalPrompter(): { prompter: Prompter; close: () => void } {

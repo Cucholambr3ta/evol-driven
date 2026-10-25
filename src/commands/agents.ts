@@ -20,7 +20,7 @@ export function printAgentReport(report: AgentReport | AdapterReport): void {
   for (const s of report.skipped) out(`  ! ${s.file}: ${s.reason}`);
 }
 
-const USAGE = `Uso: evol agents [--ide <${IDE_IDS.join("|")}|all>]   (sin --ide, Claude Code)`;
+export const USAGE = `Uso: evol agents [--ide <${IDE_IDS.join("|")}|all>]   (sin --ide, Claude Code)`;
 
 function printAdapter(root: string, adapter: Adapter): void {
   out(`${adapter.nombre} (nivel ${adapter.nivel}; entrada: ${adapter.entrada}):`);

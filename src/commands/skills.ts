@@ -30,7 +30,7 @@ import { cpSync, mkdirSync, renameSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { out } from "./shared.js";
 
-const USAGE =
+export const USAGE =
   "Uso: evol skills <list|check|export|audit|approve|incorporar|install|uninstall> [nombre|origen] [--dir <carpeta>] [--json] [--disciplinas] [--salida <archivo.zip>] [--propia] [--capacidades <archivo.json>] [--subproceso] [--autoprueba] [--lector <id>] [--agente <id|all>] [--global] [--reemplazar] [--estado]";
 
 const MARK: Record<Level, string> = { ok: "✓", aviso: "!", error: "×" };

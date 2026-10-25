@@ -1,4 +1,5 @@
 import { spawnSync } from "node:child_process";
+import type { SpawnSyncReturns } from "node:child_process";
 import {
   accessSync,
   constants,
@@ -205,27 +206,7 @@ export function runSemgrep(dir: string): ToolRun {
       .map((c) => c.trim())
       .filter((c) => c !== "");
     const configs = [semgrepRulesDir(), ...extra].flatMap((c) => ["--config", c]);
-    const r = spawnSync(
-      bin,
-      [
-        "scan",
-        ...configs,
-        "--json",
-        "--quiet",
-        "--metrics",
-        "off",
-        "--disable-version-check",
-        scan,
-      ],
-      {
-        encoding: "utf8",
-        timeout: 300_000,
-        maxBuffer: 64 * 1024 * 1024,
-        env: { ...process.env, SEMGREP_SEND_METRICS: "off", SEMGREP_ENABLE_VERSION_CHECK: "0" },
-      },
-    );
-    if (r.error) return { report: failed(r.error.message, version), findings: [] };
-    let parsed: {
+    type Semgrep = {
       results?: {
         check_id?: string;
         path?: string;
@@ -235,9 +216,47 @@ export function runSemgrep(dir: string): ToolRun {
       errors?: { level?: string; message?: string; path?: string }[];
       paths?: { scanned?: string[] };
     };
-    try {
-      parsed = JSON.parse(r.stdout) as typeof parsed;
-    } catch {
+    const once = (): { r: SpawnSyncReturns<string>; parsed: Semgrep | null } => {
+      const r = spawnSync(
+        bin,
+        [
+          "scan",
+          ...configs,
+          "--json",
+          "--quiet",
+          "--metrics",
+          "off",
+          "--disable-version-check",
+          scan,
+        ],
+        {
+          encoding: "utf8",
+          timeout: 300_000,
+          maxBuffer: 64 * 1024 * 1024,
+          env: { ...process.env, SEMGREP_SEND_METRICS: "off", SEMGREP_ENABLE_VERSION_CHECK: "0" },
+        },
+      );
+      try {
+        return { r, parsed: JSON.parse(r.stdout) as Semgrep };
+      } catch {
+        return { r, parsed: null };
+      }
+    };
+    const failing = (parsed: Semgrep | null): boolean =>
+      (parsed?.errors ?? []).some((e) => e.level === "error" || e.level === undefined);
+    let { r, parsed } = once();
+    // The engine sometimes fails on its own, with an error that names no file («Error while
+    // matching…»), and does not on the next run. One retry is safe: only a clean second run
+    // counts, and a second failure leaves the skill «no auditada».
+    if (
+      !r.error &&
+      parsed !== null &&
+      failing(parsed) &&
+      (parsed.errors ?? []).every((e) => !e.path)
+    )
+      ({ r, parsed } = once());
+    if (r.error) return { report: failed(r.error.message, version), findings: [] };
+    if (parsed === null) {
       return {
         report: failed(
           `no devolvió un informe legible (código ${r.status}): ${r.stderr.trim().split("\n")[0] ?? ""}`,

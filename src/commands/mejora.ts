@@ -6,7 +6,7 @@ import { versionInfo } from "../release/version.js";
 import { basename } from "node:path";
 import { out } from "./shared.js";
 
-const USAGE = `Uso: evol mejora <add "texto" [--evidencia "…"] | list [--todas] [--json] | hecha <id> [--nota "…"] | descartar <id> [--nota "…"]>`;
+export const USAGE = `Uso: evol mejora <add "texto" [--evidencia "…"] | list [--todas] [--json] | hecha <id> [--nota "…"] | descartar <id> [--nota "…"]>`;
 
 export default function run(argv: string[]): Promise<number> {
   const { values, positionals } = parseArgs({

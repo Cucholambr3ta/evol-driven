@@ -13,7 +13,7 @@ import { makeRecorder } from "../memory/events.js";
 import { out, requireProject, warn } from "./shared.js";
 import { confirmByTyping, hasTerminal } from "./tty.js";
 
-const USAGE =
+export const USAGE =
   "Uso: evol disciplines <list|active|profiles|suggest|enable|disable> [ID...] [--modulo <nombre>] [--fase <fase>] [--json]";
 
 function describeChange(s: ChangeSummary): string[] {

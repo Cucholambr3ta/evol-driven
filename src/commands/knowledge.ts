@@ -20,7 +20,7 @@ import { findProjectRoot } from "../core/paths.js";
 import { loadConfig } from "../core/config.js";
 import { out } from "./shared.js";
 
-const USAGE = [
+export const USAGE = [
   "Uso:",
   "  evol knowledge source add <id> --nombre <texto> --version <versión> --licencia <SPDX|desconocida> --licencia-url <https://…>",
   "                            (--git <https://repo> --commit <hash de 40> | --ruta <carpeta> --origen <https://…>)",

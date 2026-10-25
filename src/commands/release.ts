@@ -5,7 +5,7 @@ import { release } from "../release/release.js";
 import { versionInfo } from "../release/version.js";
 import { out } from "./shared.js";
 
-const USAGE =
+export const USAGE =
   "Uso: evol release <x.y.z>   (desde el origen, con el árbol guardado y la firma de git configurada)";
 
 export default function run(argv: string[]): Promise<number> {

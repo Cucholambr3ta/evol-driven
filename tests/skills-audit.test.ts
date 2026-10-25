@@ -977,6 +977,63 @@ describe("semgrep: cobertura y reglas propias", () => {
     expect(auditSkill(folder()).report.veredicto).toBe("pass");
   });
 
+  /** A semgrep whose first `fallos` runs fail with an error that names no file, and the rest are clean. */
+  const flaky = (fallos: number): { bin: string; runs: () => number } => {
+    const dir = tempDir("evol-flaky-");
+    const counter = join(dir, "n");
+    const bin = stub(
+      "semgrep",
+      String.raw`case "$1" in --version) echo 1.99.0; exit 0;; esac
+for a; do last="$a"; done
+echo x >> "${counter}"
+N=$(wc -l < "${counter}")
+if [ "$N" -le ${fallos} ]; then
+  printf '{"results":[],"errors":[{"level":"error","message":"Error while matching: boom"}],"paths":{"scanned":[]}}'
+  exit 2
+fi
+SCANNED=$(cd "$last" && find . -type f -name '*.py' | sed 's|^\./||' | awk -v d="$last" 'BEGIN{ORS=""; printf "["} {printf "%s\"%s/%s\"", (NR>1?",":""), d, $0} END{printf "]"}')
+printf '{"results":[],"errors":[],"paths":{"scanned":%s}}' "$SCANNED"`,
+    );
+    return {
+      bin,
+      runs: () =>
+        existsSync(counter) ? readFileSync(counter, "utf8").trim().split("\n").length : 0,
+    };
+  };
+
+  it("un error del motor que no nombra ningún archivo se reintenta una vez", () => {
+    const s = flaky(1);
+    useTools({ EVOL_TOOL_SEMGREP: s.bin });
+    const { report } = auditSkill(folder({ "scripts/run.py": "print(1)\n" }), { propia: true });
+    expect(report.herramientas["semgrep"]?.estado).toBe("ok");
+    expect(s.runs()).toBe(2);
+  });
+
+  it("si vuelve a fallar no se reintenta más y la skill queda «no auditada»", () => {
+    const s = flaky(5);
+    useTools({ EVOL_TOOL_SEMGREP: s.bin });
+    const { report } = auditSkill(folder({ "scripts/run.py": "print(1)\n" }), { propia: true });
+    expect(report.herramientas["semgrep"]?.estado).toBe("fallo");
+    expect(report.veredicto).toBe("no-auditada");
+    expect(s.runs()).toBe(2);
+  });
+
+  it("un error que sí nombra un archivo no se reintenta", () => {
+    const dir = tempDir("evol-named-");
+    const counter = join(dir, "n");
+    const bin = stub(
+      "semgrep",
+      `case "$1" in --version) echo 1.99.0; exit 0;; esac
+echo x >> "${counter}"
+printf '{"results":[],"errors":[{"level":"error","path":"scripts/run.py","message":"syntax"}],"paths":{"scanned":[]}}'
+exit 2`,
+    );
+    useTools({ EVOL_TOOL_SEMGREP: bin });
+    const { report } = auditSkill(folder({ "scripts/run.py": "print(1)\n" }), { propia: true });
+    expect(report.herramientas["semgrep"]?.estado).toBe("fallo");
+    expect(readFileSync(counter, "utf8").trim().split("\n")).toHaveLength(1);
+  });
+
   // These two use the real semgrep when it is installed (a visible skip otherwise): the stand-ins
   // cannot tell whether evol calls it correctly, and the first version of the command was wrong.
   const real = REAL_SEMGREP !== null;

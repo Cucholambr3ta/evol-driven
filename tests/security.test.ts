@@ -107,6 +107,48 @@ const scanJson = (root: string, env: Record<string, string>, ...args: string[]) 
 };
 
 describe("evol security scan", () => {
+  describe("un error del motor de semgrep que no nombra ningún archivo", () => {
+    const flaky = (fallos: number): { bin: string; runs: () => number } => {
+      const dir = tempDir("evol-sec-flaky-");
+      const counter = join(dir, "n");
+      const bin = stub(
+        "semgrep",
+        `case "$1" in --version) echo 1.99.0; exit 0;; esac
+echo x >> "${counter}"
+N=$(wc -l < "${counter}")
+if [ "$N" -le ${fallos} ]; then
+  printf '{"results":[],"errors":[{"level":"error","message":"Error while matching: boom"}]}'
+  exit 2
+fi
+printf '{"results":[],"errors":[]}'`,
+      );
+      return {
+        bin,
+        runs: () =>
+          existsSync(counter) ? readFileSync(counter, "utf8").trim().split("\n").length : 0,
+      };
+    };
+    const states = (root: string, bin: string) =>
+      scanJson(root, tools({ EVOL_TOOL_SEMGREP: bin }), "--solo", "codigo").data?.herramientas as {
+        herramienta: string;
+        estado: string;
+      }[];
+
+    it("se reintenta una vez, y un segundo resultado limpio cuenta", () => {
+      const s = flaky(1);
+      const out = states(project({ "src/a.py": "print(1)\n" }), s.bin);
+      expect(out.find((t) => t.herramienta === "semgrep")?.estado).toBe("ok");
+      expect(s.runs()).toBe(2);
+    });
+
+    it("si vuelve a fallar no se reintenta más y el escaneo no da la herramienta por buena", () => {
+      const s = flaky(5);
+      const out = states(project({ "src/a.py": "print(1)\n" }), s.bin);
+      expect(out.find((t) => t.herramienta === "semgrep")?.estado).toBe("fallo");
+      expect(s.runs()).toBe(2);
+    });
+  });
+
   it("normaliza a un formato común y mapea las severidades de cada herramienta", () => {
     const root = project(FULL);
     const r = scanJson(

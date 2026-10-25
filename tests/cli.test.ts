@@ -264,3 +264,51 @@ describe("evol doctor y memory sin MemPalace (criterio 9)", () => {
     expect(readFileSync(join(root, "lecciones.md"), "utf8")).toContain("### Probar antes");
   });
 });
+
+describe("ayuda y opciones erróneas de cada comando", () => {
+  // the command names, as the general help lists them
+  const commands = (): string[] =>
+    cli(["--help"], { cwd: tempDir(), env: env() })
+      .stdout.split("\n")
+      .map((l) => /^ {2}([a-z]+) {2,}\S/.exec(l)?.[1])
+      .filter((n): n is string => n !== undefined);
+
+  it("todos los comandos responden a --help sin ejecutarse, aunque no haya proyecto", () => {
+    const names = commands();
+    expect(names.length).toBeGreaterThan(25);
+    for (const name of names) {
+      const r = cli([name, "--help"], { cwd: tempDir(), env: env() });
+      expect(r.status, `${name}: ${r.stderr}`).toBe(0);
+      expect(r.stdout, name).toContain(`evol ${name} — `);
+      expect(r.stderr, name).toBe("");
+    }
+  }, 120_000);
+
+  it("-h es lo mismo, y los comandos con uso lo muestran", () => {
+    const r = cli(["skills", "-h"], { cwd: tempDir(), env: env() });
+    expect(r.status).toBe(0);
+    expect(r.stdout).toContain("Uso: evol skills <list|check|export");
+    const security = cli(["security", "--help"], { cwd: tempDir(), env: env() });
+    expect(security.stdout).toContain("--solo");
+  });
+
+  it("una opción desconocida da un mensaje claro y no una traza", () => {
+    const r = cli(["skills", "--noexiste"], { cwd: tempDir(), env: env() });
+    expect(r.status).toBe(1);
+    expect(r.stderr).toContain("Opción desconocida «--noexiste»");
+    expect(r.stderr).toContain("evol skills --help");
+    expect(r.stderr).not.toContain("Error inesperado");
+    expect(r.stderr).not.toContain("at ");
+    const missing = cli(["knowledge", "search", "--fuente"], { cwd: tempDir(), env: env() });
+    expect(missing.status).toBe(1);
+    expect(missing.stderr).toContain("Falta el valor de «--fuente»");
+  });
+
+  it("después de «--» un --help es parte de la pregunta, no una petición de ayuda", () => {
+    const r = cli(["knowledge", "search", "--json", "--", "--help"], {
+      cwd: tempDir(),
+      env: { ...env(), EVOL_KNOWLEDGE_ENGINE: "/no/existe" },
+    });
+    expect(r.stdout).not.toContain("evol knowledge — ");
+  });
+});

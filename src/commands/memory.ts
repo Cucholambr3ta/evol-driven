@@ -7,7 +7,7 @@ import { withMemPalace } from "../memory/mempalace.js";
 import { journalAppend } from "../core/journal.js";
 import { out, requireProject } from "./shared.js";
 
-const USAGE = [
+export const USAGE = [
   "Uso:",
   '  evol memory add --tipo <decision|leccion|contexto> --texto "..." [--titulo "..."]',
   '  evol memory search "consulta" [--limit N] [--sala <sala>]',

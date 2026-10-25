@@ -12,7 +12,7 @@ import { lessonsOf } from "../core/orchestration.js";
 import { withMemPalace } from "../memory/mempalace.js";
 import { out, requireProject } from "./shared.js";
 
-const USAGE =
+export const USAGE =
   "Uso: evol lessons check [--umbral 0-1] [--estricto] [--json]   |   evol lessons list [--buscar <palabras>] [--json]";
 
 export default async function run(argv: string[]): Promise<number> {

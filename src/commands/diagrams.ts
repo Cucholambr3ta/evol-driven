@@ -7,7 +7,7 @@ import { DIAGRAM_COUNT, diagramFileName, generateDiagrams } from "../diagrams/in
 import { rasterize } from "../diagrams/raster.js";
 import { out, requireProject } from "./shared.js";
 
-const USAGE =
+export const USAGE =
   "Uso: evol diagrams [--salida <carpeta>] [--solo 1,3,7] [--entrada <símbolo>] [--componente <nombre>] [--png] [--json]";
 
 function parseOnly(value: string | undefined): number[] | undefined {

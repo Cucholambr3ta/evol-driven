@@ -8,7 +8,7 @@ import { blockers, count, scan, writeQaReport, writeResult } from "../security/s
 import { out, requireProject } from "./shared.js";
 import { confirmByTyping } from "./tty.js";
 
-const USAGE = `Uso: evol security scan [--solo <${AREAS.join("|")}>] [--ci] [--json]
+export const USAGE = `Uso: evol security scan [--solo <${AREAS.join("|")}>] [--ci] [--json]
   Sin --solo revisa ${DEFAULT_AREAS.join(", ")} (solo lee archivos).
   ${ACTIVE_AREAS.join(" y ")} envían tráfico a un servicio: solo con --solo, contra los objetivos que el proyecto
   declara en evol.config.json (security.objetivos) y con la confirmación de una persona en una terminal.`;

@@ -11,7 +11,8 @@ import { readInstallRecord, versionInfo } from "../release/version.js";
 import { out } from "./shared.js";
 import { hasTerminal, typingSession } from "./tty.js";
 
-const USAGE = "Uso: evol update [--comprobar] [--version x.y.z] [--volver] [--repositorio <url>]";
+export const USAGE =
+  "Uso: evol update [--comprobar] [--version x.y.z] [--volver] [--repositorio <url>]";
 
 export const signersFile = (): string => join(userConfigDir(), "allowed_signers");
 const binLink = (): string => join(process.env["HOME"] ?? homedir(), ".local", "bin", "evol");

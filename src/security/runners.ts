@@ -1,4 +1,5 @@
 import { spawnSync } from "node:child_process";
+import type { SpawnSyncReturns } from "node:child_process";
 import {
   existsSync,
   mkdirSync,
@@ -223,30 +224,7 @@ export function runSemgrep(root: string): RunResult {
   const version = securityToolVersion("semgrep", bin);
   const rules = [join(packageRoot(), "rules", "semgrep")];
   if (existsSync(evolPath(root, "semgrep"))) rules.push(evolPath(root, "semgrep"));
-  const r = spawnSync(
-    bin,
-    [
-      "scan",
-      ...rules.flatMap((c) => ["--config", c]),
-      "--json",
-      "--quiet",
-      "--metrics",
-      "off",
-      "--disable-version-check",
-      "--x-ignore-semgrepignore-files",
-      ...[...SKIP_DIRS].flatMap((d) => ["--exclude", d]),
-      ".",
-    ],
-    {
-      cwd: root,
-      encoding: "utf8",
-      timeout: 600_000,
-      maxBuffer: 128 * 1024 * 1024,
-      env: { ...process.env, SEMGREP_SEND_METRICS: "off", SEMGREP_ENABLE_VERSION_CHECK: "0" },
-    },
-  );
-  if (r.error) return failedRun(SEMGREP, r.error.message, version);
-  const parsed = json<{
+  type SemgrepOut = {
     results?: {
       check_id?: string;
       path?: string;
@@ -254,7 +232,41 @@ export function runSemgrep(root: string): RunResult {
       extra?: { severity?: string; metadata?: { evol_severity?: string } };
     }[];
     errors?: { level?: string; path?: string; type?: unknown }[];
-  }>(r.stdout);
+  };
+  const once = (): { r: SpawnSyncReturns<string>; parsed: SemgrepOut | null } => {
+    const r = spawnSync(
+      bin,
+      [
+        "scan",
+        ...rules.flatMap((c) => ["--config", c]),
+        "--json",
+        "--quiet",
+        "--metrics",
+        "off",
+        "--disable-version-check",
+        "--x-ignore-semgrepignore-files",
+        ...[...SKIP_DIRS].flatMap((d) => ["--exclude", d]),
+        ".",
+      ],
+      {
+        cwd: root,
+        encoding: "utf8",
+        timeout: 600_000,
+        maxBuffer: 128 * 1024 * 1024,
+        env: { ...process.env, SEMGREP_SEND_METRICS: "off", SEMGREP_ENABLE_VERSION_CHECK: "0" },
+      },
+    );
+    return { r, parsed: r.error ? null : json<SemgrepOut>(r.stdout) };
+  };
+  let { r, parsed } = once();
+  // The engine sometimes fails on its own, with an error that names no file, and does not on the
+  // next run. One retry is safe: only a clean second run counts.
+  const engineOnly = (p: SemgrepOut | null): boolean => {
+    const bad = (p?.errors ?? []).filter((e) => e.level === "error" || e.level === undefined);
+    return bad.length > 0 && bad.every((e) => !e.path);
+  };
+  if (engineOnly(parsed)) ({ r, parsed } = once());
+  if (r.error) return failedRun(SEMGREP, r.error.message, version);
   if (parsed === null)
     return failedRun(
       SEMGREP,

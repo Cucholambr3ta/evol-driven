@@ -6,7 +6,7 @@ import { generateReport, REPORT_FORMATS } from "../report/index.js";
 import type { ReportFormat } from "../report/index.js";
 import { out, requireProject } from "./shared.js";
 
-const USAGE =
+export const USAGE =
   "Uso: evol report [--formato docx|pdf|ambos|md] [--salida <carpeta>] [--entrada <símbolo>] [--componente <nombre>]";
 
 export default function run(argv: string[]): Promise<number> {
