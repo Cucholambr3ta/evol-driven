@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "ts": "2026-10-25T18:02:21.021Z",
+  "ts": "2026-10-25T22:37:54.227Z",
   "proyecto": "evol-driven",
   "fase": "build",
   "aprobacion": "pendiente",
@@ -11,22 +11,27 @@
     "  [app] SDD — Spec-Driven Development",
     "      ✓ docs/specs/SPEC.md  (1 encontrado(s), ≥1)",
     "  [app] TDD — Test-Driven Development",
-    "      ✗ tests/*.test.ts  (43 encontrado(s), ≥1, 4 con [[COMPLETAR]])",
+    "      ✗ tests/*.test.ts  (46 encontrado(s), ≥1, 4 con [[COMPLETAR]])",
     "  [app] STDD — Security-Test-Driven Development",
     "      ✓ tests/security*.test.ts  (2 encontrado(s), ≥1)",
     "Aprobación de «build»: pendiente"
   ],
   "git": {
-    "rama": "ola-0/adopcion",
-    "commit": "64f9348",
-    "sinCommit": [],
-    "totalSinCommit": 0,
+    "rama": "ola-1/evol-os-seguridad-aislamiento",
+    "commit": "33dad78",
+    "sinCommit": [
+      "M .evol/qa/QA_REPORT.md",
+      "M .evol/qa/security/sbom.cdx.json",
+      "M .evol/qa/security/ultimo.json",
+      "M docs/specs/SPEC.md"
+    ],
+    "totalSinCommit": 4,
     "ultimos": [
-      "build(M1): proyectos que no son TypeScript (CA-128 a CA-131)",
-      "plan: orden de construcción de la ola 1, interrogado dos veces",
-      "chore: aprobación de spec y avance a plan",
-      "spec: corrige los hallazgos de la revisión de seguridad en THREATS.md",
-      "spec: especificación, dominio y amenazas de la ola 1 (CA-128 a CA-148)"
+      "docs: reserva CA-145 (presupuesto de 3 s de doctor es ajustado) y m-003",
+      "build(M10): instrucciones según el repositorio (CA-148)",
+      "build(M9): «evol ciclo nuevo» para seguir en un segundo ciclo (CA-146, CA-147)",
+      "build(M8): acorta a 1,5 s el presupuesto de red del aviso de versión",
+      "build(M8): aviso de versión nueva en doctor (CA-145)"
     ]
   },
   "notas": [
@@ -37,13 +42,13 @@
     {
       "ts": "2026-10-25T18:02:21.021Z",
       "texto": "M1 (CA-128 a CA-131, proyectos que no son TypeScript) construido y comiteado (64f9348). Faltan M2 a M10 de la ola 1 en fase build. Próximo paso: Paso 0 del plan (ensayo real de outputStyle/agent y permissions.deny bajo bypassPermissions en Claude Code y OpenCode, documentado en docs/design/consultas/), necesario antes de M3 a M6."
+    },
+    {
+      "ts": "2026-10-25T22:37:54.227Z",
+      "texto": "Ola 1 build: M1-M10 completos y comiteados (CA-128 a CA-148). npm run ci queda rojo por un solo motivo: CA-145 (menos de 3s sin red) es flaky/ajustado por overhead preexistente de doctor (MemPalace+sondeo seguridad, ~2.6-2.7s antes de esta mejora); documentado en SPEC.md y anotado como m-003. evol coverage (vía dist/cli.js, NO vía el binario estable que aun no tiene estos cambios) está limpio: sin escenario ninguno, sin prueba ninguno. evol security scan encontró 5 CRITICAL y 3 HIGH que parecen falsos positivos preexistentes (hashes de skills en release.json, claves AWS EXAMPLE en fixtures, shell:true en el runner de comandos, avisos genéricos de guarddog en package.json); la persona decidió revisarlos ella misma antes de aprobar qa, no los toqué. Próximo paso: la persona corre evol verify/approve build en su terminal (bloqueará por [[COMPLETAR]] literal en tests/cli.test.ts, tests/disciplines.test.ts, tests/e2e.test.ts y tests/orchestration.test.ts: falso positivo preexistente de Ola 0, anotado como m-004) y decide cómo seguir."
     }
   ],
   "eventos": [
-    {
-      "ts": "2026-10-25T10:21:51.021Z",
-      "type": "approved"
-    },
     {
       "ts": "2026-10-25T10:21:52.518Z",
       "type": "phase-completed"
@@ -59,6 +64,10 @@
     {
       "ts": "2026-10-25T17:44:40.231Z",
       "type": "phase-completed"
+    },
+    {
+      "ts": "2026-10-25T18:02:21.033Z",
+      "type": "checkpoint"
     }
   ],
   "traspaso": false
