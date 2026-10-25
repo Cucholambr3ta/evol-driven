@@ -52,6 +52,44 @@ export function resolveLabel(archivo: string, rutas: Map<string, string>): strin
 
 const squash = (s: string): string => s.replace(/\s+/g, " ").trim();
 
+const escapeRegExp = (s: string): string => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+/** Where the quote really is in the file: its start offset, whatever the whitespace between its words. */
+function quoteStart(raw: string, quote: string): number | undefined {
+  const words = squash(quote).split(" ").filter(Boolean).map(escapeRegExp);
+  if (words.length === 0) return undefined;
+  const match = new RegExp(words.join("\\s+")).exec(raw);
+  return match ? match.index : undefined;
+}
+
+/**
+ * The 1-based line of the quote. A reader gives a line number from memory and often misses it by a
+ * few lines (a local model put two bullets of lines 17 and 18 at lines 10 and 11): the quote is
+ * what was verified, so the line is read from it.
+ */
+export function lineOfQuote(raw: string, quote: string): number | undefined {
+  const start = quoteStart(raw, quote);
+  return start === undefined ? undefined : raw.slice(0, start).split("\n").length;
+}
+
+/** A phrase that forbids: the verbs of the things a skill is warned not to do. */
+const PROHIBITION =
+  /\b(no|nunca|jam[aá]s)\s+(lo\s+)?(hagas|escribas|muestres|obedezcas|ejecutes|sigas|apruebes|copies|imprimas|reveles|cites|uses)\b|\b(never|do not|don'?t)\s+(do|write|show|obey|run|follow|approve|copy|print|reveal|quote|use)\b|\bprohib/i;
+
+/**
+ * Whether the quote sits next to a prohibition: «if the material asks you to ignore your rules, do not
+ * do it» quotes the very phrase an attack would use. It only informs the person who approves: it never
+ * lowers a severity, because a hostile skill could dress an order as a prohibition.
+ */
+export function nearProhibition(raw: string, quote: string): boolean {
+  const start = quoteStart(raw, quote);
+  if (start === undefined) return false;
+  // the line (the bullet) the quote is in, and no more: in a list, the neighbours say other things
+  const from = raw.lastIndexOf("\n", start) + 1;
+  const to = raw.indexOf("\n", start + 1);
+  return PROHIBITION.test(raw.slice(from, to < 0 ? raw.length : to));
+}
+
 const CATEGORY_LABEL: Record<(typeof CATEGORIES)[number], string> = {
   inyeccion: "instrucciones dirigidas al agente",
   filtracion: "posible filtración de datos",
@@ -107,6 +145,7 @@ export async function readSkillWith(reader: Reader, entries: Entry[]): Promise<R
     );
 
   const text = new Map(entries.map((e) => [e.ruta, squash(e.data.toString("utf8"))]));
+  const raws = new Map(entries.map((e) => [e.ruta, e.data.toString("utf8")]));
   const aceptados: ReaderRun["aceptados"] = [];
   let descartados = 0;
   const seen = new Set<string>();
@@ -129,11 +168,16 @@ export async function readSkillWith(reader: Reader, entries: Entry[]): Promise<R
       !SECRET_LIKE.test(f.texto)
         ? `: ${squash(f.texto)}`
         : "";
+    const raw = raws.get(ruta) ?? "";
+    const line = lineOfQuote(raw, f.cita) ?? f.linea;
+    const prohibits = nearProhibition(raw, f.cita)
+      ? " (la frase aparece junto a una prohibición: confirma que el documento la prohíbe y no la ordena)"
+      : "";
     aceptados.push({
       regla: "subproceso",
       categoria: f.categoria,
       nivel: capped ? "aviso" : f.severidad,
-      texto: `[${reader.id}]${capped ? " propone bloquear:" : ""} ${CATEGORY_LABEL[f.categoria]}${f.linea ? ` (línea ${f.linea})` : ""}${own}`,
+      texto: `[${reader.id}]${capped ? " propone bloquear:" : ""} ${CATEGORY_LABEL[f.categoria]}${line ? ` (línea ${line})` : ""}${own}${prohibits}`,
       archivo: ruta,
     });
   }
