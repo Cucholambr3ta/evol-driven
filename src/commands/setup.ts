@@ -7,12 +7,16 @@ import { listSkills } from "../skills/library.js";
 import { readManifest, auditState } from "../skills/manifest.js";
 import { COMPONENTS, findTool } from "../setup/catalog.js";
 import { nodeOk, seedLibrary, setupReader, setupTools } from "../setup/steps.js";
+import { setupSigners } from "../setup/signing.js";
+import { spawnSync } from "node:child_process";
+import { signersFile } from "./update.js";
 import type { Prompter } from "../setup/steps.js";
 import { join } from "node:path";
 import { out } from "./shared.js";
 import { hasTerminal, typingSession } from "./tty.js";
 
-export const USAGE = "Uso: evol setup [--comprobar] [--sin-herramientas] [--sin-skills]";
+export const USAGE =
+  "Uso: evol setup [--comprobar] [--sin-herramientas] [--sin-firma] [--sin-skills]";
 
 /** A yes/no question answered at the terminal; anything but «s», «si» or «sí» is no. */
 function terminalPrompter(): { prompter: Prompter; close: () => void } {
@@ -52,6 +56,7 @@ export default async function run(argv: string[]): Promise<number> {
       comprobar: { type: "boolean" },
       "sin-herramientas": { type: "boolean" },
       "sin-skills": { type: "boolean" },
+      "sin-firma": { type: "boolean" },
     },
   });
   if (values.comprobar === true) return check();
@@ -72,11 +77,19 @@ export default async function run(argv: string[]): Promise<number> {
       out("\n2. Herramientas");
       await setupTools(out, prompter);
     }
-    out("\n3. Lector de la auditoría de skills");
+    if (values["sin-firma"] !== true) {
+      out("\n3. Quién puede firmar versiones de evol");
+      const email = spawnSync("git", ["config", "--get", "user.email"], { encoding: "utf8" });
+      await setupSigners(out, prompter, {
+        file: signersFile(),
+        email: email.status === 0 && email.stdout.trim() !== "" ? email.stdout.trim() : null,
+      });
+    }
+    out("\n4. Lector de la auditoría de skills");
     await setupReader(out, prompter, findTool({ id: "claude", bin: "claude" }));
 
     if (values["sin-skills"] !== true) {
-      out("\n4. Biblioteca de skills");
+      out("\n5. Biblioteca de skills");
       const source = join(packageRoot(), "skills");
       const seeded = seedLibrary(source, libraryDir(), userInfo().username);
       out(

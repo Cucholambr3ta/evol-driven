@@ -10,10 +10,20 @@ La especificación completa está en [`docs/ESPECIFICACION.md`](docs/ESPECIFICAC
 
 Requiere Node ≥ 24 y Git. Ver [`DEPENDENCIES.md`](DEPENDENCIES.md) para MemPalace.
 
+Hay dos copias de evol y no se mezclan: la **estable** (la que usan tus proyectos, de solo lectura) y
+el **origen** (este repositorio, donde se hacen las mejoras).
+
 ```bash
-./install.sh        # comprueba Node/Git, compila, deja `evol` en ~/.local/bin y lanza `evol setup`
+./install.sh --dev  # el origen: deja `evol-dev` apuntando a este repositorio; no toca `evol`
+./install.sh        # la estable: prepara quién puede firmar y instala con `evol update` la última
+                    # versión firmada; `evol` apunta a una copia en ~/.local/share/evol/versiones
 evol doctor         # comprueba Node, Git, MemPalace y el proyecto
 ```
+
+La copia estable solo cambia cuando tú publicas una versión (`evol-dev release x.y.z`, que la firma tu
+clave SSH y no sube nada) y actualizas (`evol update`, que pide confirmación). Mientras no publiques, lo que
+edites en el origen no la afecta. Sin ninguna versión publicada, `./install.sh` no instala nada y te dice
+cómo hacerlo.
 
 `install.sh` no usa sudo. `evol setup` pregunta antes de instalar cada herramienta que falte (las de
 Python, con `uv tool install`); las que piden administrador solo las describe, con el comando exacto.

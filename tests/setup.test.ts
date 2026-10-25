@@ -8,7 +8,7 @@ import type { Prompter } from "../src/setup/steps.js";
 import { auditorConfigPath, readAuditorConfig } from "../src/skills/auditor/config.js";
 import { readManifest, writeManifest } from "../src/skills/manifest.js";
 import { readSkill } from "../src/skills/skill.js";
-import { cli, isolateUserConfig, REPO, tempDir, write } from "./helpers.js";
+import { cli, git, isolateUserConfig, REPO, tempDir, write } from "./helpers.js";
 
 let userConfig: string;
 beforeAll(() => {
@@ -270,26 +270,43 @@ describe("evol setup: la orden y el instalador", () => {
     expect(r.stderr).toContain("ejecútalo en una terminal");
   });
 
-  it("install.sh: sintaxis válida, deja el enlace y no pisa un archivo que no es un enlace", () => {
+  it("install.sh: sintaxis válida; --dev deja evol-dev y no toca evol; no pisa un archivo que no es un enlace", () => {
     const script = join(REPO, "install.sh");
     expect(spawnSync("bash", ["-n", script]).status).toBe(0);
+    const run = (home: string, ...args: string[]) =>
+      spawnSync("bash", [script, ...args], {
+        env: { ...process.env, HOME: home },
+        encoding: "utf8",
+      });
     const home = tempDir("evol-home-");
-    const ok = spawnSync("bash", [script, "--solo-enlace"], {
-      env: { ...process.env, HOME: home },
-      encoding: "utf8",
-    });
+    const ok = run(home, "--dev", "--sin-compilar", "--sin-setup");
     expect(ok.status, ok.stderr).toBe(0);
-    expect(lstatSync(join(home, ".local/bin/evol")).isSymbolicLink()).toBe(true);
+    expect(lstatSync(join(home, ".local/bin/evol-dev")).isSymbolicLink()).toBe(true);
+    expect(existsSync(join(home, ".local/bin/evol"))).toBe(false);
     const other = tempDir("evol-home-");
     mkdirSync(join(other, ".local/bin"), { recursive: true });
-    writeFileSync(join(other, ".local/bin/evol"), "mío\n");
-    const refused = spawnSync("bash", [script, "--solo-enlace"], {
-      env: { ...process.env, HOME: other },
-      encoding: "utf8",
-    });
+    writeFileSync(join(other, ".local/bin/evol-dev"), "mío\n");
+    const refused = run(other, "--dev", "--sin-compilar", "--sin-setup");
     expect(refused.status).toBe(1);
-    expect(readFileSync(join(other, ".local/bin/evol"), "utf8")).toBe("mío\n");
-    expect(spawnSync("bash", [script, "--rara"], { encoding: "utf8" }).status).toBe(2);
+    expect(readFileSync(join(other, ".local/bin/evol-dev"), "utf8")).toBe("mío\n");
+    expect(run(home, "--rara").status).toBe(2);
+    expect(run(home, "--repositorio").status).toBe(2);
+  });
+
+  it("install.sh estable: sin una versión publicada no instala nada y explica cómo publicarla", () => {
+    const repo = tempDir("evol-repo-");
+    git(repo, "init", "-q", "-b", "main");
+    const home = tempDir("evol-home-");
+    const r = spawnSync(
+      "bash",
+      [join(REPO, "install.sh"), "--sin-compilar", "--sin-setup", "--repositorio", repo],
+      { env: { ...process.env, HOME: home }, encoding: "utf8" },
+    );
+    expect(r.status).toBe(1);
+    expect(r.stderr).toContain("no tiene ninguna versión publicada");
+    expect(r.stderr).toContain("release x.y.z");
+    expect(r.stderr).toContain("--dev");
+    expect(existsSync(join(home, ".local/bin/evol"))).toBe(false);
   });
 });
 
@@ -303,6 +320,8 @@ describe.skipIf(!hasScript)("evol setup en una terminal real (pty)", () => {
       ...(process.env as Record<string, string>),
       EVOL_CONFIG_DIR: config,
       EVOL_TOOL_CLAUDE: "",
+      // no SSH keys here: the signers step must not ask about the real ones
+      EVOL_SSH_DIR: tempDir("evol-no-ssh-"),
     };
     for (const c of COMPONENTS) env[envName(c.id)] = exe(dir, c.bin);
     const made = join(dir, "semgrep-nuevo");

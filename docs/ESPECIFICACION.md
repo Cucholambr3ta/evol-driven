@@ -1637,7 +1637,24 @@ Los proyectos usan la copia estable. Las mejoras **no se hacen desde un proyecto
 | 120 | Las skills cambiadas por una actualización llegan sin aprobar, y la instalación no toca un `evol` que no sea un enlace.                                                                                           | `tests/update.test.ts`  |
 | 121 | `evol mejora` anota con proyecto y versión sin cambiar el proyecto; cerrar una mejora añade una línea y no reescribe la historia; una línea rota no tira el buzón.                                                | `tests/improve.test.ts` |
 
+### Instalación por modos y firmantes (2026-10-25)
+
+`install.sh` ya no enlaza el repositorio como `evol`. **Por defecto instala la copia estable**: compila, lanza `evol setup` y ejecuta `evol update
+--repositorio <este repositorio>`; si el repositorio no tiene ninguna etiqueta `v*`, se detiene y explica cómo publicar una. **`--dev`** deja
+`evol-dev` apuntando al origen y no toca `evol`. `--sin-compilar`, `--sin-setup` y `--repositorio` completan las opciones. `evol setup` tiene ahora un
+paso (**3. Quién puede firmar versiones**) que, solo con tu confirmación, escribe `~/.config/evol/allowed_signers` con tu clave SSH **pública** (la
+huella sale de la clave pública; la privada no se abre) y el correo de git; imprime los tres `git config` para firmar en el origen, pero no toca tu
+configuración de git. `--sin-firma` lo omite.
+
+**Cómo llegan las actualizaciones.** Son manuales y por extracción: `evol update --comprobar` mira, `evol update` confirma, verifica la firma, compila en
+`versiones/<v>` y mueve los enlaces; nunca se instala sola y no toca el repositorio de origen (trabaja en un clon propio). Solo llega lo que se etiqueta
+con `evol release`. Una skill cambiada llega sin aprobar.
+
 ### Pendiente de esta ampliación
 
+- No hay aviso de versión nueva: ni `evol doctor` ni la apertura de un proyecto dicen que hay una más reciente (propuesta: una consulta como mucho al día,
+  sin instalar nada).
+- No hay migración de proyectos ni una regla escrita de compatibilidad: una versión que cambie `evol.config.json`, el estado o lo que exigen las
+  disciplinas puede afectar a un proyecto en marcha. Mientras tanto, actualizar entre fases y mantener los formatos compatibles hacia atrás.
 - `evol update` no se ha probado contra un repositorio real de GitHub: las pruebas inyectan la compilación y el origen.
 - No hay un comando para listar o borrar versiones antiguas de `versiones/`.
