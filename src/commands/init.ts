@@ -105,6 +105,7 @@ export default async function run(argv: string[]): Promise<number> {
       fase: { type: "string" },
       perfil: { type: "string" },
       "no-memory": { type: "boolean" },
+      conocimiento: { type: "boolean" },
       "no-agentes": { type: "boolean" },
     },
   });
@@ -182,6 +183,7 @@ export default async function run(argv: string[]): Promise<number> {
       memory: { wing: name.replace(/-/g, "_"), enabled: values["no-memory"] !== true },
       qa: { requireTestsForChangedSymbols: false, requireCriteriaCoverage: false },
       modules,
+      ...(values.conocimiento === true ? { knowledge: { activo: true } } : {}),
     },
     registry,
   );

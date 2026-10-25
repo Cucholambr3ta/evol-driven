@@ -47,6 +47,7 @@ export default async function run(argv: string[]): Promise<number> {
       "no-install": { type: "boolean" },
       "no-git": { type: "boolean" },
       "no-memory": { type: "boolean" },
+      conocimiento: { type: "boolean" },
       "no-agentes": { type: "boolean" },
       perfil: { type: "string" },
     },
@@ -54,7 +55,7 @@ export default async function run(argv: string[]): Promise<number> {
   const name = positionals[0];
   if (!name)
     throw new UserError(
-      "Uso: evol new <nombre> [--dir <carpeta>] [--perfil base|api|web|erp|lib] [--no-install] [--no-git] [--no-memory]",
+      "Uso: evol new <nombre> [--dir <carpeta>] [--perfil base|api|web|erp|lib] [--no-install] [--no-git] [--no-memory] [--conocimiento]",
     );
   if (!NAME.test(name)) {
     throw new UserError(
@@ -78,6 +79,8 @@ export default async function run(argv: string[]): Promise<number> {
     memory: { wing, enabled: values["no-memory"] !== true },
     qa: { requireTestsForChangedSymbols: true, requireCriteriaCoverage: false },
     modules: [{ name: "app", root: ".", disciplinas }],
+    // the reference documentation is off unless the person asks for it
+    ...(values.conocimiento === true ? { knowledge: { activo: true } } : {}),
   };
   const unknown = disciplinas.filter((id) => !loadDisciplines().get(id));
   if (unknown.length > 0)

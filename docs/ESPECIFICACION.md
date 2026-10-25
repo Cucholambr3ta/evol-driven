@@ -676,7 +676,8 @@ con `--propia` y `--capacidades`. Cubre los criterios 59, 65, 77, 78, 79, 80, 81
   aplica las reglas de la decisión 3 y los controles 1 a 5, 8 y 11, y deja un `informe.json` junto a la copia. Veredictos: `pass`, `warn`, `block` y
   `no-auditada`; esta última cuando falta o falla una herramienta requerida. No ejecuta nada de la skill.
 - **No hace todavía:** aprobar ni instalar (S3), la pasada 2 con el subproceso (S3), las dos lecturas ni el análisis dinámico (S3b). El informe
-  lo dice: `pasadas.subproceso: "pendiente"`.
+  lo dice: `pasadas.subproceso: "pendiente"`. _(Estado a esa fecha. Después se hicieron `evol skills approve`, la pasada 2 con el subproceso y la
+  instalación; sigue pendiente el análisis dinámico, S3b.)_
 - **Falla cerrada de verdad:** si `gitleaks` o `semgrep` faltan o fallan, toda auditoría termina «no auditada»; `evol doctor` lo avisa.
 - **Verificado con las herramientas reales (hito T0, hecho):** `semgrep` 1.182.0 y `gitleaks` 8.30.1 están instalados y probados. Lo que el simulacro no podía decir y salió al usar `semgrep` de verdad:
   - **El comando del S2 estaba mal:** `--config auto --metrics off` lo rechaza el propio semgrep, y `--config auto` manda datos a
@@ -1207,8 +1208,8 @@ siempre igual, con las mismas opciones fijadas.
 >   se aparta como `.<nombre>.previa-<fecha>`, nunca se borra. Repetir el comando no cambia nada. Codex y Antigravity comparten carpeta: un enlace.
 > - **Lo no confirmado no se adivina:** sin carpeta de proyecto para Hermes ni global para Antigravity, el resultado es «no aplica».
 > - `evol skills install --estado [--global]` lista las skills instaladas que vienen de la biblioteca y sale con 1 si alguna dejó de estar auditada.
-> - **Falta:** `add --proyecto` (copiar una skill de terceros al proyecto, que siempre pasa antes por `audit`); desinstalar (se borra el enlace a mano);
->   comprobar que cada IDE sigue enlaces simbólicos (los de las consultas no lo confirmaron).
+> - **Falta:** `add --proyecto` (copiar una skill de terceros al proyecto, que siempre pasa antes por `audit`); comprobar que cada IDE sigue enlaces
+>   simbólicos (los de las consultas no lo confirmaron). _(Desinstalar ya se puede: `evol skills uninstall`.)_
 
 > **O5 implementado (2026-10-23): pruebas de portabilidad** (`tests/portability.test.ts`).
 >
@@ -1281,7 +1282,8 @@ siempre igual, con las mismas opciones fijadas.
 >   esperables, porque el rol aplica la disciplina (`analista` y `fdd`, `constructor` y `tdd`, `seguridad` y `secdd`); como es el orquestador, y no un
 >   enrutador de texto libre, quien carga el rol según la fase y la disciplina, pesa poco. **Siguen sin aprobar.**
 > - **No hace todavía:** los envoltorios para Codex, Antigravity, OpenCode y Hermes (O2),
->   la instalación de las skills en `.claude/skills` (S5: instalar es aprobar primero), ni el tope de concurrencia por proyecto.
+>   la instalación de las skills en `.claude/skills` (S5: instalar es aprobar primero), ni el tope de concurrencia por proyecto. _(Estado a esa
+>   fecha: los adaptadores de O2 y la instalación de S5 se hicieron después; el tope de concurrencia por proyecto sigue sin construir.)_
 
 > **O1 implementado (2026-10-23): el contrato del orquestador.** Una sola fuente para `/evol`: la skill `evol` (`skills/evol/SKILL.md`), con los siete
 > pasos (arrancar, clasificar, comprobar, dividir, repartir, verificar, parar) y lo que no hace. Es **una skill como las demás**: pasa la auditoría,
@@ -1306,7 +1308,7 @@ siempre igual, con las mismas opciones fijadas.
 > inicial; los subagentes de Hermes que crea por su cuenta son skills de terceros que solo entran por el auditor (ya lo hace la regla actual);
 > y el tope de concurrencia **lo fija cada proyecto** en `evol.config.json` con un valor por defecto de 3 que nunca supera el del propio IDE (no
 > construido: es de O3, cuando haya delegación). **No hace todavía:** los roles (O3), la marca de «plan interrogado» (O4), los adaptadores para los
-> demás IDE (O2) ni el nivel A, B o C en `evol doctor`.
+> demás IDE (O2) ni el nivel A, B o C en `evol doctor`. _(Estado a esa fecha: los cuatro se hicieron después.)_
 
 > **S4 avanzado (2026-10-23): 16 de las 23 skills de la primera ola están escritas.** Las 9 de las disciplinas base (`sdd`, `fdd`, `ddd`, `bdd`, `atdd`,
 > `tdd`, `threat`, `stdd`, `secdd`), las 3 de razonamiento (`afinar-idea`, `interrogar-plan`, `verificar-afirmaciones`) y las 4 de seguridad. Las 16
