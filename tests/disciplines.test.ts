@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { appliesIn, DisciplineSchema, loadDisciplines } from "../src/core/disciplines.js";
 import type { Discipline } from "../src/core/disciplines.js";
 import type { Phase } from "../src/core/phases.js";
-import { validateFormat, verifyDiscipline } from "../src/core/verify.js";
+import { PLACEHOLDER_TEXT, validateFormat, verifyDiscipline } from "../src/core/verify.js";
 import type { CommandRunner, SecurityScanner } from "../src/core/verify.js";
 import { REPO, tempDir, write, writeValidArtifacts } from "./helpers.js";
 
@@ -100,14 +100,14 @@ describe("tipos de verificación (criterio 7): cada uno falla con un artefacto i
     ).toContain("está vacío");
   });
 
-  it("marcador [[COMPLETAR]] sin resolver", () => {
+  it(`marcador ${PLACEHOLDER_TEXT} sin resolver`, () => {
     const root = tempDir();
-    write(root, "docs/specs/SPEC.md", "## Criterios de aceptación\n[[COMPLETAR]]\n");
+    write(root, "docs/specs/SPEC.md", `## Criterios de aceptación\n${PLACEHOLDER_TEXT}\n`);
     expect(
       verify(sdd, root, "spec")
         .map((f) => f.mensaje)
         .join(),
-    ).toContain("[[COMPLETAR]]");
+    ).toContain(PLACEHOLDER_TEXT);
   });
 
   it("contiene: SPEC sin criterios de aceptación", () => {

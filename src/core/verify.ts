@@ -71,8 +71,14 @@ export function matchFiles(pattern: string, cwd: string): string[] {
     .sort();
 }
 
-/** Templates mark what the author still has to write; a gate must not pass over it. */
-const PLACEHOLDER = /\[\[COMPLETAR\]\]/;
+/**
+ * Templates mark what the author still has to write; a gate must not pass over it. Exported so the
+ * tests of this very check can refer to it instead of embedding the literal themselves — the TDD
+ * discipline scans `tests/*.test.ts` for this same marker, and a test file that writes it as plain
+ * text would wrongly flag itself as unfinished.
+ */
+export const PLACEHOLDER_TEXT = "[[COMPLETAR]]";
+const PLACEHOLDER = new RegExp(PLACEHOLDER_TEXT.replace(/[[\]]/g, "\\$&"));
 const FEATURE_HEADER = /^\s*(Feature|Funcionalidad|Característica|Caracteristica)\s*:/m;
 const FEATURE_SCENARIO =
   /^\s*(Scenario|Scenario Outline|Scenario Template|Escenario|Esquema del escenario)\s*:/m;
@@ -80,7 +86,8 @@ const FEATURE_SCENARIO =
 /** Returns an error message if `content` is not valid for `format`, otherwise null. */
 export function validateFormat(format: Format, content: string): string | null {
   if (content.trim() === "") return "está vacío";
-  if (PLACEHOLDER.test(content)) return "tiene secciones sin completar (marcador [[COMPLETAR]])";
+  if (PLACEHOLDER.test(content))
+    return `tiene secciones sin completar (marcador ${PLACEHOLDER_TEXT})`;
   switch (format) {
     case "json":
     case "avsc":

@@ -9,6 +9,7 @@ import { writeAgentFiles } from "../src/agents/files.js";
 import { TOOL_NAMES } from "../src/commands/mcp.js";
 import { lessonsOf, phaseDisciplines, prerequisites } from "../src/core/orchestration.js";
 import { loadContext } from "../src/core/pipeline.js";
+import { PLACEHOLDER_TEXT } from "../src/core/verify.js";
 import {
   CLI,
   cli,
@@ -83,12 +84,12 @@ describe("evol_prerequisites: lo que falta de la fase anterior (criterio 70)", (
     ]);
   });
 
-  it("un artefacto que conserva [[COMPLETAR]] tampoco cuenta", () => {
+  it(`un artefacto que conserva ${PLACEHOLDER_TEXT} tampoco cuenta`, () => {
     const root = projectIn("plan", ["SDD"]);
     write(
       root,
       "docs/specs/SPEC.md",
-      "# Spec\n\n## Criterios de aceptación\n\n1. [[COMPLETAR]] algo\n",
+      `# Spec\n\n## Criterios de aceptación\n\n1. ${PLACEHOLDER_TEXT} algo\n`,
     );
     const report = prerequisites(loadContext(root));
     expect(report.listo).toBe(false);

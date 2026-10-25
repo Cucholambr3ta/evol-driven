@@ -2,6 +2,7 @@ import { spawnSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { beforeAll, describe, expect, it } from "vitest";
+import { PLACEHOLDER_TEXT } from "../src/core/verify.js";
 import { CLI, cleanSecurityTools, cli, isolateUserConfig, tempDir } from "./helpers.js";
 
 let userConfig: string;
@@ -31,8 +32,8 @@ function replaceMarkers(dir: string): number {
     if (statSync(full).isDirectory()) count += replaceMarkers(full);
     else {
       const text = readFileSync(full, "utf8");
-      if (text.includes("[[COMPLETAR]]")) {
-        writeFileSync(full, text.replaceAll("[[COMPLETAR]]", "completado"));
+      if (text.includes(PLACEHOLDER_TEXT)) {
+        writeFileSync(full, text.replaceAll(PLACEHOLDER_TEXT, "completado"));
         count++;
       }
     }

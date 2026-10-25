@@ -3,6 +3,7 @@ import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { beforeAll, describe, expect, it } from "vitest";
 import { packageVersion } from "../src/core/paths.js";
+import { PLACEHOLDER_TEXT } from "../src/core/verify.js";
 import {
   CLI,
   cli,
@@ -147,7 +148,7 @@ describe("evol new (criterios 1 y 3)", () => {
     });
     const r = cli(["next"], { cwd: join(parent, "vacio"), env: env() });
     expect(r.status).toBe(1);
-    expect(r.stdout).toContain("[[COMPLETAR]]");
+    expect(r.stdout).toContain(PLACEHOLDER_TEXT);
   });
 });
 
