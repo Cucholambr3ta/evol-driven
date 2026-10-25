@@ -31,7 +31,14 @@ export type ToolName =
   | "osv-scanner"
   | "bandit"
   | "shellcheck"
-  | "guarddog";
+  | "guarddog"
+  | "trivy"
+  | "checkov"
+  | "syft"
+  | "reuse"
+  | "schemathesis"
+  | "zaproxy"
+  | "testssl";
 
 export const INSTALL_HINT: Record<ToolName, string> = {
   gitleaks: "gitleaks (https://github.com/gitleaks/gitleaks)",
@@ -42,6 +49,23 @@ export const INSTALL_HINT: Record<ToolName, string> = {
   bandit: "bandit (uv tool install bandit)",
   shellcheck: "shellcheck (https://www.shellcheck.net)",
   guarddog: "guarddog (uv tool install guarddog)",
+  trivy: "trivy (pacman -S trivy)",
+  checkov: "checkov (uv tool install checkov)",
+  syft: "syft (pacman -S syft)",
+  reuse: "reuse (pacman -S reuse)",
+  schemathesis: "schemathesis (uv tool install schemathesis)",
+  zaproxy: "zaproxy (pacman -S zaproxy)",
+  testssl: "testssl.sh (pacman -S testssl.sh)",
+};
+
+/**
+ * Where a tool really lives when it is not `<name>` on the PATH. Arch's `/usr/bin/zaproxy` is a
+ * wrapper that drops its arguments (it opens the desktop application), so ZAP is run through
+ * `zap.sh`, which does take them.
+ */
+const LOCATIONS: Partial<Record<ToolName, string[]>> = {
+  testssl: ["testssl", "testssl.sh"],
+  zaproxy: ["/usr/share/zaproxy/zap.sh", "/usr/share/webapps/zaproxy/zap.sh", "zap.sh"],
 };
 
 export function toolPath(name: ToolName): string | null {
@@ -51,7 +75,9 @@ export function toolPath(name: ToolName): string | null {
       ? override === ""
         ? []
         : [override]
-      : (process.env["PATH"] ?? "").split(delimiter).map((d) => join(d, name));
+      : (LOCATIONS[name] ?? [name]).flatMap((n) =>
+          isAbsolute(n) ? [n] : (process.env["PATH"] ?? "").split(delimiter).map((d) => join(d, n)),
+        );
   for (const candidate of candidates) {
     try {
       accessSync(candidate, constants.X_OK);

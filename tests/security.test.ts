@@ -64,7 +64,11 @@ type ToolEnv =
   | "EVOL_TOOL_BANDIT"
   | "EVOL_TOOL_SHELLCHECK"
   | "EVOL_TOOL_OSV_SCANNER"
-  | "EVOL_TOOL_GUARDDOG";
+  | "EVOL_TOOL_GUARDDOG"
+  | "EVOL_TOOL_TRIVY"
+  | "EVOL_TOOL_CHECKOV"
+  | "EVOL_TOOL_SYFT"
+  | "EVOL_TOOL_REUSE";
 
 /** Points every tool at a stand-in (or at nothing, with ""). */
 function tools(overrides: Partial<Record<ToolEnv, string>>): Record<string, string> {
@@ -75,6 +79,10 @@ function tools(overrides: Partial<Record<ToolEnv, string>>): Record<string, stri
     EVOL_TOOL_SHELLCHECK: "",
     EVOL_TOOL_OSV_SCANNER: "",
     EVOL_TOOL_GUARDDOG: "",
+    EVOL_TOOL_TRIVY: "",
+    EVOL_TOOL_CHECKOV: "",
+    EVOL_TOOL_SYFT: "",
+    EVOL_TOOL_REUSE: "",
   };
   return { ...base, ...overrides };
 }

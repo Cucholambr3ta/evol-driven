@@ -996,13 +996,29 @@ adaptador de cada IDE las pone en la lista de comandos que piden confirmación, 
 
 **Hitos**
 
-| #   | Qué se hace                                                                                                                                                                                                                                                                                                | Se comprueba con            |
-| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------- |
-| T0  | **Hecho.** `semgrep` y `gitleaks` verificados con los binarios reales; ambos instalados, además de `osv-scanner`, `trivy`, `syft`, `cosign`, `opengrep`, `nuclei`, `bandit`, `schemathesis`, `checkov`, `reuse`, `guarddog`, `garak` y `promptfoo`. Pendientes por `sudo`: `yara`, `zaproxy`, `testssl.sh` | criterio 80, pruebas del S2 |
-| T1  | Añadir a la pasada 1 las herramientas recomendadas (`osv-scanner`, `shellcheck`, `bandit`, `yara`, `guarddog`) como análisis opcionales que avisan si faltan                                                                                                                                               | criterios 92 y 93           |
-| T2  | Un corpus de ataques con `promptfoo` para la autoprueba del subproceso y para los evals de las skills (con el S3)                                                                                                                                                                                          | criterios 87 y 94           |
-| T3  | Con el S3b, `bubblewrap` y `strace` para el análisis dinámico, con credenciales trampa                                                                                                                                                                                                                     | criterio 89                 |
-| T4  | El kit de las disciplinas de seguridad de los proyectos de usuario: el rol `seguridad` ejecuta las herramientas que correspondan y escribe `.evol/qa/QA_REPORT.md` con las marcas `CRITICAL` que SecDD ya verifica                                                                                         | criterios 95 y 96           |
+| #   | Qué se hace                                                                                                                                                                                                                                                                                                        | Se comprueba con            |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------- |
+| T0  | **Hecho.** `semgrep` y `gitleaks` verificados con los binarios reales; ambos instalados, además de `osv-scanner`, `trivy`, `syft`, `cosign`, `opengrep`, `nuclei`, `bandit`, `schemathesis`, `checkov`, `reuse`, `guarddog`, `garak` y `promptfoo`. `yara`, `zaproxy` y `testssl` ya están instalados (2026-10-25) | criterio 80, pruebas del S2 |
+| T1  | Añadir a la pasada 1 las herramientas recomendadas (`osv-scanner`, `shellcheck`, `bandit`, `yara`, `guarddog`) como análisis opcionales que avisan si faltan                                                                                                                                                       | criterios 92 y 93           |
+| T2  | Un corpus de ataques con `promptfoo` para la autoprueba del subproceso y para los evals de las skills (con el S3)                                                                                                                                                                                                  | criterios 87 y 94           |
+| T3  | Con el S3b, `bubblewrap` y `strace` para el análisis dinámico, con credenciales trampa                                                                                                                                                                                                                             | criterio 89                 |
+| T4  | El kit de las disciplinas de seguridad de los proyectos de usuario: el rol `seguridad` ejecuta las herramientas que correspondan y escribe `.evol/qa/QA_REPORT.md` con las marcas `CRITICAL` que SecDD ya verifica                                                                                                 | criterios 95 y 96           |
+
+> **T4, primera parte (2026-10-25): `evol security scan` con siete áreas.** Decisiones de la persona: un **único punto de entrada** con áreas (no un
+> comando por herramienta), las cuatro áreas nuevas a la vez, objetivos declarados en `evol.config.json` y, sin un proyecto con OpenAPI, una API
+> de ejemplo en las pruebas. Un escaneo normal cubre `secretos`, `codigo`, `dependencias`, **`contenedores`** (trivy sobre Dockerfile, Terraform y
+> Kubernetes; checkov sobre los pipelines de CI, con MEDIUM porque no trae severidad) y **`licencias`** (syft deja el SBOM CycloneDX en
+> `.evol/qa/security/sbom.cdx.json` y avisa de una licencia copyleft fuerte; reuse, solo si el proyecto ya usa REUSE). **`api`** (schemathesis y ZAP
+> pasivo) y **`tls`** (testssl) **envían tráfico**: no corren en un escaneo normal, solo con `--solo`, solo contra `security.objetivos` (nombre, url,
+> `openapi` y `escritura`; sin `escritura` schemathesis solo prueba GET y HEAD), y **con la confirmación de una persona en una terminal** (si el
+> host no es local ni de una red privada, hay que escribir su nombre). Con `--ci` o sin terminal no se envía nada, y `scan()` tampoco lo hace
+> aunque se le pida un área activa sin confirmación. `evol doctor` informa de las trece herramientas y ahora las consulta en paralelo.
+> **Cosas que se descubrieron al probar con las herramientas reales:** el paquete `zaproxy` de Arch instala `/usr/bin/zaproxy` como un script que
+> **descarta todos los argumentos** (abre la aplicación de escritorio), así que evol ejecuta `zap.sh -cmd -silent` directamente, con 1 GB de memoria
+> y sin pantalla; `testssl` se llama `testssl` en Arch (no `testssl.sh`) y tarda más de un minuto aun contra un servidor local, por lo que su prueba
+> real solo corre con `EVOL_SLOW_TESTS=1`; y testssl devuelve una fila por cada cifrado, que evol agrupa en un solo hallazgo.
+> **Falta de T4:** que el rol `seguridad` ejecute estas áreas dentro de la fase de QA, las herramientas intrusivas (zaproxy activo, nuclei, nmap,
+> sqlmap) con la misma barrera, y `yara` en la pasada 1 de la auditoría de skills.
 
 **Criterios de aceptación (preliminares)**
 

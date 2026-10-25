@@ -1,8 +1,24 @@
 export type Severity = "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
 export const SEVERITIES: readonly Severity[] = ["CRITICAL", "HIGH", "MEDIUM", "LOW"];
 
-export type Area = "secretos" | "codigo" | "dependencias";
-export const AREAS: readonly Area[] = ["secretos", "codigo", "dependencias"];
+export type Area =
+  "secretos" | "codigo" | "dependencias" | "contenedores" | "licencias" | "api" | "tls";
+export const AREAS: readonly Area[] = [
+  "secretos",
+  "codigo",
+  "dependencias",
+  "contenedores",
+  "licencias",
+  "api",
+  "tls",
+];
+/**
+ * The areas that send traffic to a running service. They never run unasked: only with `--solo`, only
+ * against a target the project declares as its own, and only after a person confirms in a terminal.
+ */
+export const ACTIVE_AREAS: readonly Area[] = ["api", "tls"];
+/** What a plain `evol security scan` covers: everything that only reads files. */
+export const DEFAULT_AREAS: readonly Area[] = AREAS.filter((a) => !ACTIVE_AREAS.includes(a));
 
 /**
  * One result in the common format. `mensaje` is built only from fields the tool controls (a rule

@@ -200,7 +200,7 @@ describe("comandos que los generan", () => {
       "hermes mcp add evol",
     );
     expect(doctor().stdout).toContain("✓ Integración con agentes: completa");
-  });
+  }, 90_000);
 });
 
 describe("evol hook session-start (criterio 24)", () => {

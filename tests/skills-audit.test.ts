@@ -993,7 +993,10 @@ describe("semgrep: cobertura y reglas propias", () => {
         const { report } = auditSkill(folder({ [where]: "import os\nos.system(input())\n" }), {
           propia: true,
         });
-        expect(report.herramientas["semgrep"]?.estado, where).toBe("ok");
+        expect(
+          report.herramientas["semgrep"]?.estado,
+          `${where}: ${JSON.stringify(report.herramientas["semgrep"])}`,
+        ).toBe("ok");
         expect(report.veredicto, where).toBe("block");
         expect(
           report.hallazgos.some((h) => h.regla === "semgrep" && h.archivo === where),

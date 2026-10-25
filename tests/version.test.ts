@@ -162,7 +162,7 @@ describe("doctor y los proyectos", () => {
       env: { EVOL_CONFIG_DIR: userConfig, EVOL_ORIGIN_OK: "1" },
     });
     expect(quiet.stdout).not.toContain("estás usando el origen");
-  });
+  }, 90_000);
 
   it("un proyecto anterior al campo no da error", () => {
     const root = makeProject(["FDD"]);

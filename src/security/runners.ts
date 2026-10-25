@@ -47,7 +47,7 @@ export function projectFiles(
   });
 }
 
-interface Spec {
+export interface Spec {
   tool: ToolName;
   area: Area;
   obligatoria: boolean;
@@ -70,21 +70,26 @@ const outcomeOf = (
   findings: [],
 });
 
-const missingRun = (s: Spec): RunResult =>
+export const missingRun = (s: Spec): RunResult =>
   outcomeOf(s, "falta", { detalle: `${INSTALL_HINT[s.tool]} no está instalado` });
-const notApplicable = (s: Spec, detalle: string): RunResult =>
+export const notApplicable = (s: Spec, detalle: string): RunResult =>
   outcomeOf(s, "no-aplica", { detalle });
-const failedRun = (s: Spec, detalle: string, version?: string): RunResult =>
+export const failedRun = (s: Spec, detalle: string, version?: string): RunResult =>
   outcomeOf(s, "fallo", { detalle, ...(version ? { version } : {}) });
-const done = (s: Spec, findings: SecFinding[], version?: string, detalle?: string): RunResult => ({
+export const done = (
+  s: Spec,
+  findings: SecFinding[],
+  version?: string,
+  detalle?: string,
+): RunResult => ({
   ...outcomeOf(s, "ok", { ...(version ? { version } : {}), ...(detalle ? { detalle } : {}) }),
   findings,
 });
 
-const rel = (root: string, path: string): string =>
+export const rel = (root: string, path: string): string =>
   isAbsolute(path) ? relative(root, path) : path.replace(/^\.\//, "");
 
-function json<T>(raw: string): T | null {
+export function json<T>(raw: string): T | null {
   try {
     return JSON.parse(raw) as T;
   } catch {
@@ -92,7 +97,7 @@ function json<T>(raw: string): T | null {
   }
 }
 
-const firstLine = (s: string): string => s.trim().split("\n")[0]?.slice(0, 160) ?? "";
+export const firstLine = (s: string): string => s.trim().split("\n")[0]?.slice(0, 160) ?? "";
 
 /* ---------------------------------- secretos ---------------------------------- */
 

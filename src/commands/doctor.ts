@@ -169,7 +169,7 @@ export default async function run(): Promise<number> {
 
   // `evol security scan` and `evol skills audit` lean on these; a missing one is a warning here,
   // and it is what makes the scan fail with --ci or leaves every skill «no auditada».
-  for (const t of securityToolStatus())
+  for (const t of await securityToolStatus())
     add(t.instalada ? "ok" : "aviso", `Seguridad: ${t.tool}`, t.detalle);
 
   // The IDEs of the matrix that are on this machine, and what each one can do (level A, B or C).

@@ -215,6 +215,10 @@ echo '[]'`,
 echo '{"results":[]}'`,
     ),
     EVOL_TOOL_GUARDDOG: "",
+    EVOL_TOOL_TRIVY: "",
+    EVOL_TOOL_CHECKOV: "",
+    EVOL_TOOL_SYFT: "",
+    EVOL_TOOL_REUSE: "",
   };
 }
 

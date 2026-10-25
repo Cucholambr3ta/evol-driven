@@ -42,6 +42,27 @@ export const ConfigSchema = z.object({
       fuentes: z.array(z.string().min(1)).optional(),
     })
     .optional(),
+  /**
+   * Security tests that talk to a running service. Only what is declared here counts as the project's
+   * own: a test never runs against anything else.
+   */
+  security: z
+    .object({
+      objetivos: z
+        .array(
+          z.object({
+            nombre: z.string().min(1),
+            /** The base URL of the service (a local one, or the project's own staging). */
+            url: z.url(),
+            /** The OpenAPI document of that service, relative to the project: enables the `api` area. */
+            openapi: z.string().min(1).optional(),
+            /** The API tests send only reads (GET and HEAD) unless the project says writes are fine here. */
+            escritura: z.boolean().default(false),
+          }),
+        )
+        .default([]),
+    })
+    .optional(),
   /** How `evol report` looks. Without a brand the report is neutral. */
   report: z
     .object({

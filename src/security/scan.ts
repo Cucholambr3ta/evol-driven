@@ -3,8 +3,11 @@ import { dirname } from "node:path";
 import { evolPath } from "../core/paths.js";
 import { isIgnored, reviewIgnores } from "./ignore.js";
 import type { IgnoreEntry } from "./ignore.js";
-import { AREAS, SEVERITIES, location, rank } from "./model.js";
+import { ACTIVE_AREAS, AREAS, DEFAULT_AREAS, SEVERITIES, location, rank } from "./model.js";
 import type { Area, RunResult, SecFinding, Severity, ToolOutcome } from "./model.js";
+import { runSchemathesis, runTestssl, runZapPassive } from "./runners-active.js";
+import type { Target } from "./runners-active.js";
+import { runCheckov, runReuse, runSyft, runTrivy } from "./runners-infra.js";
 import {
   projectFiles,
   runBandit,
@@ -34,12 +37,67 @@ const RUNNERS: Record<Area, ((root: string, files: string[]) => RunResult)[]> = 
   secretos: [(root) => runGitleaks(root)],
   codigo: [(root) => runSemgrep(root), runBandit, runShellcheck],
   dependencias: [runOsvScanner, runGuarddog],
+  contenedores: [runTrivy, runCheckov],
+  licencias: [runSyft, runReuse],
+  api: [],
+  tls: [],
 };
 
-export function scan(root: string, areas: readonly Area[] = AREAS, now = new Date()): ScanResult {
+/** The areas that send traffic: they get the targets the project declared, never anything else. */
+const ACTIVE_RUNNERS: Partial<Record<Area, ((root: string, targets: Target[]) => RunResult)[]>> = {
+  api: [runSchemathesis, runZapPassive],
+  tls: [runTestssl],
+};
+
+export interface ScanOptions {
+  /** The targets the project declares as its own (`security.objetivos`). */
+  objetivos?: Target[];
+  /** A person confirmed the active areas in a terminal. Without it they do not run. */
+  confirmadas?: boolean;
+}
+
+const notRun = (tool: string, area: Area, detalle: string): RunResult => ({
+  outcome: {
+    herramienta: tool,
+    area,
+    estado: "no-aplica",
+    obligatoria: false,
+    red: false,
+    detalle,
+  },
+  findings: [],
+});
+
+export function scan(
+  root: string,
+  areas: readonly Area[] = DEFAULT_AREAS,
+  now = new Date(),
+  options: ScanOptions = {},
+): ScanResult {
   const chosen = AREAS.filter((a) => areas.includes(a));
   const files = projectFiles(root);
-  const runs = chosen.flatMap((area) => RUNNERS[area].map((run) => run(root, files)));
+  const runs = chosen.flatMap((area) => {
+    if (!ACTIVE_AREAS.includes(area)) return RUNNERS[area].map((run) => run(root, files));
+    // an area that sends traffic never runs on its own: declared targets and a person's yes
+    if (options.confirmadas !== true)
+      return [
+        notRun(
+          area,
+          area,
+          "no se confirmó: envía tráfico y lo confirma una persona en una terminal",
+        ),
+      ];
+    const targets = options.objetivos ?? [];
+    if (targets.length === 0)
+      return [
+        notRun(
+          area,
+          area,
+          "el proyecto no declara objetivos propios (security.objetivos en evol.config.json)",
+        ),
+      ];
+    return (ACTIVE_RUNNERS[area] ?? []).map((run) => run(root, targets));
+  });
   const review = reviewIgnores(root, now);
 
   const abiertos: SecFinding[] = [];

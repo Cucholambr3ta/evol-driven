@@ -9,7 +9,7 @@ export class UserError extends Error {
 export class NotInteractiveError extends UserError {
   constructor() {
     super(
-      "Aprobar requiere una terminal interactiva: lo decide una persona, no un proceso automático.",
+      "Esto requiere una terminal interactiva: lo decide una persona, no un proceso automático.",
     );
     this.name = "NotInteractiveError";
   }
