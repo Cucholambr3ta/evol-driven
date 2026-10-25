@@ -3,21 +3,14 @@
 <!-- evol:security-scan:inicio -->
 ## Escaneo de seguridad
 
-Generado por `evol security scan` el 2026-10-25T22:31:43.311Z. Esta sección se reescribe en cada escaneo; lo que escribas fuera de ella se conserva.
+Generado por `evol security scan` el 2026-10-25T22:58:24.619Z. Esta sección se reescribe en cada escaneo; lo que escribas fuera de ella se conserva.
 
-Abiertos: 5 CRITICAL, 3 HIGH, 3 MEDIUM, 24 LOW. Ignorados vigentes: 31.
+Abiertos: 0 CRITICAL, 0 HIGH, 3 MEDIUM, 24 LOW. Ignorados vigentes: 39.
 
-- [ ] CRITICAL: gitleaks generic-api-key en release.json:42
-- [ ] CRITICAL: gitleaks generic-api-key en release.json:51
-- [ ] CRITICAL: gitleaks generic-api-key en release.json:9
-- [ ] CRITICAL: gitleaks aws-access-token en tests/knowledge.test.ts:19
-- [ ] CRITICAL: gitleaks aws-access-token en tests/security.test.ts:17
+Sin hallazgos críticos abiertos.
 
 Otros hallazgos abiertos:
 
-- HIGH: guarddog threat-runtime-environment-read en package.json
-- HIGH: guarddog threat-runtime-environment-read en package.json
-- HIGH: semgrep evol.js-spawn-shell en src/core/verify.ts:31
 - MEDIUM: checkov CKV2_GHA_1 en .github/workflows/ci.yml
 - MEDIUM: shellcheck SC2164 en docs/piloto-conocimiento/medicion/index_rag.sh:4
 - MEDIUM: shellcheck SC2164 en docs/piloto-conocimiento/medicion/index_vec.sh:4

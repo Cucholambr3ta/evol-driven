@@ -1,5 +1,5 @@
 {
-  "fecha": "2026-10-25T22:31:43.311Z",
+  "fecha": "2026-10-25T22:58:24.619Z",
   "areas": [
     "secretos",
     "codigo",
@@ -91,76 +91,6 @@
     }
   ],
   "abiertos": [
-    {
-      "herramienta": "gitleaks",
-      "area": "secretos",
-      "regla": "generic-api-key",
-      "severidad": "CRITICAL",
-      "archivo": "release.json",
-      "linea": 42,
-      "mensaje": "secreto detectado (generic-api-key)"
-    },
-    {
-      "herramienta": "gitleaks",
-      "area": "secretos",
-      "regla": "generic-api-key",
-      "severidad": "CRITICAL",
-      "archivo": "release.json",
-      "linea": 51,
-      "mensaje": "secreto detectado (generic-api-key)"
-    },
-    {
-      "herramienta": "gitleaks",
-      "area": "secretos",
-      "regla": "generic-api-key",
-      "severidad": "CRITICAL",
-      "archivo": "release.json",
-      "linea": 9,
-      "mensaje": "secreto detectado (generic-api-key)"
-    },
-    {
-      "herramienta": "gitleaks",
-      "area": "secretos",
-      "regla": "aws-access-token",
-      "severidad": "CRITICAL",
-      "archivo": "tests/knowledge.test.ts",
-      "linea": 19,
-      "mensaje": "secreto detectado (aws-access-token)"
-    },
-    {
-      "herramienta": "gitleaks",
-      "area": "secretos",
-      "regla": "aws-access-token",
-      "severidad": "CRITICAL",
-      "archivo": "tests/security.test.ts",
-      "linea": 17,
-      "mensaje": "secreto detectado (aws-access-token)"
-    },
-    {
-      "herramienta": "guarddog",
-      "area": "dependencias",
-      "regla": "threat-runtime-environment-read",
-      "severidad": "HIGH",
-      "archivo": "package.json",
-      "mensaje": "yaml@2.9.1: threat-runtime-environment-read"
-    },
-    {
-      "herramienta": "guarddog",
-      "area": "dependencias",
-      "regla": "threat-runtime-environment-read",
-      "severidad": "HIGH",
-      "archivo": "package.json",
-      "mensaje": "@modelcontextprotocol/sdk@1.32.2: threat-runtime-environment-read"
-    },
-    {
-      "herramienta": "semgrep",
-      "area": "codigo",
-      "regla": "evol.js-spawn-shell",
-      "severidad": "HIGH",
-      "archivo": "src/core/verify.ts",
-      "linea": 31,
-      "mensaje": "regla evol.js-spawn-shell"
-    },
     {
       "herramienta": "checkov",
       "area": "contenedores",
@@ -405,6 +335,76 @@
   ],
   "ignorados": [
     {
+      "herramienta": "gitleaks",
+      "area": "secretos",
+      "regla": "generic-api-key",
+      "severidad": "CRITICAL",
+      "archivo": "release.json",
+      "linea": 9,
+      "mensaje": "secreto detectado (generic-api-key)",
+      "ignorado": {
+        "motivo": "son hashes sha256 de skills de una versión ya publicada; gitleaks los confunde con una clave por el patrón hexadecimal largo, no hay ningún secreto",
+        "responsable": "cucholambreta",
+        "caduca": "2027-10-25"
+      }
+    },
+    {
+      "herramienta": "gitleaks",
+      "area": "secretos",
+      "regla": "generic-api-key",
+      "severidad": "CRITICAL",
+      "archivo": "release.json",
+      "linea": 42,
+      "mensaje": "secreto detectado (generic-api-key)",
+      "ignorado": {
+        "motivo": "son hashes sha256 de skills de una versión ya publicada; gitleaks los confunde con una clave por el patrón hexadecimal largo, no hay ningún secreto",
+        "responsable": "cucholambreta",
+        "caduca": "2027-10-25"
+      }
+    },
+    {
+      "herramienta": "gitleaks",
+      "area": "secretos",
+      "regla": "generic-api-key",
+      "severidad": "CRITICAL",
+      "archivo": "release.json",
+      "linea": 51,
+      "mensaje": "secreto detectado (generic-api-key)",
+      "ignorado": {
+        "motivo": "son hashes sha256 de skills de una versión ya publicada; gitleaks los confunde con una clave por el patrón hexadecimal largo, no hay ningún secreto",
+        "responsable": "cucholambreta",
+        "caduca": "2027-10-25"
+      }
+    },
+    {
+      "herramienta": "gitleaks",
+      "area": "secretos",
+      "regla": "aws-access-token",
+      "severidad": "CRITICAL",
+      "archivo": "tests/knowledge.test.ts",
+      "linea": 19,
+      "mensaje": "secreto detectado (aws-access-token)",
+      "ignorado": {
+        "motivo": "es la clave de ejemplo oficial que documenta AWS para pruebas (no una credencial real), usada a propósito como dato del propio escáner de secretos; el valor exacto no se repite aquí para no generar un nuevo hallazgo",
+        "responsable": "cucholambreta",
+        "caduca": "2027-10-25"
+      }
+    },
+    {
+      "herramienta": "gitleaks",
+      "area": "secretos",
+      "regla": "aws-access-token",
+      "severidad": "CRITICAL",
+      "archivo": "tests/security.test.ts",
+      "linea": 17,
+      "mensaje": "secreto detectado (aws-access-token)",
+      "ignorado": {
+        "motivo": "es la clave de ejemplo oficial que documenta AWS para pruebas (no una credencial real), usada a propósito como dato del propio escáner de secretos; el valor exacto no se repite aquí para no generar un nuevo hallazgo",
+        "responsable": "cucholambreta",
+        "caduca": "2027-10-25"
+      }
+    },
+    {
       "herramienta": "semgrep",
       "area": "codigo",
       "regla": "evol.js-eval",
@@ -610,6 +610,20 @@
       "mensaje": "regla evol.py-dynamic-import",
       "ignorado": {
         "motivo": "código de ejemplo deliberadamente inseguro, usado para probar las reglas del escáner",
+        "responsable": "cucholambreta",
+        "caduca": "2027-10-25"
+      }
+    },
+    {
+      "herramienta": "semgrep",
+      "area": "codigo",
+      "regla": "evol.js-spawn-shell",
+      "severidad": "HIGH",
+      "archivo": "src/core/verify.ts",
+      "linea": 31,
+      "mensaje": "regla evol.js-spawn-shell",
+      "ignorado": {
+        "motivo": "es defaultRunner, que ejecuta con shell:true el comando que el propio proyecto configuró en evol.config.json (comandos.TDD, etc.): es su trabajo, no una entrada de un atacante",
         "responsable": "cucholambreta",
         "caduca": "2027-10-25"
       }
@@ -834,6 +848,32 @@
       "mensaje": "prueba request_without_timeout",
       "ignorado": {
         "motivo": "código de ejemplo deliberadamente inseguro, usado para probar las reglas del escáner",
+        "responsable": "cucholambreta",
+        "caduca": "2027-10-25"
+      }
+    },
+    {
+      "herramienta": "guarddog",
+      "area": "dependencias",
+      "regla": "threat-runtime-environment-read",
+      "severidad": "HIGH",
+      "archivo": "package.json",
+      "mensaje": "yaml@2.9.1: threat-runtime-environment-read",
+      "ignorado": {
+        "motivo": "aviso genérico de guarddog sobre yaml y @modelcontextprotocol/sdk, dependencias legítimas y muy usadas que naturalmente leen variables de entorno; no es una vulnerabilidad",
+        "responsable": "cucholambreta",
+        "caduca": "2027-10-25"
+      }
+    },
+    {
+      "herramienta": "guarddog",
+      "area": "dependencias",
+      "regla": "threat-runtime-environment-read",
+      "severidad": "HIGH",
+      "archivo": "package.json",
+      "mensaje": "@modelcontextprotocol/sdk@1.32.2: threat-runtime-environment-read",
+      "ignorado": {
+        "motivo": "aviso genérico de guarddog sobre yaml y @modelcontextprotocol/sdk, dependencias legítimas y muy usadas que naturalmente leen variables de entorno; no es una vulnerabilidad",
         "responsable": "cucholambreta",
         "caduca": "2027-10-25"
       }
