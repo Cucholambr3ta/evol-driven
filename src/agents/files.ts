@@ -196,13 +196,13 @@ ${END}
 }
 
 /** Threaded through one run: where to report, whether to really write, and where to back up what changes. */
-interface WriteCtx {
+export interface WriteCtx {
   report: AgentReport;
   dry: boolean;
   backup?: BackupCollector;
 }
 
-function write(root: string, rel: string, content: string, ctx: WriteCtx): void {
+export function write(root: string, rel: string, content: string, ctx: WriteCtx): void {
   const file = join(root, rel);
   const existed = existsSync(file);
   if (existed && readFileSync(file, "utf8") === content) {
@@ -217,7 +217,7 @@ function write(root: string, rel: string, content: string, ctx: WriteCtx): void 
   (existed ? ctx.report.updated : ctx.report.created).push(rel);
 }
 
-function readJson(
+export function readJson(
   root: string,
   rel: string,
   ctx: WriteCtx,
@@ -274,7 +274,12 @@ function printWidth(root: string): number {
   }
 }
 
-function writeJson(root: string, rel: string, data: Record<string, unknown>, ctx: WriteCtx): void {
+export function writeJson(
+  root: string,
+  rel: string,
+  data: Record<string, unknown>,
+  ctx: WriteCtx,
+): void {
   write(root, rel, `${formatJson(data, printWidth(root))}\n`, ctx);
 }
 
@@ -295,7 +300,7 @@ function hasHook(settings: Record<string, unknown>): boolean {
 }
 
 /** The actual work of `writeAgentFiles`/`planAgentFiles`: same logic either way, only `ctx.dry` differs. */
-function runAgentFiles(root: string, ctx: WriteCtx): AgentReport {
+export function runAgentFiles(root: string, ctx: WriteCtx): AgentReport {
   const { report } = ctx;
 
   for (const [name, content] of Object.entries(commandFiles())) {
@@ -415,7 +420,7 @@ export function planAgentFiles(root: string): AgentReport {
   return runAgentFiles(root, { report: emptyReport(), dry: true });
 }
 
-function emptyReport(): AgentReport {
+export function emptyReport(): AgentReport {
   return { created: [], updated: [], unchanged: [], skipped: [] };
 }
 

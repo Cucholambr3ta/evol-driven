@@ -58,7 +58,10 @@ export class BackupCollector {
     // a counter breaks a tie when two saves land in the same millisecond (ISO's own resolution)
     const stamp = new Date().toISOString().replace(/[:.]/g, "-");
     let id = stamp;
-    for (let n = 1; existsSync(evolPath(root, BACKUPS_DIR, id)); n++) id = `${stamp}-${n}`;
+    // zero-padded, so a lexicographic sort (listBackups) still sorts "-2" before "-10"
+    for (let n = 1; existsSync(evolPath(root, BACKUPS_DIR, id)); n++) {
+      id = `${stamp}-${String(n).padStart(3, "0")}`;
+    }
     const dir = evolPath(root, BACKUPS_DIR, id);
     const tmp = `${dir}.tmp`;
     rmSync(tmp, { recursive: true, force: true });

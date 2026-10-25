@@ -73,7 +73,7 @@ describe("evol agents --ide: lo que se genera en cada IDE (criterio 67)", () => 
     const command = read(root, ".opencode/commands/evol.md");
     expect(command).toContain(orchestratorBody());
     expect(command).toContain("$ARGUMENTS");
-    expect(frontmatter(command).data["agent"]).toBe("build");
+    expect(frontmatter(command).data["agent"]).toBe("evol");
     for (const role of SUBAGENT_ROLES) {
       const { data } = frontmatter(read(root, `.opencode/agents/${role}.md`));
       expect(data["mode"]).toBe("subagent");
@@ -212,7 +212,7 @@ describe("idempotencia y respeto a lo ajeno (criterios 23 y 67)", () => {
     expect(r.stdout).toContain("→ .codex/config.toml");
     expect(r.stdout).toContain("[mcp_servers.evol]");
     expect(r.stdout).toContain("~/.gemini/config/mcp_config.json");
-    expect(r.stdout).toContain("→ opencode.json");
+    // sin un opencode.json ya creado por la persona, evol no inventa uno: no hay fragmento que imprimir
     expect(r.stdout).toContain("hermes mcp add evol");
     expect(r.stdout).toContain("evol no los edita");
     expect(r.stdout).toContain("no se instalan aquí");

@@ -5,7 +5,15 @@ import { SUBAGENT_ROLES } from "../core/roles.js";
 import type { RoleId } from "../core/roles.js";
 import { orchestratorBody, orchestratorDescription } from "./orchestrator.js";
 import { roleDescription } from "./roles.js";
-import { AISLAR_BEGIN, AISLAR_END, aislamientoBlock, replaceOrAppendBlock } from "./files.js";
+import {
+  AISLAR_BEGIN,
+  AISLAR_END,
+  aislamientoBlock,
+  readJson,
+  replaceOrAppendBlock,
+  writeJson,
+} from "./files.js";
+import type { WriteCtx } from "./files.js";
 
 /**
  * One adapter per IDE. The orchestrator and the roles are written once (as skills); an adapter only
@@ -174,7 +182,7 @@ const opencode: Adapter = {
   archivos: () => [
     {
       rel: ".opencode/commands/evol.md",
-      content: `---\ndescription: ${q(orchestratorDescription())}\nagent: build\n---\n\n${MD_MARK}\n\n${orchestratorBody()}\n\nLo que la persona pide ahora: $ARGUMENTS\n`,
+      content: `---\ndescription: ${q(orchestratorDescription())}\nagent: evol\n---\n\n${MD_MARK}\n\n${orchestratorBody()}\n\nLo que la persona pide ahora: $ARGUMENTS\n`,
     },
     ...subagentRoles().map(({ role, description }) => ({
       rel: `.opencode/agents/${role}.md`,
@@ -182,30 +190,66 @@ const opencode: Adapter = {
       content: `---\ndescription: ${q(description)}\nmode: subagent\npermissions:\n  - { action: edit, resource: "*", effect: deny }\n  - { action: shell, resource: "*", effect: deny }\n---\n\n${MD_MARK}\n\n${LOAD(role)}\n`,
     })),
   ],
-  fragmentos: () => [
-    {
-      archivo: "opencode.json (el MCP del proyecto)",
-      texto: `{\n  "mcp": {\n    "servers": {\n      "evol": { "command": ["evol", "mcp"] }\n    }\n  }\n}`,
-      nota: "Añade la entrada al opencode.json de tu proyecto; el formato exacto de «command» depende de tu versión.",
-    },
-    {
-      archivo: "opencode.json (el bloqueo de approve, next y ciclo)",
-      texto: `{ "action": "shell", "resource": "evol approve *", "effect": "deny" }\n{ "action": "shell", "resource": "evol next*", "effect": "deny" }\n{ "action": "shell", "resource": "evol ciclo*", "effect": "deny" }`,
-      nota: "Tres permisos de shell con efecto «deny» (el propio OpenCode confirmó que el de approve funciona; «ciclo» se añade por el mismo motivo: solo lo abre una persona).",
-    },
-    {
-      archivo: "opencode.json (rutas sensibles del sistema y del proyecto)",
-      texto: `{ "action": "shell", "resource": "cat ~/.ssh/*", "effect": "deny" }\n{ "action": "shell", "resource": "cat ~/.config/evol/keys/*", "effect": "deny" }`,
-      nota: "Por confirmar: OpenCode no tiene un permiso de lectura de archivos separado del de shell, así que esto solo cubre leerlos por un comando reconocido, no por la herramienta de lectura de archivos del propio IDE. evol agents reescribirá esto de verdad al construir el agente «evol» (ola 1, M5).",
-    },
-  ],
+  // El agente «evol», default_agent y el MCP del proyecto los escribe de verdad
+  // writeOpencodeAgent (más abajo), no un fragmento para copiar a mano.
+  fragmentos: () => [],
   proteccion: {
-    aprobar: "por-confirmar",
+    aprobar: "instalada",
     detalle:
-      "permiso `shell` con recurso `evol approve *` y efecto `deny`: lo confirmó OpenCode, pero evol no edita opencode.json",
+      "permiso `bash` del agente «evol» con recurso `evol approve*`/`evol next*`/`evol ciclo*` y efecto `deny`, escrito en el opencode.json del proyecto; el bloqueo de rutas sensibles por shell queda «a verificar» (docs/design/consultas/respuesta-claude-code-aislamiento.md)",
     soloLectura: "impuesta",
   },
 };
+
+const OPENCODE_TASK_ALLOW: Record<string, "allow"> = Object.fromEntries(
+  SUBAGENT_ROLES.map((role) => [role, "allow"]),
+);
+
+/** The description, mode and permissions evol writes for its own `agent.evol` entry in OpenCode. */
+function opencodeEvolAgent(): Record<string, unknown> {
+  return {
+    mode: "primary",
+    description: orchestratorDescription(),
+    prompt: orchestratorBody(),
+    permission: {
+      bash: {
+        "evol approve*": "deny",
+        "evol next*": "deny",
+        "evol ciclo*": "deny",
+      },
+      // the task permission list is evaluated in order and the last match wins: deny everything,
+      // then allow exactly evol's own read-only subagent roles
+      task: { "*": "deny", ...OPENCODE_TASK_ALLOW },
+    },
+  };
+}
+
+/**
+ * Writes the project's own `opencode.json`: `agent.evol` (the orchestrator, as OpenCode's primary
+ * agent, with its own permissions), `default_agent: "evol"` and `mcp.servers.evol`. Only the keys
+ * evol owns are touched; a comment inside one of them (JSONC) is refused, not silently dropped.
+ * Shares `ctx` with the rest of `evol agents`, so the same `--dry-run`/backup/`--deshacer` cover it.
+ */
+export function writeOpencodeAgent(root: string, ctx: WriteCtx): void {
+  const file = join(root, "opencode.json");
+  if (!existsSync(file)) return;
+  const config = readJson(root, "opencode.json", ctx);
+  if (!config) return;
+  const next: Record<string, unknown> = { ...config.data };
+
+  const agent = (config.data["agent"] ?? {}) as Record<string, unknown>;
+  next["agent"] = { ...agent, evol: opencodeEvolAgent() };
+  next["default_agent"] = "evol";
+
+  const mcp = (config.data["mcp"] ?? {}) as Record<string, unknown>;
+  const servers = (mcp["servers"] ?? {}) as Record<string, unknown>;
+  next["mcp"] = {
+    ...mcp,
+    servers: { ...servers, evol: { command: ["evol", "mcp"], type: "local" } },
+  };
+
+  writeJson(root, "opencode.json", next, ctx);
+}
 
 const hermes: Adapter = {
   id: "hermes",
