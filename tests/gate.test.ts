@@ -4,6 +4,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 import {
   appendApproval,
   ensureKey,
+  expectedPhase,
   findValidApproval,
   keyPath,
   logPath,
@@ -109,5 +110,25 @@ describe("cadena de aprobaciones", () => {
     const text = readFileSync(join(root, ".evol", "gate-log.jsonl"), "utf8");
     expect(text).not.toContain(key.toString("hex"));
     expect(text).not.toContain(key.toString("base64"));
+  });
+});
+
+describe("expectedPhase (criterio 134)", () => {
+  it("sin ninguna entrada, no hay nada que esperar", () => {
+    expect(expectedPhase([])).toBeNull();
+  });
+
+  it("la fase siguiente a la última aprobada", () => {
+    const root = tempDir();
+    const key = ensureKey("expected-phase");
+    appendApproval(root, key, { phase: "briefing", approver: "ana", artifacts: {} });
+    expect(expectedPhase(readLog(root))).toBe("spec");
+  });
+
+  it("después de retro, «done»", () => {
+    const root = tempDir();
+    const key = ensureKey("expected-phase-retro");
+    appendApproval(root, key, { phase: "retro", approver: "ana", artifacts: {} });
+    expect(expectedPhase(readLog(root))).toBe("done");
   });
 });

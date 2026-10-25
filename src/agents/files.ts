@@ -26,12 +26,28 @@ export function quoteFrontmatter(content: string): string {
 const BEGIN = "<!-- evol:begin -->";
 const END = "<!-- evol:end -->";
 export const HOOK_COMMAND = "evol hook session-start";
-/** What Claude Code is told never to run: approving a phase and moving the pipeline on are for a person. */
+/**
+ * What Claude Code is told never to do, by default (criterio 134). Approving a phase, moving the
+ * pipeline on and opening a new cycle are for a person, never an agent. The installed framework is
+ * read-only, improved from its own origin, never from a project. The rest are credentials and the
+ * project's own pipeline state: reading the gate's signing key would let an agent forge an
+ * approval, and editing the state or the signed log by hand is how that forgery would be hidden.
+ * Reading by a script outside the IDE's own tool is not covered: say so wherever this is surfaced.
+ */
 export const DENY_RULES = [
   "Bash(evol approve:*)",
   "Bash(evol next:*)",
-  // the installed framework is read-only and is improved from its origin, never from a project
+  "Bash(evol ciclo:*)",
   "Edit(~/.local/share/evol/**)",
+  "Edit(.evol/state.json)",
+  "Edit(.evol/gate-log.jsonl)",
+  "Read(~/.ssh/**)",
+  "Read(~/.aws/credentials)",
+  "Read(**/.env)",
+  "Read(**/.env.*)",
+  "Read(**/*.pem)",
+  "Read(**/*.key)",
+  "Read(~/.config/evol/keys/**)",
 ];
 
 const COMMANDS: Record<string, string> = {

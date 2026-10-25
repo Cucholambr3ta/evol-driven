@@ -282,7 +282,17 @@ describe("Claude Code: la regla que impide aprobar y avanzar (criterio 69)", () 
     expect(DENY_RULES).toEqual([
       "Bash(evol approve:*)",
       "Bash(evol next:*)",
+      "Bash(evol ciclo:*)",
       "Edit(~/.local/share/evol/**)",
+      "Edit(.evol/state.json)",
+      "Edit(.evol/gate-log.jsonl)",
+      "Read(~/.ssh/**)",
+      "Read(~/.aws/credentials)",
+      "Read(**/.env)",
+      "Read(**/.env.*)",
+      "Read(**/*.pem)",
+      "Read(**/*.key)",
+      "Read(~/.config/evol/keys/**)",
     ]);
   });
 

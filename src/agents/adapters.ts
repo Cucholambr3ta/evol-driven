@@ -188,9 +188,14 @@ const opencode: Adapter = {
       nota: "Añade la entrada al opencode.json de tu proyecto; el formato exacto de «command» depende de tu versión.",
     },
     {
-      archivo: "opencode.json (el bloqueo de approve y next)",
-      texto: `{ "action": "shell", "resource": "evol approve *", "effect": "deny" }\n{ "action": "shell", "resource": "evol next*", "effect": "deny" }`,
-      nota: "Dos permisos de shell con efecto «deny» (el propio OpenCode confirmó que el de approve funciona).",
+      archivo: "opencode.json (el bloqueo de approve, next y ciclo)",
+      texto: `{ "action": "shell", "resource": "evol approve *", "effect": "deny" }\n{ "action": "shell", "resource": "evol next*", "effect": "deny" }\n{ "action": "shell", "resource": "evol ciclo*", "effect": "deny" }`,
+      nota: "Tres permisos de shell con efecto «deny» (el propio OpenCode confirmó que el de approve funciona; «ciclo» se añade por el mismo motivo: solo lo abre una persona).",
+    },
+    {
+      archivo: "opencode.json (rutas sensibles del sistema y del proyecto)",
+      texto: `{ "action": "shell", "resource": "cat ~/.ssh/*", "effect": "deny" }\n{ "action": "shell", "resource": "cat ~/.config/evol/keys/*", "effect": "deny" }`,
+      nota: "Por confirmar: OpenCode no tiene un permiso de lectura de archivos separado del de shell, así que esto solo cubre leerlos por un comando reconocido, no por la herramienta de lectura de archivos del propio IDE. evol agents reescribirá esto de verdad al construir el agente «evol» (ola 1, M5).",
     },
   ],
   proteccion: {

@@ -12,6 +12,7 @@ import { userInfo } from "node:os";
 import { sha256 } from "./hash.js";
 import { evolPath, userConfigDir } from "./paths.js";
 import { UserError } from "./errors.js";
+import { nextPhase } from "./phases.js";
 import type { Phase } from "./phases.js";
 
 const GENESIS = "0".repeat(64);
@@ -153,6 +154,18 @@ export function verifyChain(entries: GateEntry[], key: Buffer): ChainResult {
     previous = entryHash(entry);
   }
   return { ok: true };
+}
+
+/**
+ * The phase `state.json` should be in, from the signed registry alone: the one after the last
+ * entry's phase, or `"done"` after retro. `null` with no entries yet (any phase is fine: nothing
+ * to compare against). Used to catch a `state.json` edited by hand to skip an approval
+ * (criterio 134): the registry is the source of truth, `state.json` is a cache of it.
+ */
+export function expectedPhase(entries: GateEntry[]): Phase | "done" | null {
+  const last = entries.at(-1);
+  if (!last) return null;
+  return nextPhase(last.phase) ?? "done";
 }
 
 export function sameArtifacts(a: Record<string, string>, b: Record<string, string>): boolean {

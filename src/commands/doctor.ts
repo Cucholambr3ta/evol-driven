@@ -2,7 +2,7 @@ import { spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { loadConfig } from "../core/config.js";
 import { loadDisciplines } from "../core/disciplines.js";
-import { readKey, readLog, verifyChain, keyPath } from "../core/gate.js";
+import { expectedPhase, readKey, readLog, verifyChain, keyPath } from "../core/gate.js";
 import { CONFIG_FILE, findProjectRoot } from "../core/paths.js";
 import { loadState } from "../core/state.js";
 import { adapterMissing, CLAUDE_CODE, detectIdes, OTHER_ADAPTERS } from "../agents/adapters.js";
@@ -103,12 +103,26 @@ export default async function run(): Promise<number> {
           `falta ${keyPath(state.projectId)} (no se guarda en el repositorio)`,
         );
       else {
-        const chain = verifyChain(readLog(root), key);
+        const log = readLog(root);
+        const chain = verifyChain(log, key);
         add(
           chain.ok ? "ok" : "error",
           "Registro de aprobaciones",
           chain.ok ? "íntegro" : `no íntegro (entrada ${chain.seq}: ${chain.reason})`,
         );
+        // state.json es una caché del registro firmado (criterio 134): si alguien lo edita a mano
+        // para simular una fase ya aprobada, esto lo detecta aunque la cadena siga íntegra.
+        if (chain.ok) {
+          const expected = expectedPhase(log);
+          if (expected !== null && expected !== state.currentPhase) {
+            add(
+              "error",
+              "Fase y aprobaciones",
+              `la fase de .evol/state.json («${state.currentPhase}») no concuerda con la última ` +
+                `aprobación válida del registro firmado (debería ser «${expected}»)`,
+            );
+          }
+        }
       }
       const agents = agentFilesComplete(root);
       add(
