@@ -9,6 +9,11 @@ import type { CommandRunner, SecurityScanner } from "../src/core/verify.js";
 import { REPO, tempDir, write, writeValidArtifacts } from "./helpers.js";
 
 const registry = loadDisciplines();
+/**
+ * The only disciplines whose artifacts are all optional: they validate a dossier when there is
+ * one and never oblige anyone to write it. The list is fixed here so it cannot grow unnoticed.
+ */
+const OPCIONALES = new Set(["INVESTIGACION"]);
 const ok: CommandRunner = () => ({ ok: true, output: "" });
 const fail: CommandRunner = () => ({ ok: false, output: "boom" });
 
@@ -23,11 +28,11 @@ function verify(
 }
 
 describe("registro de disciplinas (criterio 6)", () => {
-  it("carga las 31 definiciones: 9 base y 22 extendidas", () => {
+  it("carga las 35 definiciones: 14 base y 21 extendidas", () => {
     const all = registry.all();
-    expect(all).toHaveLength(31);
-    expect(all.filter((d) => d.tipo === "base")).toHaveLength(9);
-    expect(all.filter((d) => d.tipo === "extendida")).toHaveLength(22);
+    expect(all).toHaveLength(35);
+    expect(all.filter((d) => d.tipo === "base")).toHaveLength(14);
+    expect(all.filter((d) => d.tipo === "extendida")).toHaveLength(21);
   });
 
   it("hay un archivo por disciplina y el id coincide con su nombre", () => {
@@ -46,7 +51,7 @@ describe("registro de disciplinas (criterio 6)", () => {
       expect(DisciplineSchema.safeParse(d).success).toBe(true);
       expect(d.fases.length).toBeGreaterThan(0);
       expect(d.artefactos.length).toBeGreaterThan(0);
-      expect(d.artefactos.some((a) => a.min >= 1)).toBe(true);
+      expect(d.artefactos.some((a) => a.min >= 1) || OPCIONALES.has(d.id)).toBe(true);
     },
   );
 
@@ -64,10 +69,31 @@ describe("cada disciplina se puede satisfacer y se puede incumplir", () => {
         const valid = tempDir();
         writeValidArtifacts(valid, d.id);
         expect(verify(d, valid, phase), `${d.id} en ${phase}`).toEqual([]);
-        expect(verify(d, tempDir(), phase).length, `${d.id} vacío en ${phase}`).toBeGreaterThan(0);
+        if (!OPCIONALES.has(d.id))
+          expect(verify(d, tempDir(), phase).length, `${d.id} vacío en ${phase}`).toBeGreaterThan(
+            0,
+          );
       }
     },
   );
+
+  it("las disciplinas opcionales son exactamente las que la lista dice, y vacías pasan", () => {
+    expect(registry.all().filter((d) => d.artefactos.every((a) => a.min === 0))).toEqual(
+      registry.all().filter((d) => OPCIONALES.has(d.id)),
+    );
+    for (const id of OPCIONALES) {
+      const d = registry.get(id) as Discipline;
+      for (const phase of d.fases) expect(verify(d, tempDir(), phase)).toEqual([]);
+    }
+  });
+
+  it("un dossier sin índice de evidencia sí falla en INVESTIGACION", () => {
+    const d = registry.get("INVESTIGACION") as Discipline;
+    const root = tempDir();
+    write(root, "investigacion/x/x-audit.md", "# A\n\nDice algo [E-1].\n");
+
+    expect(verify(d, root, "briefing").length).toBeGreaterThan(0);
+  });
 
   it("una disciplina no verifica en fases donde no aplica", () => {
     const tdd = registry.get("TDD") as Discipline;

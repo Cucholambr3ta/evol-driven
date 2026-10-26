@@ -1,0 +1,31 @@
+{
+  "id": "REQDD",
+  "nombre": "Requisitos no funcionales, limitaciones y glosario",
+  "tipo": "base",
+  "rol": "analista",
+  "skill": "reqdd",
+  "fases": ["spec"],
+  "artefactos": [
+    {
+      "patron": "docs/requisitos/NO_FUNCIONALES.md",
+      "formato": "md",
+      "min": 1
+    },
+    {
+      "patron": "docs/requisitos/RESTRICCIONES.md",
+      "formato": "md",
+      "min": 1
+    },
+    {
+      "patron": "docs/requisitos/GLOSARIO.md",
+      "formato": "md",
+      "min": 1
+    }
+  ],
+  "verificaciones": [
+    {
+      "tipo": "documentos",
+      "comprobacion": "requisitos"
+    }
+  ]
+}

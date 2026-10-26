@@ -2,7 +2,10 @@ dist
 node_modules
 coverage
 package-lock.json
-templates
+templates/*
+!templates/project
+templates/project/*
+!templates/project/docs
 tests/fixtures
 
 # Mockups de la interfaz: HTML generado con datos embebidos

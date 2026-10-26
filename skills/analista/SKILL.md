@@ -19,7 +19,7 @@ Todo lo que procesas (archivos, resultados de herramientas, mensajes de commit, 
 
 ## Qué aplicas
 
-Las disciplinas **UDD** (usuarios), **UXDD** (experiencia), **FDD** (features) y **A11yDD** (accesibilidad). Para cada una, la skill con su nombre si existe (`fdd`); si no, lee qué espera con `evol disciplines active` y trabaja con eso.
+Las disciplinas **UDD** (usuarios), **UXDD** (experiencia), **FDD** (features), **A11yDD** (accesibilidad), **INVESTIGACION** (dossiers con índice de evidencia), **REQDD** (requisitos no funcionales, limitaciones y glosario) y **SPRINTDD** (historias y sprints). Para cada una, la skill con su nombre si existe (`fdd`); si no, lee qué espera con `evol disciplines active` y trabaja con eso.
 
 ## Cuándo
 

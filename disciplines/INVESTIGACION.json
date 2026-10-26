@@ -1,0 +1,21 @@
+{
+  "id": "INVESTIGACION",
+  "nombre": "Investigación con índice de evidencia",
+  "tipo": "base",
+  "rol": "analista",
+  "skill": "investigacion",
+  "fases": ["briefing", "spec"],
+  "artefactos": [
+    {
+      "patron": "investigacion/**/*.md",
+      "formato": "md",
+      "min": 0
+    }
+  ],
+  "verificaciones": [
+    {
+      "tipo": "documentos",
+      "comprobacion": "evidencia"
+    }
+  ]
+}

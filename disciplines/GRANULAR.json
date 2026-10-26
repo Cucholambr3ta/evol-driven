@@ -1,0 +1,21 @@
+{
+  "id": "GRANULAR",
+  "nombre": "Documentación atómica por dominio",
+  "tipo": "base",
+  "rol": "arquitecto",
+  "skill": "granular",
+  "fases": ["spec"],
+  "artefactos": [
+    {
+      "patron": "docs/proyecto/**/*.md",
+      "formato": "md",
+      "min": 1
+    }
+  ],
+  "verificaciones": [
+    {
+      "tipo": "documentos",
+      "comprobacion": "granular"
+    }
+  ]
+}

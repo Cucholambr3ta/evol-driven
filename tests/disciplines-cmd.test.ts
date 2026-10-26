@@ -69,7 +69,9 @@ describe("perfiles", () => {
   it("base son las 9 disciplinas base y los demás perfiles las contienen o las recortan a propósito", () => {
     expect(getProfile("base").disciplinas).toEqual([...BASE_DISCIPLINES]);
     for (const name of ["api", "web", "erp"]) {
-      expect(getProfile(name).disciplinas.slice(0, 9)).toEqual([...BASE_DISCIPLINES]);
+      expect(getProfile(name).disciplinas.slice(0, BASE_DISCIPLINES.length)).toEqual([
+        ...BASE_DISCIPLINES,
+      ]);
     }
   });
 
@@ -253,12 +255,12 @@ describe("evol disciplines enable/disable (criterio 34)", () => {
 });
 
 describe("evol disciplines list, profiles y suggest", () => {
-  it("list --json incluye las 31 disciplinas y dónde están activas", () => {
+  it("list --json incluye las 35 disciplinas y dónde están activas", () => {
     const root = makeProject(["SDD", "TDD"]);
     const r = cli(["disciplines", "list", "--json"], { cwd: root, env: env() });
     expect(r.status).toBe(0);
     const rows = JSON.parse(r.stdout) as { id: string; modulos: string[] }[];
-    expect(rows).toHaveLength(31);
+    expect(rows).toHaveLength(35);
     expect(rows.find((d) => d.id === "TDD")?.modulos).toEqual(["app"]);
     expect(rows.find((d) => d.id === "BDD")?.modulos).toEqual([]);
   });

@@ -106,7 +106,32 @@ export function cli(
   return { status: result.status, stdout: result.stdout, stderr: result.stderr };
 }
 
-/** Builds files that satisfy a discipline definition, so each of the 31 can be exercised. */
+const ADR_COMPLETO =
+  "# ADR\n\n## Contexto\n\nx\n\n## Opciones\n\nA y B\n\n## Decisión\n\nA\n\n## Consecuencias\n\nx\n\n## Referencias\n\nsrc/x.ts\n";
+const SUBDOMINIO = `# Subdominio\n\nOrigen: docs/specs/SPEC.md\n\n${Array.from({ length: 16 }, (_, i) => `Línea ${i + 1} del subdominio.`).join("\n")}\n`;
+const REQ_NFR =
+  "# NFR\n\n| ID | Requisito | Métrica | Umbral | Validación |\n| --- | --- | --- | --- | --- |\n| NFR-01 | Arranque | s | < 5 | `time evol doctor` |\n";
+const REQ_RESTRICCIONES =
+  "# Restricciones\n\n## Limitaciones conocidas\n\n### L01 Una\n\nRazón: x\nImpacto: y\nRoadmap: z\n";
+
+const EXTRAS: Record<string, Record<string, string>> = {
+  GRANULAR: {
+    "docs/specs/SPEC.md": "# Spec\n",
+    "docs/proyecto/INDEX.md": "# Índice\n\n- [x](x/x.md)\n",
+  },
+  INVESTIGACION: {
+    "investigacion/x/x-evidence-index.md":
+      "# Evidencia\n\n| ID | Fuente | Consultada | Clasificación | Afirma |\n| --- | --- | --- | --- | --- |\n| E-1 | https://ejemplo.org | 2026-10-20 | hecho | algo |\n",
+  },
+  SPRINTDD: {
+    "docs/historias/HU-1/propuesta.md": "# P\n",
+    "docs/historias/HU-1/requisitos-escenarios.md": "# R\n",
+    "docs/historias/HU-1/escenario-tecnico.md": "# E\n",
+    "docs/historias/HU-1/checklist-tareas.md": "# C\n\n- [ ] tarea\n",
+  },
+};
+
+/** Builds files that satisfy a discipline definition, so each of the 35 can be exercised. */
 export function writeValidArtifacts(root: string, id: string): void {
   const d = loadDisciplines().get(id);
   if (!d) throw new Error(`disciplina desconocida: ${id}`);
@@ -116,7 +141,16 @@ export function writeValidArtifacts(root: string, id: string): void {
     "docs/specs/DOMAIN.md": "# Dominio\n\n## Entidades\n\nx\n\n## Reglas\n\ny\n",
     "docs/specs/THREATS.md": "# Amenazas\n\n## Amenazas\n\nx\n\n## Mitigaciones\n\ny\n",
     ".evol/qa/QA_REPORT.md": "# QA\n\n- [x] CRITICAL: resuelto\n",
+    "docs/adr/x.md": ADR_COMPLETO,
+    "docs/proyecto/x/x.md": SUBDOMINIO,
+    "docs/requisitos/NO_FUNCIONALES.md": REQ_NFR,
+    "docs/requisitos/RESTRICCIONES.md": REQ_RESTRICCIONES,
+    "docs/requisitos/GLOSARIO.md": "# Glosario\n\n### Término\n\nQué significa.\n",
+    "docs/sprints/INDEX.json": '{"sprints":[{"id":"01","titulo":"Uno","historias":["HU-1"]}]}',
+    "investigacion/x/x.md": "# Auditoría\n\nDice algo [E-1].\n",
   };
+  // files a discipline's checker needs next to its artifacts, which no artifact pattern describes
+  for (const [rel, content] of Object.entries(EXTRAS[id] ?? {})) write(root, rel, content);
   for (const a of d.artefactos) {
     const rel = a.patron.replaceAll("**", "x").replaceAll("*", "x");
     const content =

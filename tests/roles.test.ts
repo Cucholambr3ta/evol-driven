@@ -21,10 +21,21 @@ const registry = loadDisciplines();
 const SKILLS = join(REPO, "skills");
 const read = (...p: string[]): string => readFileSync(join(SKILLS, ...p), "utf8");
 
-/** The split of the 31 disciplines among the six roles, as the specification's table gives it. */
+/** The split of the 35 disciplines among the six roles, as the specification's table gives it. */
 const SPEC: Record<string, string[]> = {
-  analista: ["A11yDD", "FDD", "UDD", "UXDD"],
-  arquitecto: ["ADD", "APIVDD", "DDD", "DeprecationDD", "EDA", "ESDD", "MDD", "ODD_API", "SDD"],
+  analista: ["A11yDD", "FDD", "INVESTIGACION", "REQDD", "SPRINTDD", "UDD", "UXDD"],
+  arquitecto: [
+    "ADD",
+    "APIVDD",
+    "DDD",
+    "DeprecationDD",
+    "EDA",
+    "ESDD",
+    "GRANULAR",
+    "MDD",
+    "ODD_API",
+    "SDD",
+  ],
   constructor: ["CDCDD", "DebtBudgetDD", "RDD", "TDD"],
   verificador: ["ATDD", "BDD", "CCDD", "CHAOS", "PDD"],
   seguridad: ["COMPLIANCE", "PrivacyDD", "SecDD", "STDD", "THREAT"],
@@ -36,15 +47,15 @@ function frontmatter(text: string): { data: Record<string, unknown>; body: strin
   return { data: YAML.parse(m?.[1] ?? "") as Record<string, unknown>, body: m?.[2] ?? "" };
 }
 
-describe("los seis roles y las 31 disciplinas (criterio 76)", () => {
-  it("cada disciplina la aplica exactamente un rol, y las de los seis roles suman 31", () => {
+describe("los seis roles y las 35 disciplinas (criterio 76)", () => {
+  it("cada disciplina la aplica exactamente un rol, y las de los seis roles suman 35", () => {
     const all = registry.all();
-    expect(all).toHaveLength(31);
+    expect(all).toHaveLength(35);
     for (const d of all) expect(ROLE_IDS, d.id).toContain(d.rol);
     const byRole = ROLE_IDS.map((r) => disciplinesOfRole(registry, r));
-    expect(byRole.flat()).toHaveLength(31);
-    expect(new Set(byRole.flat()).size).toBe(31);
-    expect(byRole.map((x) => x.length)).toEqual([4, 9, 4, 5, 5, 4]);
+    expect(byRole.flat()).toHaveLength(35);
+    expect(new Set(byRole.flat()).size).toBe(35);
+    expect(byRole.map((x) => x.length)).toEqual([7, 10, 4, 5, 5, 4]);
   });
 
   it("el reparto es el de la especificación", () => {

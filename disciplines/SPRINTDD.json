@@ -1,0 +1,52 @@
+{
+  "id": "SPRINTDD",
+  "nombre": "Historias y sprints con su propia evidencia",
+  "tipo": "base",
+  "rol": "analista",
+  "skill": "sprintdd",
+  "fases": ["plan"],
+  "transversal": true,
+  "artefactos": [
+    {
+      "patron": "docs/sprints/INDEX.json",
+      "formato": "json",
+      "min": 1
+    },
+    {
+      "patron": "docs/historias/*/propuesta.md",
+      "formato": "md",
+      "min": 1
+    },
+    {
+      "patron": "docs/historias/*/requisitos-escenarios.md",
+      "formato": "md",
+      "min": 1
+    },
+    {
+      "patron": "docs/historias/*/escenario-tecnico.md",
+      "formato": "md",
+      "min": 1
+    },
+    {
+      "patron": "docs/historias/*/checklist-tareas.md",
+      "formato": "md",
+      "min": 1
+    },
+    {
+      "patron": "docs/sprints/*/lecciones.md",
+      "formato": "md",
+      "min": 0
+    },
+    {
+      "patron": "docs/sprints/*/memoria.md",
+      "formato": "md",
+      "min": 0
+    }
+  ],
+  "verificaciones": [
+    {
+      "tipo": "documentos",
+      "comprobacion": "sprints"
+    }
+  ]
+}

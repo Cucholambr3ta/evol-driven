@@ -1,6 +1,6 @@
 import { UserError } from "./errors.js";
 
-/** The nine disciplines every project starts with unless a profile says otherwise. */
+/** The fourteen disciplines every project starts with unless a profile says otherwise. */
 export const BASE_DISCIPLINES = [
   "SDD",
   "FDD",
@@ -11,6 +11,11 @@ export const BASE_DISCIPLINES = [
   "TDD",
   "STDD",
   "SecDD",
+  "ADD",
+  "GRANULAR",
+  "INVESTIGACION",
+  "REQDD",
+  "SPRINTDD",
 ] as const;
 
 export interface Profile {
@@ -20,7 +25,7 @@ export interface Profile {
 
 /** Disciplines by kind of project. `base` is the default. */
 export const PROFILES: Record<string, Profile> = {
-  base: { resumen: "las 9 disciplinas base", disciplinas: [...BASE_DISCIPLINES] },
+  base: { resumen: "las 14 disciplinas base", disciplinas: [...BASE_DISCIPLINES] },
   api: {
     resumen: "servicio con API pública: base + contrato, versionado, observabilidad y rendimiento",
     disciplinas: [

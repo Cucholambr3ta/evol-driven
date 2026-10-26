@@ -96,7 +96,7 @@ describe("evol new (criterios 1 y 3)", () => {
       modules: { disciplinas: string[] }[];
     };
     expect(config.memory).toEqual({ wing: "demo_app", enabled: false });
-    expect(config.modules[0]?.disciplinas).toHaveLength(9);
+    expect(config.modules[0]?.disciplinas).toHaveLength(14);
     expect(readFileSync(join(project, "docs/specs/SPEC.md"), "utf8")).not.toContain("{{");
   });
 

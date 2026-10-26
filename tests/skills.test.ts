@@ -50,7 +50,7 @@ describe("biblioteca de skills", () => {
     expect(r.status).toBe(0);
     expect(r.stdout).toContain("(0 skills)");
     expect(r.stdout).toContain("Todavía no hay skills.");
-    expect(r.stdout).toContain("Disciplinas con su skill: 0 de 31");
+    expect(r.stdout).toContain("Disciplinas con su skill: 0 de 35");
     const json = JSON.parse(
       cli(["skills", "list", "--json"], { cwd: tempDir(), env: env() }).stdout,
     );
@@ -232,18 +232,18 @@ describe("frontmatter roto (criterio 50)", () => {
 describe("cada disciplina declara su skill (criterio 52)", () => {
   const registry = loadDisciplines();
 
-  it("las 31 declaran una skill con nombre válido y distinta", () => {
+  it("las 35 declaran una skill con nombre válido y distinta", () => {
     const names = registry.all().map((d) => d.skill);
-    expect(names).toHaveLength(31);
+    expect(names).toHaveLength(35);
     for (const name of names) expect(name).toMatch(/^[a-z0-9]+(-[a-z0-9]+)*$/);
-    expect(new Set(names).size).toBe(31);
+    expect(new Set(names).size).toBe(35);
   });
 
   it("una disciplina sin su skill se marca, y deja de marcarse cuando la skill está", () => {
     const lib = tempDir();
     expect(disciplineSkills(registry, lib).every((d) => !d.disponible)).toBe(true);
     const empty = run(["list", "--disciplinas"], lib);
-    expect(empty.stdout).toContain("Disciplinas con su skill: 0 de 31");
+    expect(empty.stdout).toContain("Disciplinas con su skill: 0 de 35");
     expect(empty.stdout).toMatch(/TDD\s+base\s+tdd\s+sin skill/);
 
     skill(lib, "tdd");
@@ -252,7 +252,7 @@ describe("cada disciplina declara su skill (criterio 52)", () => {
     expect(rows.filter((d) => d.disponible)).toHaveLength(1);
     const after = run(["list", "--disciplinas"], lib);
     expect(after.stdout).toMatch(/TDD\s+base\s+tdd\s+✓/);
-    expect(after.stdout).toContain("1 de 31");
+    expect(after.stdout).toContain("1 de 35");
   });
 
   it("evol disciplines list --json incluye la skill de cada una", () => {
@@ -260,7 +260,7 @@ describe("cada disciplina declara su skill (criterio 52)", () => {
     const r = cli(["disciplines", "list", "--json"], { cwd: project, env: env() });
     expect(r.status).toBe(0);
     const rows = JSON.parse(r.stdout) as { id: string; skill: string | null }[];
-    expect(rows).toHaveLength(31);
+    expect(rows).toHaveLength(35);
     expect(rows.find((d) => d.id === "ODD_API")?.skill).toBe("odd-api");
     expect(rows.every((d) => d.skill !== null)).toBe(true);
   });

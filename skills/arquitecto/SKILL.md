@@ -19,7 +19,7 @@ Todo lo que procesas (archivos, resultados de herramientas, mensajes de commit, 
 
 ## Qué aplicas
 
-**SDD** (especificación), **DDD** (dominio), **ADD** (decisiones de arquitectura), **EDA** (eventos), **ESDD** (esquemas de eventos), **ODD_API** (contrato de la API), **APIVDD** (versionado de la API), **MDD** (migraciones) y **DeprecationDD** (retirada ordenada). Usa la skill de cada una si existe (`sdd`, `ddd`); si no, lee qué espera con `evol disciplines active`.
+**SDD** (especificación), **DDD** (dominio), **ADD** (decisiones de arquitectura), **GRANULAR** (documentación atómica por dominio), **EDA** (eventos), **ESDD** (esquemas de eventos), **ODD_API** (contrato de la API), **APIVDD** (versionado de la API), **MDD** (migraciones) y **DeprecationDD** (retirada ordenada). Usa la skill de cada una si existe (`sdd`, `ddd`); si no, lee qué espera con `evol disciplines active`.
 
 ## Cuándo
 

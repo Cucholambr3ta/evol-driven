@@ -1,7 +1,7 @@
 {
   "id": "ADD",
   "nombre": "Architecture-Driven Development",
-  "tipo": "extendida",
+  "tipo": "base",
   "rol": "arquitecto",
   "skill": "add",
   "fases": ["spec"],
@@ -17,5 +17,29 @@
       "min": 0
     }
   ],
-  "verificaciones": []
+  "verificaciones": [
+    {
+      "tipo": "secciones",
+      "patron": "docs/adr/*.md",
+      "nivel": "aviso",
+      "secciones": [
+        {
+          "nombre": "Contexto"
+        },
+        {
+          "nombre": "Opciones"
+        },
+        {
+          "nombre": "Decisión"
+        },
+        {
+          "nombre": "Consecuencias"
+        },
+        {
+          "nombre": "Referencias",
+          "motivo": "enlaza la decisión con su implementación y sus pruebas"
+        }
+      ]
+    }
+  ]
 }
