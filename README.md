@@ -57,7 +57,7 @@ fase no se puede aprobar.
 
 ```bash
 cd mi-proyecto
-evol init                                  # un módulo «app» con las 9 disciplinas base
+evol init                                  # un módulo «app» con las 14 disciplinas base
 evol init --modulo ventas=modules/ventas:SDD,FDD,TDD --modulo stock=modules/stock:SDD,MDD
 evol init --fase build                     # se une a mitad del pipeline (pide una persona)
 ```
@@ -87,7 +87,7 @@ disciplinas activas de cada módulo verifiquen y **(2)** una aprobación humana 
 
 ### Disciplinas
 
-31 disciplinas (9 base y 22 extendidas) definidas como datos en [`disciplines/`](disciplines).
+35 disciplinas (14 base y 21 extendidas) definidas como datos en [`disciplines/`](disciplines).
 Cada módulo de `evol.config.json` elige las suyas y tiene su propia raíz:
 
 ```json
@@ -233,7 +233,7 @@ terminal. Para Hermes: `hermes mcp add evol --command evol --args mcp` (con `EVO
 ```bash
 evol new mi-api --perfil api       # también: evol init --perfil erp
 evol disciplines profiles          # base, api, web, erp, lib y lo que activa cada uno
-evol disciplines list              # las 31 disciplinas y en qué módulos están activas
+evol disciplines list              # las 35 disciplinas y en qué módulos están activas
 evol disciplines suggest           # qué activar según tus dependencias y archivos (no cambia nada)
 evol disciplines enable BDD TDD --modulo ventas
 evol disciplines disable TDD

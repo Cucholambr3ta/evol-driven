@@ -6,7 +6,7 @@
 ## Qué es
 
 Un framework de línea de comandos (Node.js / TypeScript) para **crear proyectos TypeScript** que
-se desarrollan mediante un **pipeline de fases con las 31 disciplinas Driven Development**, con
+se desarrollan mediante un **pipeline de fases con las 35 disciplinas Driven Development**, con
 **memoria persistente** aportada por **MemPalace** y un **indexador de código** propio.
 
 ## Alcance de la v1
@@ -15,7 +15,7 @@ se desarrollan mediante un **pipeline de fases con las 31 disciplinas Driven Dev
    ya conectado al pipeline, a la memoria y al indexador.
 2. **Pipeline de 6 fases**: Briefing → Spec → Plan → Build → QA → Retro. Cada fase exige artefactos
    y **la aprobación de una persona** para avanzar.
-3. **Las 31 disciplinas** (9 base + 22 extendidas), declaradas como datos en un registro. Cada
+3. **Las 35 disciplinas** (14 base + 21 extendidas), declaradas como datos en un registro. Cada
    módulo del proyecto elige cuáles aplica en cada fase.
 4. **Memoria con MemPalace** (dependencia externa, no se reimplementa): decisiones, lecciones y
    aprobaciones se guardan en el _wing_ del proyecto y se consultan con `evol memory`.
@@ -56,7 +56,7 @@ Hermes.)
 - **El grafo de código no se guarda en la memoria.** Es derivable del código; la memoria guarda
   decisiones y lecciones.
 
-## Las 31 disciplinas
+## Las 35 disciplinas
 
 Cada disciplina es un archivo de datos `disciplines/<id>.json` con su fase, sus artefactos y sus
 verificaciones; agregar o cambiar una no requiere tocar el motor. Fases y artefactos salen de las
@@ -71,21 +71,26 @@ fichas del proyecto anterior (las rutas de las extendidas, de su tabla "Artefact
 Las disciplinas de experimentos (Chaos, Performance) verifican en la v1 que el plan exista y sea
 válido; **ejecutar** los experimentos queda fuera.
 
-### Base (9)
+### Base (14)
 
-| Disciplina    | Fase           | Artefactos                              | Nivel                               |
-| ------------- | -------------- | --------------------------------------- | ----------------------------------- |
-| SDD           | todas          | `docs/specs/SPEC.md`                    | A (con criterios de aceptación)     |
-| FDD           | Briefing, Plan | `docs/features/FEATURES.md`             | A                                   |
-| DDD           | Spec           | `docs/specs/DOMAIN.md`                  | A (entidades y reglas)              |
-| Threat-Driven | Spec           | `docs/specs/THREATS.md`                 | A (amenazas y mitigaciones)         |
-| BDD           | Briefing, QA   | `tests/features/*.feature`              | A (≥1 escenario por feature)        |
-| ATDD          | Briefing, QA   | `tests/acceptance/*.acceptance.test.ts` | B                                   |
-| TDD           | Build          | `tests/unit/*.test.ts`                  | B                                   |
-| STDD          | Build          | `tests/security/**/*.security.test.ts`  | B                                   |
-| SecDD         | QA             | `.evol/qa/QA_REPORT.md`                 | A (sin hallazgos críticos abiertos) |
+| Disciplina    | Fase             | Artefactos                                         | Nivel                               |
+| ------------- | ---------------- | -------------------------------------------------- | ----------------------------------- |
+| SDD           | todas            | `docs/specs/SPEC.md`                               | A (con criterios de aceptación)     |
+| FDD           | Briefing, Plan   | `docs/features/FEATURES.md`                        | A                                   |
+| DDD           | Spec             | `docs/specs/DOMAIN.md`                             | A (entidades y reglas)              |
+| Threat-Driven | Spec             | `docs/specs/THREATS.md`                            | A (amenazas y mitigaciones)         |
+| BDD           | Briefing, QA     | `tests/features/*.feature`                         | A (≥1 escenario por feature)        |
+| ATDD          | Briefing, QA     | `tests/acceptance/*.acceptance.test.ts`            | B                                   |
+| TDD           | Build            | `tests/unit/*.test.ts`                             | B                                   |
+| STDD          | Build            | `tests/security/**/*.security.test.ts`             | B                                   |
+| SecDD         | QA               | `.evol/qa/QA_REPORT.md`                            | A (sin hallazgos críticos abiertos) |
+| ADD           | Spec             | `docs/adr/*.md`                                    | A (secciones del ADR; avisa)        |
+| GRANULAR      | Spec             | `docs/proyecto/**/*.md`                            | A (índice, origen y enlaces)        |
+| INVESTIGACION | Briefing, Spec   | `investigacion/**/*.md` (opcional)                 | A (índice de evidencia y citas)     |
+| REQDD         | Spec             | `docs/requisitos/*.md`                             | A (NFR, limitaciones y glosario)    |
+| SPRINTDD      | Plan en adelante | `docs/sprints/INDEX.json`, `docs/historias/*/*.md` | A (historias y sprints)             |
 
-### Extendidas (22)
+### Extendidas (21)
 
 | Disciplina             | Fase         | Artefactos                                                                       | Nivel           |
 | ---------------------- | ------------ | -------------------------------------------------------------------------------- | --------------- |
@@ -93,7 +98,6 @@ válido; **ejecutar** los experimentos queda fuera.
 | UXDD                   | Briefing     | `ux/user_journeys/*.json`, `ux/ui_messages/*.md`, `ux/microinteractions/*.yaml`  | A               |
 | A11yDD                 | Briefing, QA | `a11y/wcag_criteria.json`, `a11y/screen_reader_tests/*.feature`                  | A               |
 | UDD (casos de uso)     | Briefing     | `usecases/*/usecase.json`, `diagram.puml`, `test_scenarios.feature`              | A               |
-| ADD (arquitectura)     | Spec         | `docs/adr/NNNN-*.md`, `docs/adr/NNNN-poc/results.json`                           | A               |
 | ESDD (event sourcing)  | Spec         | `eventsourcing/event_store_schema.json`, `eventsourcing/aggregates/*.md`         | A               |
 | IODD (infraestructura) | Spec         | `infra/main.tf`, `infra/dependencies_graph.json`                                 | A               |
 | Compliance             | Spec         | `compliance/control_mappings.json`, `compliance/audit_logs_spec.json`            | A               |
@@ -764,16 +768,16 @@ afirmaciones externas antes de darlas por ciertas. Sus nombres definitivos los f
 Un rol es una **skill**: lo que sabe y cómo trabaja, escrito una vez y en el mismo formato `SKILL.md` en todos los IDE. Los roles se
 reparten por **competencia**, no por fase, porque una fase necesita varias competencias a la vez y una competencia sirve en varias fases.
 
-| Rol           | Disciplinas que aplica                                        | Se ejecuta                                    |
-| ------------- | ------------------------------------------------------------- | --------------------------------------------- |
-| `analista`    | UDD, UXDD, FDD, A11yDD                                        | en línea                                      |
-| `arquitecto`  | SDD, DDD, ADD, EDA, ESDD, ODD_API, APIVDD, MDD, DeprecationDD | en línea                                      |
-| `constructor` | TDD, RDD, DebtBudgetDD, CDCDD                                 | en línea                                      |
-| `verificador` | BDD, ATDD, CCDD, PDD, CHAOS                                   | **subagente** (solo lectura, contexto limpio) |
-| `seguridad`   | SecDD, STDD, THREAT, PrivacyDD, COMPLIANCE                    | **subagente** (solo lectura, contexto limpio) |
-| `operaciones` | PIPELINE, IODD, ODD_OBS, SLO                                  | en línea                                      |
+| Rol           | Disciplinas que aplica                                                  | Se ejecuta                                    |
+| ------------- | ----------------------------------------------------------------------- | --------------------------------------------- |
+| `analista`    | UDD, UXDD, FDD, A11yDD, INVESTIGACION, REQDD, SPRINTDD                  | en línea                                      |
+| `arquitecto`  | SDD, DDD, ADD, GRANULAR, EDA, ESDD, ODD_API, APIVDD, MDD, DeprecationDD | en línea                                      |
+| `constructor` | TDD, RDD, DebtBudgetDD, CDCDD                                           | en línea                                      |
+| `verificador` | BDD, ATDD, CCDD, PDD, CHAOS                                             | **subagente** (solo lectura, contexto limpio) |
+| `seguridad`   | SecDD, STDD, THREAT, PrivacyDD, COMPLIANCE                              | **subagente** (solo lectura, contexto limpio) |
+| `operaciones` | PIPELINE, IODD, ODD_OBS, SLO                                            | en línea                                      |
 
-Cubren las 31 disciplinas, sin repetir ninguna. La retrospectiva la hace el propio orquestador.
+Cubren las 35 disciplinas, sin repetir ninguna. La retrospectiva la hace el propio orquestador.
 
 - **En línea:** `/evol` carga la skill del rol y la de la disciplina y trabaja en su propia sesión. Es el modo normal y funciona igual
   en cualquier IDE, con o sin subagentes.

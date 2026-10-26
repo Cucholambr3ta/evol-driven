@@ -1,4 +1,5 @@
 import { relative } from "node:path";
+import type * as Lectura from "../src/docs/lectura.js";
 import { describe, expect, it, vi } from "vitest";
 import { loadDisciplines } from "../src/core/disciplines.js";
 import { matchFiles } from "../src/core/verify.js";
@@ -6,7 +7,7 @@ import { tempDir, writeValidArtifacts } from "./helpers.js";
 
 const leidos: string[] = [];
 vi.mock("../src/docs/lectura.js", async (importOriginal) => {
-  const real = await importOriginal<typeof import("../src/docs/lectura.js")>();
+  const real = await importOriginal<typeof Lectura>();
   return {
     ...real,
     leerDocumento: (ruta: string, tope?: number) => {
