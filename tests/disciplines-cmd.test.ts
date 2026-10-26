@@ -263,6 +263,15 @@ describe("evol disciplines list, profiles y suggest", () => {
     expect(rows.find((d) => d.id === "BDD")?.modulos).toEqual([]);
   });
 
+  it("list --json dice el rol que aplica cada disciplina", () => {
+    const root = makeProject(["SDD", "TDD"]);
+    const r = cli(["disciplines", "list", "--json"], { cwd: root, env: env() });
+    const rows = JSON.parse(r.stdout) as { id: string; rol: string }[];
+    expect(rows.find((d) => d.id === "TDD")?.rol).toBe("constructor");
+    expect(rows.find((d) => d.id === "SDD")?.rol).toBe("arquitecto");
+    expect(rows.every((d) => typeof d.rol === "string" && d.rol !== "")).toBe(true);
+  });
+
   it("profiles muestra todos los perfiles", () => {
     const r = cli(["disciplines", "profiles"], { cwd: tempDir(), env: env() });
     expect(r.status).toBe(0);

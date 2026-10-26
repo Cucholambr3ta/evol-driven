@@ -45,7 +45,13 @@ export function statusReport(ctx: PipelineContext): StatusReport {
     findValidApproval(log, overview.phase, currentArtifacts(ctx, overview.phase), ctx.state.ciclo)
   ) {
     report.approval = { state: "vigente" };
-  } else if (log.some((e) => e.phase === overview.phase)) {
+  } else if (
+    // only an approval of this cycle can have gone stale: the previous cycle's does not count at all
+    log.some(
+      (e) =>
+        e.action === "approved" && e.phase === overview.phase && (e.ciclo ?? 1) === ctx.state.ciclo,
+    )
+  ) {
     report.approval = { state: "obsoleta", detail: "los artefactos cambiaron" };
   }
   return report;
