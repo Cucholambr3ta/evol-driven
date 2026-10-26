@@ -1,32 +1,36 @@
 {
   "version": 1,
-  "ts": "2026-10-26T14:50:20.774Z",
+  "ts": "2026-10-26T15:08:39.687Z",
   "proyecto": "evol-driven",
-  "fase": "briefing",
+  "fase": "build",
   "aprobacion": "obsoleta",
   "estado": [
     "Proyecto: evol-driven",
-    "Pipeline: briefing → spec → plan → build → qa → retro",
-    "Fase actual: briefing",
-    "  [app] FDD — Feature-Driven Development",
-    "      ✓ docs/features/FEATURES.md  (1 encontrado(s), ≥1)",
-    "  [app] BDD — Behavior-Driven Development",
-    "      ✓ tests/features/*.feature  (16 encontrado(s), ≥1)",
-    "  [app] ATDD — Acceptance Test-Driven Development",
-    "      ✓ tests/acceptance/*.acceptance.test.ts  (16 encontrado(s), ≥1)",
-    "Aprobación de «briefing»: obsoleta (los artefactos cambiaron)"
+    "Pipeline: ✓briefing → ✓spec → ✓plan → build → qa → retro",
+    "Fase actual: build",
+    "  [app] SDD — Spec-Driven Development",
+    "      ✓ docs/specs/SPEC.md  (1 encontrado(s), ≥1)",
+    "  [app] TDD — Test-Driven Development",
+    "      ✓ tests/*.test.ts  (49 encontrado(s), ≥1)",
+    "  [app] STDD — Security-Test-Driven Development",
+    "      ✓ tests/security*.test.ts  (2 encontrado(s), ≥1)",
+    "Aprobación de «build»: obsoleta (los artefactos cambiaron)"
   ],
   "git": {
     "rama": "main",
-    "commit": "ac9c990",
-    "sinCommit": [],
-    "totalSinCommit": 0,
+    "commit": "f8bb57c",
+    "sinCommit": [
+      "M .evol/gate-log.jsonl",
+      "M .evol/journal.jsonl",
+      "M .evol/state.json"
+    ],
+    "totalSinCommit": 3,
     "ultimos": [
-      "briefing: corrige el ciclo 2 tras la revisión independiente",
-      "fix: prettier no revisa release/, que genera evol release",
-      "chore: abre el ciclo 2 (ampliación: documentación granular y evidencia)",
-      "release: v0.4.0",
-      "chore: aprobación de retro — ciclo del pipeline terminado (done)"
+      "build(M1): verificación por secciones, analizador de Markdown y lectura acotada",
+      "build(M0): estado «pendiente» al abrir un ciclo y campo rol en el listado",
+      "test: las pruebas de versión no dependen de la versión instalada",
+      "plan del ciclo 2: interrogación registrada",
+      "chore: aprobación de spec del ciclo 2 y avance a plan"
     ]
   },
   "notas": [
@@ -45,27 +49,31 @@
     {
       "ts": "2026-10-26T14:50:20.774Z",
       "texto": "Ciclo 2, briefing corregido y comiteado (ac9c990): 26 pruebas de aceptación en rojo por la razón correcta, evol verify PASS. Siguiente: la persona ejecuta evol approve briefing y evol next; después spec (SPEC.md, DOMAIN.md, THREATS.md del ciclo 2) y plan por módulos M0 a M5 según el plan aprobado."
+    },
+    {
+      "ts": "2026-10-26T15:08:39.687Z",
+      "texto": "Ciclo 2 build: M0 y M1 comiteados (2ba8f41, M1 siguiente). Siguiente: M2a (src/docs/check.ts, granular.ts, requisitos.ts, comando evol docs check) con TDD; las 26 pruebas de aceptación del ciclo 2 siguen rojas hasta M2/M3. Estable evol 0.4.0 para el pipeline."
     }
   ],
   "eventos": [
     {
-      "ts": "2026-10-26T00:08:39.629Z",
-      "type": "memory-add"
-    },
-    {
-      "ts": "2026-10-26T00:08:48.692Z",
-      "type": "memory-add"
-    },
-    {
-      "ts": "2026-10-26T00:08:56.098Z",
-      "type": "memory-add"
-    },
-    {
-      "ts": "2026-10-26T00:11:04.192Z",
+      "ts": "2026-10-26T14:58:10.106Z",
       "type": "approved"
     },
     {
-      "ts": "2026-10-26T00:11:12.104Z",
+      "ts": "2026-10-26T14:58:12.192Z",
+      "type": "phase-completed"
+    },
+    {
+      "ts": "2026-10-26T14:58:34.931Z",
+      "type": "plan-interrogated"
+    },
+    {
+      "ts": "2026-10-26T15:02:29.839Z",
+      "type": "approved"
+    },
+    {
+      "ts": "2026-10-26T15:02:31.899Z",
       "type": "phase-completed"
     }
   ],
