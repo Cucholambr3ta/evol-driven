@@ -17,3 +17,5 @@
 {"ts":"2026-10-26T00:08:39.629Z","type":"memory-add","tipo":"leccion","drawer":"drawer_evol_driven_lecciones_0983ee14df6e05ba317fddca"}
 {"ts":"2026-10-26T00:08:48.692Z","type":"memory-add","tipo":"leccion","drawer":"drawer_evol_driven_lecciones_114dd59c021d545d0f984d48"}
 {"ts":"2026-10-26T00:08:56.098Z","type":"memory-add","tipo":"leccion","drawer":"drawer_evol_driven_lecciones_9772aed90f8592921c3e7d97"}
+{"ts":"2026-10-26T00:11:04.192Z","type":"approved","phase":"retro","approver":"cucholambreta","seq":5,"artifacts":2}
+{"ts":"2026-10-26T00:11:12.104Z","type":"phase-completed","phase":"retro","next":"done"}
