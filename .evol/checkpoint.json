@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "ts": "2026-10-26T16:05:22.686Z",
+  "ts": "2026-10-26T16:08:52.309Z",
   "proyecto": "evol-driven",
   "fase": "qa",
   "aprobacion": "obsoleta",
@@ -20,22 +20,20 @@
   ],
   "git": {
     "rama": "main",
-    "commit": "6d72fc8",
-    "sinCommit": [],
-    "totalSinCommit": 0,
+    "commit": "812852b",
+    "sinCommit": [
+      "M .evol/qa/security/sbom.cdx.json"
+    ],
+    "totalSinCommit": 1,
     "ultimos": [
+      "fix(qa): el índice de evidencia se llama <tema>-evidence-index.md y --estricto de evidencia queda declarado y probado",
+      "chore: checkpoint de QA",
       "chore: informe de QA",
       "fix(qa): lectura acotada y dentro de la raíz (tope total, enlaces en el camino, líneas, tablas y hallazgos), checklist según el SPEC y pruebas más estrictas",
-      "chore(qa): quita la clave de ejemplo de lecciones.md, un texto no parecido a una clave en la prueba de rutas y ajusta la línea del ignorado de verify.ts",
-      "chore: checkpoint",
-      "test: CA-145 mide el retraso del aviso contra doctor sin aviso, no el tiempo total bajo carga"
+      "chore(qa): quita la clave de ejemplo de lecciones.md, un texto no parecido a una clave en la prueba de rutas y ajusta la línea del ignorado de verify.ts"
     ]
   },
   "notas": [
-    {
-      "ts": "2026-10-25T18:02:21.021Z",
-      "texto": "M1 (CA-128 a CA-131, proyectos que no son TypeScript) construido y comiteado (64f9348). Faltan M2 a M10 de la ola 1 en fase build. Próximo paso: Paso 0 del plan (ensayo real de outputStyle/agent y permissions.deny bajo bypassPermissions en Claude Code y OpenCode, documentado en docs/design/consultas/), necesario antes de M3 a M6."
-    },
     {
       "ts": "2026-10-25T22:37:54.227Z",
       "texto": "Ola 1 build: M1-M10 completos y comiteados (CA-128 a CA-148). npm run ci queda rojo por un solo motivo: CA-145 (menos de 3s sin red) es flaky/ajustado por overhead preexistente de doctor (MemPalace+sondeo seguridad, ~2.6-2.7s antes de esta mejora); documentado en SPEC.md y anotado como m-003. evol coverage (vía dist/cli.js, NO vía el binario estable que aun no tiene estos cambios) está limpio: sin escenario ninguno, sin prueba ninguno. evol security scan encontró 5 CRITICAL y 3 HIGH que parecen falsos positivos preexistentes (hashes de skills en release.json, claves AWS EXAMPLE en fixtures, shell:true en el runner de comandos, avisos genéricos de guarddog en package.json); la persona decidió revisarlos ella misma antes de aprobar qa, no los toqué. Próximo paso: la persona corre evol verify/approve build en su terminal (bloqueará por [[COMPLETAR]] literal en tests/cli.test.ts, tests/disciplines.test.ts, tests/e2e.test.ts y tests/orchestration.test.ts: falso positivo preexistente de Ola 0, anotado como m-004) y decide cómo seguir."
@@ -71,13 +69,13 @@
     {
       "ts": "2026-10-26T16:05:22.686Z",
       "texto": "QA: revisiones de seguridad y verificador aplicadas (tope 5 MiB, symlinks en camino, líneas 8 KiB, tablas acotadas, dedupe de historias). ci verde. Espera: la persona repasa y hace evol approve qa + evol next; luego retro (lección, Ampliación 8) y release 0.5.0."
+    },
+    {
+      "ts": "2026-10-26T16:08:52.309Z",
+      "texto": "QA: índice de evidencia exige su nombre; --estricto de docs evidencia probado. Espera evol approve qa + next."
     }
   ],
   "eventos": [
-    {
-      "ts": "2026-10-26T15:34:02.689Z",
-      "type": "checkpoint"
-    },
     {
       "ts": "2026-10-26T15:47:29.418Z",
       "type": "approved"
@@ -93,6 +91,10 @@
     {
       "ts": "2026-10-26T15:55:43.422Z",
       "type": "phase-completed"
+    },
+    {
+      "ts": "2026-10-26T16:05:22.700Z",
+      "type": "checkpoint"
     }
   ],
   "traspaso": false
