@@ -134,7 +134,7 @@ const COMMANDS: Record<string, CommandSpec> = {
   },
   docs: {
     summary:
-      "Comprueba la documentación del proyecto: dominios y requisitos, con su trazabilidad (check)",
+      "Comprueba la documentación del proyecto: dominios, requisitos y dossiers, con su trazabilidad (check | evidencia)",
     load: async () => await import("./commands/docs.js"),
   },
   ciclo: {

@@ -6,18 +6,18 @@ import { comprobarDocs, PARTES } from "../docs/check.js";
 import type { DocFinding, Parte } from "../docs/check.js";
 import { out, requireProject } from "./shared.js";
 
-export const USAGE = "Uso: evol docs check [--estricto] [--json]";
+export const USAGE = "Uso: evol docs <check [--estricto] | evidencia> [--json]";
 
 interface Hallazgo extends DocFinding {
   modulo: string;
 }
 
-function check(estricto: boolean, json: boolean): number {
+function comprobar(elegidas: readonly Parte[], estricto: boolean, json: boolean): number {
   const ctx = loadContext(requireProject());
   const hallazgos: Hallazgo[] = [];
   const partes = new Set<Parte>();
   for (const m of ctx.config.modules) {
-    const r = comprobarDocs(join(ctx.root, m.root));
+    const r = comprobarDocs(join(ctx.root, m.root), elegidas);
     for (const p of r.partes) partes.add(p);
     hallazgos.push(...r.hallazgos.map((h) => ({ ...h, modulo: m.name })));
   }
@@ -29,7 +29,9 @@ function check(estricto: boolean, json: boolean): number {
     return falla ? 1 : 0;
   }
   if (partes.size === 0) {
-    out("Nada que comprobar: no hay documentación de dominio ni de requisitos en el proyecto.");
+    out(
+      `Nada que comprobar: no hay ${elegidas.length === 1 ? "investigacion/" : "documentación de dominio, de requisitos ni dossiers"} en el proyecto.`,
+    );
     return 0;
   }
   const varios = ctx.config.modules.length > 1;
@@ -55,6 +57,8 @@ export default function run(argv: string[]): Promise<number> {
     allowPositionals: true,
     options: { estricto: { type: "boolean" }, json: { type: "boolean" } },
   });
-  if (positionals[0] !== "check") throw new UserError(USAGE);
-  return Promise.resolve(check(values.estricto === true, values.json === true));
+  const accion = positionals[0];
+  if (accion !== "check" && accion !== "evidencia") throw new UserError(USAGE);
+  const elegidas: readonly Parte[] = accion === "evidencia" ? ["evidencia"] : PARTES;
+  return Promise.resolve(comprobar(elegidas, values.estricto === true, values.json === true));
 }

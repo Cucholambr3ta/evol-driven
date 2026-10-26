@@ -105,3 +105,59 @@ describe("evol docs check", () => {
     expect(salida(r)).toMatch(/proyecto/i);
   });
 });
+
+describe("evol docs evidencia", () => {
+  const indice =
+    "# I\n\n| ID | Fuente | Consultada | Clasificación | Afirma |\n| --- | --- | --- | --- | --- |\n| E-1 | https://example.org | 2026-10-20 | hecho | algo |\n";
+
+  it("sin carpeta investigacion/ dice que no hay nada que comprobar y termina bien", () => {
+    const r = cli(["docs", "evidencia"], { cwd: makeProject(DISC), env: env() });
+
+    expect(r.status, salida(r)).toBe(0);
+    expect(r.stdout).toMatch(/nada que comprobar/i);
+  });
+
+  it("un dossier consistente termina bien y un defecto sale con 1 nombrando la fuente", () => {
+    const root = makeProject(DISC);
+    write(root, "investigacion/t/t-evidence-index.md", indice);
+    write(root, "investigacion/t/a.md", "# A\n\nDice [E-1].\n");
+    const bien = cli(["docs", "evidencia"], { cwd: root, env: env() });
+    write(root, "investigacion/t/a.md", "# A\n\nDice [E-1] y [E-7].\n");
+    const mal = cli(["docs", "evidencia"], { cwd: root, env: env() });
+
+    expect(bien.status, salida(bien)).toBe(0);
+    expect(bien.stdout).toMatch(/en orden/i);
+    expect(mal.status).toBe(1);
+    expect(mal.stdout).toMatch(/^ {2}× investigacion\/t\/a\.md: .*E-7/m);
+  });
+
+  it("solo comprueba los dossiers: un árbol de dominio roto no cuenta, pero docs check lo ve todo", () => {
+    const root = makeProject(DISC);
+    write(root, "investigacion/t/t-evidence-index.md", indice);
+    write(root, "investigacion/t/a.md", "# A\n\n[E-1]\n");
+    write(root, "docs/proyecto/INDEX.md", "# I\n\n- [roto](db/x.md)\n");
+
+    const solo = cli(["docs", "evidencia"], { cwd: root, env: env() });
+    const todo = cli(["docs", "check"], { cwd: root, env: env() });
+
+    expect(solo.status, salida(solo)).toBe(0);
+    expect(todo.status).toBe(1);
+  });
+
+  it("--json devuelve las partes y los hallazgos", () => {
+    const root = makeProject(DISC);
+    write(root, "investigacion/t/t-evidence-index.md", indice);
+    write(root, "investigacion/t/a.md", "# A\n\n[E-1] [E-2]\n");
+
+    const r = cli(["docs", "evidencia", "--json"], { cwd: root, env: env() });
+
+    const datos = JSON.parse(r.stdout) as {
+      partes: string[];
+      hallazgos: { archivo: string; nivel: string }[];
+    };
+    expect(datos.partes).toEqual(["evidencia"]);
+    expect(datos.hallazgos).toEqual([
+      expect.objectContaining({ archivo: "investigacion/t/a.md", nivel: "bloqueo" }),
+    ]);
+  });
+});

@@ -27,6 +27,10 @@ describe("verificación «documentos»", () => {
     expect(() => disciplina("inventada")).toThrow();
   });
 
+  it.each(["granular", "requisitos", "evidencia"])("acepta la comprobación «%s»", (nombre) => {
+    expect(() => disciplina(nombre)).not.toThrow();
+  });
+
   it("los hallazgos de la comprobación salen con la disciplina, el archivo y el nivel de cada uno", () => {
     const root = tempDir();
     write(root, "docs/specs/SPEC.md", "# S\n");
