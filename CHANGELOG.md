@@ -1,5 +1,54 @@
 # Cambios
 
+## 0.5.0 — 2026-10-26
+
+- chore: aprobación de retro — ciclo 2 del pipeline terminado (done)
+- chore: checkpoint de retro
+- retro: lecciones del ciclo 2 y Ampliación 8 (CA-150 a CA-170)
+- chore: checkpoint
+- fix(qa): el índice de evidencia se llama <tema>-evidence-index.md y --estricto de evidencia queda declarado y probado
+- chore: checkpoint de QA
+- chore: informe de QA
+- fix(qa): lectura acotada y dentro de la raíz (tope total, enlaces en el camino, líneas, tablas y hallazgos), checklist según el SPEC y pruebas más estrictas
+- chore(qa): quita la clave de ejemplo de lecciones.md, un texto no parecido a una clave en la prueba de rutas y ajusta la línea del ignorado de verify.ts
+- chore: checkpoint
+- test: CA-145 mide el retraso del aviso contra doctor sin aviso, no el tiempo total bajo carga
+- chore: checkpoint al cerrar el build del ciclo 2
+- docs: README con evol docs y evol sprint
+- build(M4): skills granular, investigacion, reqdd y sprintdd; add con Referencias; tercera ola de enrutadores
+- chore: checkpoint tras M3 del ciclo 2
+- build(M3): cifras de 35 disciplinas en README y especificación; prueba de aprobación fija
+- build(M3): disciplinas GRANULAR, INVESTIGACION, REQDD y SPRINTDD, ADD en el perfil base y plantillas de documentación
+- build(M2d): pruebas de seguridad de los comprobadores y enlaces() lineal y acotado
+- chore: checkpoint tras M2c del ciclo 2
+- build(M2c): evol sprint — historias y sprints con su evidencia
+- chore: checkpoint tras M2b del ciclo 2
+- build(M2b): evol docs evidencia — dossiers de investigación con índice de evidencia
+- test: la prueba de nombres hostiles no usa una expresión con caracteres de control
+- build(M2a): evol docs check — documentos de dominio y requisitos
+- chore: checkpoint tras M1 del ciclo 2
+- build(M1): verificación por secciones, analizador de Markdown y lectura acotada
+- build(M0): estado «pendiente» al abrir un ciclo y campo rol en el listado
+- test: las pruebas de versión no dependen de la versión instalada
+- plan del ciclo 2: interrogación registrada
+- chore: aprobación de spec del ciclo 2 y avance a plan
+- spec y plan del ciclo 2, con la revisión de seguridad incorporada
+- chore: aprobación del briefing del ciclo 2 y avance a spec
+- chore: checkpoint del briefing del ciclo 2
+- briefing: corrige el ciclo 2 tras la revisión independiente
+- fix: prettier no revisa release/, que genera evol release
+- chore: abre el ciclo 2 (ampliación: documentación granular y evidencia)
+
+Skills:
+
+- nueva: granular
+- nueva: investigacion
+- nueva: reqdd
+- nueva: sprintdd
+- cambiada (vuelve a «sin auditar»): add
+- cambiada (vuelve a «sin auditar»): analista
+- cambiada (vuelve a «sin auditar»): arquitecto
+
 ## 0.4.0 — 2026-10-26
 
 - chore: aprobación de retro — ciclo del pipeline terminado (done)
