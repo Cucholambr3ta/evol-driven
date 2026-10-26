@@ -245,6 +245,23 @@ diario. Si la disciplina aplica a una fase que ya estaba aprobada, el pipeline *
 (la configuración es parte de lo que firma una aprobación, así que la anterior deja de valer). Las
 fases adoptadas no retroceden: nunca tuvieron aprobación. `--perfil` y `--disciplinas` no se combinan.
 
+### Documentación atómica y con evidencia
+
+Las disciplinas `GRANULAR`, `INVESTIGACION`, `REQDD` y `SPRINTDD` (y `ADD`, ahora también base) piden la
+documentación en piezas pequeñas y comprobables. Cada vínculo (documento ↔ índice, cita ↔ fuente,
+historia ↔ sprint, origen ↔ archivo) lo comprueba `evol`; todo lo que sale mal aparece en `evol verify`.
+
+```bash
+evol docs check [--estricto] [--json]   # docs/proyecto/, docs/requisitos/, investigacion/ y docs/sprints/
+evol docs evidencia [--json]            # solo los dossiers de investigacion/<tema>/
+evol sprint check [--json]              # historias y sprints; un sprint cerrado exige memoria y lecciones
+evol sprint estado [--json]             # «01  Sprint 01  3 de 5 tareas»
+```
+
+Un aviso no detiene nada (salvo con `--estricto`); un bloqueo sí. Los proyectos que ya existían no
+cambian: el perfil base nuevo solo se aplica a los que se crean después. Para activarlo en uno
+antiguo, `evol disciplines enable GRANULAR REQDD SPRINTDD INVESTIGACION`.
+
 ### Biblioteca de skills
 
 Las skills (carpetas con un `SKILL.md`) viven en `~/.config/evol/skills/<nombre>/`, una sola para todos
