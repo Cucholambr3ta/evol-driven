@@ -3,7 +3,7 @@
 <!-- evol:security-scan:inicio -->
 ## Escaneo de seguridad
 
-Generado por `evol security scan` el 2026-10-26T15:57:15.215Z. Esta sección se reescribe en cada escaneo; lo que escribas fuera de ella se conserva.
+Generado por `evol security scan` el 2026-10-26T16:04:35.325Z. Esta sección se reescribe en cada escaneo; lo que escribas fuera de ella se conserva.
 
 Abiertos: 0 CRITICAL, 0 HIGH, 3 MEDIUM, 24 LOW. Ignorados vigentes: 39.
 
