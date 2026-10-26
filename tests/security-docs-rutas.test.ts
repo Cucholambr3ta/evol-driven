@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { comprobarDocs } from "../src/docs/check.js";
 import { tempDir, write } from "./helpers.js";
 
-const SECRETO = "contenido-fuera-de-la-raiz-9f3a";
+const SECRETO = "texto reservado fuera de la raiz";
 const linea = (n: number): string => `Línea ${n} del subdominio.`;
 const cuerpo = Array.from({ length: 16 }, (_, i) => linea(i)).join("\n");
 
