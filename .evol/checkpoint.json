@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "ts": "2026-10-26T15:21:11.577Z",
+  "ts": "2026-10-26T15:29:35.589Z",
   "proyecto": "evol-driven",
   "fase": "build",
   "aprobacion": "obsoleta",
@@ -11,22 +11,22 @@
     "  [app] SDD — Spec-Driven Development",
     "      ✓ docs/specs/SPEC.md  (1 encontrado(s), ≥1)",
     "  [app] TDD — Test-Driven Development",
-    "      ✓ tests/*.test.ts  (55 encontrado(s), ≥1)",
+    "      ✓ tests/*.test.ts  (60 encontrado(s), ≥1)",
     "  [app] STDD — Security-Test-Driven Development",
-    "      ✓ tests/security*.test.ts  (2 encontrado(s), ≥1)",
+    "      ✓ tests/security*.test.ts  (7 encontrado(s), ≥1)",
     "Aprobación de «build»: obsoleta (los artefactos cambiaron)"
   ],
   "git": {
     "rama": "main",
-    "commit": "cfeff80",
+    "commit": "6b49900",
     "sinCommit": [],
     "totalSinCommit": 0,
     "ultimos": [
-      "build(M2c): evol sprint — historias y sprints con su evidencia",
-      "chore: checkpoint tras M2b del ciclo 2",
-      "build(M2b): evol docs evidencia — dossiers de investigación con índice de evidencia",
-      "test: la prueba de nombres hostiles no usa una expresión con caracteres de control",
-      "build(M2a): evol docs check — documentos de dominio y requisitos"
+      "build(M3): cifras de 35 disciplinas en README y especificación; prueba de aprobación fija",
+      "build(M3): disciplinas GRANULAR, INVESTIGACION, REQDD y SPRINTDD, ADD en el perfil base y plantillas de documentación",
+      "build(M2d): pruebas de seguridad de los comprobadores y enlaces() lineal y acotado",
+      "chore: checkpoint tras M2c del ciclo 2",
+      "build(M2c): evol sprint — historias y sprints con su evidencia"
     ]
   },
   "notas": [
@@ -57,13 +57,13 @@
     {
       "ts": "2026-10-26T15:21:11.577Z",
       "texto": "Ciclo 2 build: M2c comiteado (sprints). Siguiente: pruebas de seguridad docs-*.security, luego M3 (disciplinas GRANULAR/INVESTIGACION/REQDD/SPRINTDD, ADD base, perfiles 14, plantillas, cifras 35), M4 skills, M5 README."
+    },
+    {
+      "ts": "2026-10-26T15:29:35.589Z",
+      "texto": "Ciclo 2 build: M2c, M2d (seguridad), M3 comiteados. Todas las pruebas de aceptación verdes salvo CA-145 (lenta bajo carga). Siguiente: M4 (skills granular, investigacion, reqdd, sprintdd con evals + manifest + tercera ola de enrutadores; add con Referencias), M5 (README comandos docs/sprint, coverage, npm run ci)."
     }
   ],
   "eventos": [
-    {
-      "ts": "2026-10-26T14:58:34.931Z",
-      "type": "plan-interrogated"
-    },
     {
       "ts": "2026-10-26T15:02:29.839Z",
       "type": "approved"
@@ -78,6 +78,10 @@
     },
     {
       "ts": "2026-10-26T15:18:39.650Z",
+      "type": "checkpoint"
+    },
+    {
+      "ts": "2026-10-26T15:21:11.590Z",
       "type": "checkpoint"
     }
   ],
