@@ -1,37 +1,32 @@
 {
   "version": 1,
-  "ts": "2026-10-25T22:37:54.227Z",
+  "ts": "2026-10-26T14:50:20.774Z",
   "proyecto": "evol-driven",
-  "fase": "build",
-  "aprobacion": "pendiente",
+  "fase": "briefing",
+  "aprobacion": "obsoleta",
   "estado": [
     "Proyecto: evol-driven",
-    "Pipeline: ✓briefing → ✓spec → ✓plan → build → qa → retro",
-    "Fase actual: build",
-    "  [app] SDD — Spec-Driven Development",
-    "      ✓ docs/specs/SPEC.md  (1 encontrado(s), ≥1)",
-    "  [app] TDD — Test-Driven Development",
-    "      ✗ tests/*.test.ts  (46 encontrado(s), ≥1, 4 con [[COMPLETAR]])",
-    "  [app] STDD — Security-Test-Driven Development",
-    "      ✓ tests/security*.test.ts  (2 encontrado(s), ≥1)",
-    "Aprobación de «build»: pendiente"
+    "Pipeline: briefing → spec → plan → build → qa → retro",
+    "Fase actual: briefing",
+    "  [app] FDD — Feature-Driven Development",
+    "      ✓ docs/features/FEATURES.md  (1 encontrado(s), ≥1)",
+    "  [app] BDD — Behavior-Driven Development",
+    "      ✓ tests/features/*.feature  (16 encontrado(s), ≥1)",
+    "  [app] ATDD — Acceptance Test-Driven Development",
+    "      ✓ tests/acceptance/*.acceptance.test.ts  (16 encontrado(s), ≥1)",
+    "Aprobación de «briefing»: obsoleta (los artefactos cambiaron)"
   ],
   "git": {
-    "rama": "ola-1/evol-os-seguridad-aislamiento",
-    "commit": "33dad78",
-    "sinCommit": [
-      "M .evol/qa/QA_REPORT.md",
-      "M .evol/qa/security/sbom.cdx.json",
-      "M .evol/qa/security/ultimo.json",
-      "M docs/specs/SPEC.md"
-    ],
-    "totalSinCommit": 4,
+    "rama": "main",
+    "commit": "ac9c990",
+    "sinCommit": [],
+    "totalSinCommit": 0,
     "ultimos": [
-      "docs: reserva CA-145 (presupuesto de 3 s de doctor es ajustado) y m-003",
-      "build(M10): instrucciones según el repositorio (CA-148)",
-      "build(M9): «evol ciclo nuevo» para seguir en un segundo ciclo (CA-146, CA-147)",
-      "build(M8): acorta a 1,5 s el presupuesto de red del aviso de versión",
-      "build(M8): aviso de versión nueva en doctor (CA-145)"
+      "briefing: corrige el ciclo 2 tras la revisión independiente",
+      "fix: prettier no revisa release/, que genera evol release",
+      "chore: abre el ciclo 2 (ampliación: documentación granular y evidencia)",
+      "release: v0.4.0",
+      "chore: aprobación de retro — ciclo del pipeline terminado (done)"
     ]
   },
   "notas": [
@@ -46,28 +41,32 @@
     {
       "ts": "2026-10-25T22:37:54.227Z",
       "texto": "Ola 1 build: M1-M10 completos y comiteados (CA-128 a CA-148). npm run ci queda rojo por un solo motivo: CA-145 (menos de 3s sin red) es flaky/ajustado por overhead preexistente de doctor (MemPalace+sondeo seguridad, ~2.6-2.7s antes de esta mejora); documentado en SPEC.md y anotado como m-003. evol coverage (vía dist/cli.js, NO vía el binario estable que aun no tiene estos cambios) está limpio: sin escenario ninguno, sin prueba ninguno. evol security scan encontró 5 CRITICAL y 3 HIGH que parecen falsos positivos preexistentes (hashes de skills en release.json, claves AWS EXAMPLE en fixtures, shell:true en el runner de comandos, avisos genéricos de guarddog en package.json); la persona decidió revisarlos ella misma antes de aprobar qa, no los toqué. Próximo paso: la persona corre evol verify/approve build en su terminal (bloqueará por [[COMPLETAR]] literal en tests/cli.test.ts, tests/disciplines.test.ts, tests/e2e.test.ts y tests/orchestration.test.ts: falso positivo preexistente de Ola 0, anotado como m-004) y decide cómo seguir."
+    },
+    {
+      "ts": "2026-10-26T14:50:20.774Z",
+      "texto": "Ciclo 2, briefing corregido y comiteado (ac9c990): 26 pruebas de aceptación en rojo por la razón correcta, evol verify PASS. Siguiente: la persona ejecuta evol approve briefing y evol next; después spec (SPEC.md, DOMAIN.md, THREATS.md del ciclo 2) y plan por módulos M0 a M5 según el plan aprobado."
     }
   ],
   "eventos": [
     {
-      "ts": "2026-10-25T10:21:52.518Z",
-      "type": "phase-completed"
+      "ts": "2026-10-26T00:08:39.629Z",
+      "type": "memory-add"
     },
     {
-      "ts": "2026-10-25T15:45:57.729Z",
-      "type": "plan-interrogated"
+      "ts": "2026-10-26T00:08:48.692Z",
+      "type": "memory-add"
     },
     {
-      "ts": "2026-10-25T17:44:38.688Z",
+      "ts": "2026-10-26T00:08:56.098Z",
+      "type": "memory-add"
+    },
+    {
+      "ts": "2026-10-26T00:11:04.192Z",
       "type": "approved"
     },
     {
-      "ts": "2026-10-25T17:44:40.231Z",
+      "ts": "2026-10-26T00:11:12.104Z",
       "type": "phase-completed"
-    },
-    {
-      "ts": "2026-10-25T18:02:21.033Z",
-      "type": "checkpoint"
     }
   ],
   "traspaso": false
