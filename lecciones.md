@@ -11,3 +11,19 @@ evol coverage/evol verify, cuando se invocan como evol a secas, usan la copia es
 ### Citar el valor de un secreto de ejemplo en su propio motivo de ignorado genera un hallazgo nuevo — 2026-10-25
 
 Al ignorar en .evol/security-ignore.json un hallazgo de gitleaks sobre una clave AWS de ejemplo («la clave de ejemplo de AWS», usada a propósito en dos pruebas), el primer intento citó el valor exacto de la clave dentro del campo motivo, para explicar por qué era inofensiva. El siguiente escaneo detectó esa misma clave dentro del propio archivo de ignorados (y, encadenado, dentro del reporte de qa que guarda ese motivo), como un hallazgo nuevo sin ignorar. La explicación de un secreto de ejemplo no debe repetir el valor exacto: alcanza con decir qué es y por qué no es real.
+
+### Un comprobador que lee documentos ajenos necesita pruebas con entradas hostiles desde el primer día — 2026-10-26
+
+Los comprobadores de `evol docs` pasaron sus pruebas de aceptación y unitarias, y aun así tenían defectos que solo aparecieron al probar entradas adversas: una línea de corchetes volvía cuadrático y agotaba la memoria a `enlaces()`, una tabla con decenas de miles de columnas lo colgaba, y un enlace simbólico en una carpeta del camino (no en el archivo) se seguía fuera de la raíz. La revisión independiente añadió el tope total de lectura que el SPEC exigía y el código no tenía. Para el próximo comprobador que lea contenido de la persona: escribir primero las pruebas de límites (tamaño, líneas, tablas, enlaces simbólicos en cualquier componente) y comprobar cada regla del SPEC contra una prueba antes de dar el módulo por terminado.
+
+### Un límite de tiempo absoluto en una prueba falla de forma intermitente bajo carga — 2026-10-26
+
+CA-145 pedía que `evol doctor` sin red terminara en menos de 6 s. A solas tarda unos 2 s, pero dentro de `npm run ci` (la suite en paralelo) llegó a 6,2 s y bloqueó la aprobación de build. Lo que el criterio limita es el retraso que añade el aviso: la prueba ahora lo mide contra el mismo `doctor` con el aviso apagado. Regla: una prueba de rendimiento compara contra una línea base medida en la misma ejecución, no contra un número fijo.
+
+### Comprobadores de documentos: pruebas hostiles primero — 2026-10-26
+
+Los comprobadores de evol docs pasaron aceptación y unitarias pero tenían defectos reales (enlaces() cuadrático, tablas anchas sin tope, enlaces simbólicos en carpetas del camino, tope total de 5 MiB ausente). Escribir antes las pruebas de límites y de enlaces simbólicos en cualquier componente de la ruta.
+
+### Pruebas de rendimiento contra una base medida — 2026-10-26
+
+CA-145 (doctor sin red < 6 s) fallaba de forma intermitente bajo la carga de npm run ci; se mide el retraso del aviso contra doctor con el aviso apagado, no un tiempo absoluto.

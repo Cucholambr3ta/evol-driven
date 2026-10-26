@@ -1806,3 +1806,78 @@ con `evol release`. Una skill cambiada llega sin aprobar.
 - Las olas 2 y 3 del plan (`~/.claude/plans/ok-mientras-revisa-el-glimmering-puddle.md`) quedan sin empezar: registro de propiedad, retirar lo que
   generaban versiones anteriores, checkpoint automático, profundidad de revisión según el riesgo y recibos del auditor (ola 2); modo ligero, banco
   determinista y delegación medida (ola 3).
+
+## Ampliación 8: documentación atómica y con evidencia
+
+> **Estado: CONSTRUIDA (2026-10-26).** Ciclo 2 del propio proyecto (`evol ciclo nuevo`). Inspirada en `evol-system` (Evol-DD) y en los dossiers de
+> `Evol-OS/investigacion/`: allí la documentación atómica, las fuentes y la trazabilidad existían en el esquema pero estaban vacías en los archivos
+> revisados. Aquí cada vínculo (documento ↔ índice, origen ↔ archivo, cita ↔ fuente, historia ↔ sprint) lo comprueba `evol`, y el incumplimiento
+> aparece en `evol docs check` y en `evol verify`.
+
+### Qué trae
+
+- **Documentación atómica por dominio** (CA-150 a CA-154, disciplina `GRANULAR`): una carpeta por dominio y un documento por subdominio en
+  `docs/proyecto/`, con índice (`INDEX.md`), línea `Origen:` hacia un archivo que existe y un mínimo de 15 líneas de contenido (aviso, no bloqueo).
+- **Dossiers con índice de evidencia** (CA-157 a CA-160, disciplina `INVESTIGACION`): `investigacion/<tema>/<tema>-evidence-index.md` con fuentes `E-n`,
+  fecha de consulta real y no futura, y clasificación hecho, supuesto o contradicción; cada cita `[E-n]` debe existir y una fuente que nadie cita avisa.
+- **Requisitos no funcionales, limitaciones y glosario** (CA-161 a CA-164, disciplina `REQDD`): tabla NFR con métrica, umbral y validación; limitaciones
+  `Ln` con Razón, Impacto y Roadmap; términos sin repetir.
+- **ADR enriquecido** (CA-165, CA-166, `ADD` pasa a base): avisa de las secciones que faltan, entre ellas «Referencias», que enlaza la decisión con su
+  implementación y sus pruebas.
+- **Historias y sprints** (CA-167 a CA-170, disciplina `SPRINTDD`): `docs/historias/HU-n/` con cuatro documentos, `docs/sprints/INDEX.json` validado
+  con esquema estricto, `evol sprint check|estado`, y un sprint con todas sus tareas marcadas que exige su memoria y sus lecciones.
+- **Avisos que no bloquean** (CA-155): las verificaciones de disciplina ganan el nivel «aviso» (WARN); con `--estricto` el aviso hace fallar.
+- **Perfil base de 14 disciplinas** (CA-156): ADD, GRANULAR, INVESTIGACION, REQDD y SPRINTDD entran en el perfil base (y en api, web y erp, que lo
+  heredan); `lib` y `script` no cambian y los proyectos existentes conservan su lista. Total: 35 disciplinas, 64 skills.
+
+### Criterios de aceptación
+
+| #   | Criterio                                                                                                                                                                                                                                                                    | Prueba                                                      |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| 150 | `evol docs check` termina bien sobre un árbol `docs/proyecto/` consistente: cada documento de dominio aparece enlazado en `docs/proyecto/INDEX.md`, cada enlace del índice apunta a un documento que existe y cada documento declara su `Origen:` en un archivo que existe. | `tests/acceptance/documentacion-atomica.acceptance.test.ts` |
+| 151 | `evol docs check` falla y nombra, a la vez, un documento que el índice no enlaza y un enlace del índice que apunta a algo que no existe (trazabilidad en las dos direcciones).                                                                                              | `tests/acceptance/documentacion-atomica.acceptance.test.ts` |
+| 152 | `evol docs check` falla y nombra el documento de dominio que no declara `Origen:`, y el que lo declara hacia un archivo que no existe (nombrando también esa ruta).                                                                                                         | `tests/acceptance/documentacion-atomica.acceptance.test.ts` |
+| 153 | la disciplina `GRANULAR` figura en `evol disciplines list --json` con el rol «arquitecto» y la fase «spec»; el listado incluye ahora el campo `rol` de cada disciplina.                                                                                                     | `tests/acceptance/documentacion-atomica.acceptance.test.ts` |
+| 154 | `evol docs check` avisa, sin fallar, de un documento de dominio con menos de 15 líneas de contenido, y solo de ese; con `--estricto` el aviso hace fallar el comando.                                                                                                       | `tests/acceptance/adopcion-gradual.acceptance.test.ts`      |
+| 155 | un aviso no bloquea: con solo avisos pendientes (un ADR sin «Referencias»), `evol verify` da WARN y la fase se puede aprobar.                                                                                                                                               | `tests/acceptance/adopcion-gradual.acceptance.test.ts`      |
+| 156 | un proyecto nuevo creado con el perfil base trae 14 disciplinas (las 9 de siempre más `ADD`, `GRANULAR`, `INVESTIGACION`, `REQDD` y `SPRINTDD`); los perfiles `lib` y `script` y un proyecto creado antes conservan su lista.                                               | `tests/acceptance/adopcion-gradual.acceptance.test.ts`      |
+| 157 | `evol docs evidencia` termina bien sobre un dossier consistente: cada fuente tiene ID `E-n`, fecha de consulta y clasificación válidas, y toda cita `[E-n]` del tema existe en su índice.                                                                                   | `tests/acceptance/dossier-investigacion.acceptance.test.ts` |
+| 158 | `evol docs evidencia` falla y nombra una fuente sin fecha de consulta y otra con una clasificación fuera de hecho, supuesto o contradicción, y no nombra las fuentes válidas.                                                                                               | `tests/acceptance/dossier-investigacion.acceptance.test.ts` |
+| 159 | `evol docs evidencia` falla y nombra una cita `[E-n]` que no existe en el índice del tema.                                                                                                                                                                                  | `tests/acceptance/dossier-investigacion.acceptance.test.ts` |
+| 160 | con la disciplina `INVESTIGACION` activa, `evol verify` da BLOCK nombrando el índice de evidencia cuando un tema tiene auditoría pero no índice, y PASS cuando ambos son consistentes; la disciplina figura con el rol «analista».                                          | `tests/acceptance/dossier-investigacion.acceptance.test.ts` |
+| 161 | `evol docs check` falla y nombra el requisito no funcional al que le falta el umbral y el que carece de validación, cada uno por su motivo, y no nombra los completos.                                                                                                      | `tests/acceptance/requisitos-atomicos.acceptance.test.ts`   |
+| 162 | `evol docs check` falla y nombra la limitación conocida a la que le falta un campo, diciendo solo el campo que falta (`Razón`, `Impacto` o `Roadmap`), y no nombra las completas.                                                                                           | `tests/acceptance/requisitos-atomicos.acceptance.test.ts`   |
+| 163 | `evol docs check` falla y nombra el término del glosario definido más de una vez, y no nombra los que aparecen una sola vez.                                                                                                                                                | `tests/acceptance/requisitos-atomicos.acceptance.test.ts`   |
+| 164 | la disciplina `REQDD` figura en `evol disciplines list --json` con el rol «analista» y la fase «spec».                                                                                                                                                                      | `tests/acceptance/requisitos-atomicos.acceptance.test.ts`   |
+| 165 | con la disciplina `ADD` activa, `evol verify` avisa (WARN) de un ADR sin la sección «Referencias» y le pide enlazar la decisión con su implementación y sus pruebas.                                                                                                        | `tests/acceptance/adr-con-referencias.acceptance.test.ts`   |
+| 166 | con la disciplina `ADD` activa, `evol verify` avisa por separado de un ADR sin la sección «Opciones» y de otro sin «Consecuencias», cada uno solo por lo que le falta, y no nombra un ADR completo.                                                                         | `tests/acceptance/adr-con-referencias.acceptance.test.ts`   |
+| 167 | `evol sprint check` falla y nombra la historia de `docs/sprints/INDEX.json` que no existe en `docs/historias/`.                                                                                                                                                             | `tests/acceptance/historias-sprints.acceptance.test.ts`     |
+| 168 | `evol sprint estado` informa, por sprint, de cuántas tareas de los checklists de sus historias están marcadas sobre el total (por ejemplo «3 de 5»).                                                                                                                        | `tests/acceptance/historias-sprints.acceptance.test.ts`     |
+| 169 | `evol sprint check` reporta como incompleto, nombrando `lecciones.md` y `memoria.md`, el sprint con todas sus tareas marcadas que no los tiene, y no exige nada a un sprint abierto.                                                                                        | `tests/acceptance/historias-sprints.acceptance.test.ts`     |
+| 170 | la disciplina `SPRINTDD` figura en `evol disciplines list --json` con el rol «analista» y la fase «plan».                                                                                                                                                                   | `tests/acceptance/historias-sprints.acceptance.test.ts`     |
+
+### Decisiones y lo que se aprendió construyéndola
+
+- **Lectura acotada y dentro de la raíz** (reglas comunes de `docs/specs/SPEC.md`): cada comprobador lee por un lector único que resuelve la ruta con
+  `realpath` dentro de la raíz del módulo, abre con `O_NOFOLLOW`, corta cada línea a 8 KiB, descarta tablas de más de 50 columnas o 2000 filas, limita a
+  1 MiB por archivo, 500 documentos y 5 MiB por parte, y recorta a 200 los hallazgos. Los nombres que aparecen en los mensajes se sanean y el contenido
+  de los documentos nunca se cita. Todo lo que lee un comprobador es un artefacto de su disciplina, para que la aprobación lo fije.
+- **Las pruebas con entradas hostiles encontraron defectos reales** que las de aceptación no veían: `enlaces()` era cuadrático (y agotaba la memoria)
+  con una línea de corchetes, una tabla ancha dejaba el proceso colgado, y un enlace simbólico en una carpeta del camino (no solo en el archivo) se
+  seguía. La revisión independiente añadió el tope total de lectura, que faltaba.
+- **Las disciplinas con comprobación de documentos no admiten remapear sus rutas** (L1 del SPEC): se rechaza con un mensaje claro en vez de dar un PASS
+  falso «nada que comprobar».
+- **CA-145 pasó a medir el retraso del aviso**, no el tiempo total de `doctor`, comparado con el mismo `doctor` con el aviso apagado: un límite de
+  tiempo absoluto fallaba de forma intermitente dentro de `npm run ci` por la carga de la máquina (a solas, `doctor` tarda unos 2 s).
+- **El índice de evidencia exige el nombre `<tema>-evidence-index.md`**, y `evol docs evidencia --estricto` hace fallar los avisos igual que
+  `evol docs check`.
+- **Skills:** `granular`, `investigacion`, `reqdd` y `sprintdd` son nuevas; `add` gana la sección «Referencias» y los roles `analista` y `arquitecto`
+  nombran las disciplinas nuevas. Las evaluaciones de la segunda ola quedan congeladas en 60 skills y las cuatro nuevas forman una tercera ola con
+  enrutador de 64. Las tres skills cambiadas y las cuatro nuevas hay que aprobarlas de nuevo tras instalar.
+
+### Pendiente de esta ampliación
+
+- El `Origen:` de un documento solo se comprueba por existencia; no se verifica que el `CA-n` citado exista en el SPEC.
+- Las olas 2 y 3 del plan anterior siguen sin empezar (registro de propiedad, checkpoint automático, profundidad de revisión, modo ligero, banco
+  determinista, delegación medida).
+- Los ignorados de `evol security scan` caducan el 2027-10-25.
