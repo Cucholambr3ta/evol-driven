@@ -1,9 +1,9 @@
 {
   "version": 1,
-  "ts": "2026-10-26T15:34:02.676Z",
+  "ts": "2026-10-26T15:51:46.668Z",
   "proyecto": "evol-driven",
   "fase": "build",
-  "aprobacion": "obsoleta",
+  "aprobacion": "vigente",
   "estado": [
     "Proyecto: evol-driven",
     "Pipeline: ✓briefing → ✓spec → ✓plan → build → qa → retro",
@@ -14,19 +14,22 @@
     "      ✓ tests/*.test.ts  (60 encontrado(s), ≥1)",
     "  [app] STDD — Security-Test-Driven Development",
     "      ✓ tests/security*.test.ts  (7 encontrado(s), ≥1)",
-    "Aprobación de «build»: obsoleta (los artefactos cambiaron)"
+    "Aprobación de «build»: vigente"
   ],
   "git": {
     "rama": "main",
-    "commit": "12a0b6d",
-    "sinCommit": [],
-    "totalSinCommit": 0,
+    "commit": "2d7d1d3",
+    "sinCommit": [
+      "M .evol/gate-log.jsonl",
+      "M .evol/journal.jsonl"
+    ],
+    "totalSinCommit": 2,
     "ultimos": [
+      "test: CA-145 mide el retraso del aviso contra doctor sin aviso, no el tiempo total bajo carga",
+      "chore: checkpoint al cerrar el build del ciclo 2",
       "docs: README con evol docs y evol sprint",
       "build(M4): skills granular, investigacion, reqdd y sprintdd; add con Referencias; tercera ola de enrutadores",
-      "chore: checkpoint tras M3 del ciclo 2",
-      "build(M3): cifras de 35 disciplinas en README y especificación; prueba de aprobación fija",
-      "build(M3): disciplinas GRANULAR, INVESTIGACION, REQDD y SPRINTDD, ADD en el perfil base y plantillas de documentación"
+      "chore: checkpoint tras M3 del ciclo 2"
     ]
   },
   "notas": [
@@ -65,17 +68,13 @@
     {
       "ts": "2026-10-26T15:34:02.676Z",
       "texto": "Ciclo 2 build COMPLETO: M0-M5 comiteados, npm run ci verde (1430 pruebas), evol verify PASS. Espera la persona: evol approve build + evol next. Luego QA (evol security scan, evol coverage, revisión independiente verificador/seguridad), retro (lección, Ampliación 8 en ESPECIFICACION.md), release 0.5.0, y que la persona reapruebe skills (add, analista, arquitecto + 4 nuevas)."
+    },
+    {
+      "ts": "2026-10-26T15:51:46.668Z",
+      "texto": "CA-145 hecho robusto (retraso vs base). Build listo otra vez: la persona repite evol approve build + evol next."
     }
   ],
   "eventos": [
-    {
-      "ts": "2026-10-26T15:02:31.899Z",
-      "type": "phase-completed"
-    },
-    {
-      "ts": "2026-10-26T15:08:39.699Z",
-      "type": "checkpoint"
-    },
     {
       "ts": "2026-10-26T15:18:39.650Z",
       "type": "checkpoint"
@@ -87,6 +86,14 @@
     {
       "ts": "2026-10-26T15:29:35.602Z",
       "type": "checkpoint"
+    },
+    {
+      "ts": "2026-10-26T15:34:02.689Z",
+      "type": "checkpoint"
+    },
+    {
+      "ts": "2026-10-26T15:47:29.418Z",
+      "type": "approved"
     }
   ],
   "traspaso": false
