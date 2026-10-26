@@ -44,6 +44,16 @@ const VerificationSchema = z.discriminatedUnion("tipo", [
     ...optionalPhases,
   }),
   z.object({ tipo: z.literal("escenarios"), ...optionalPhases }),
+  /** Each document matching `patron` must have a heading for every section; `nivel: "aviso"` only warns. */
+  z.object({
+    tipo: z.literal("secciones"),
+    patron: z.string().min(1),
+    secciones: z
+      .array(z.object({ nombre: z.string().min(1), motivo: z.string().min(1).optional() }))
+      .min(1),
+    nivel: z.enum(["bloqueo", "aviso"]).optional(),
+    ...optionalPhases,
+  }),
   z.object({ tipo: z.literal("sqlPar"), base: z.string().min(1), ...optionalPhases }),
   z.object({ tipo: z.literal("sinCriticos"), archivo: z.string().min(1), ...optionalPhases }),
   z.object({ tipo: z.literal("escaneoSeguridad"), ...optionalPhases }),
@@ -144,6 +154,7 @@ export function artifactPaths(registry: DisciplineRegistry, ids: string[]): Set<
     for (const a of d.artefactos) paths.add(a.patron);
     for (const v of d.verificaciones) {
       if (v.tipo === "contiene" || v.tipo === "sinCriticos") paths.add(v.archivo);
+      if (v.tipo === "secciones") paths.add(v.patron);
       if (v.tipo === "sqlPar") paths.add(v.base);
     }
   }
@@ -189,6 +200,8 @@ export function resolveDiscipline(d: Discipline, mod: ModuleOverrides): Discipli
           return { ...v, archivo: move(v.archivo) };
         case "sqlPar":
           return { ...v, base: move(v.base) };
+        case "secciones":
+          return { ...v, patron: move(v.patron) };
         case "comando":
           return command ? { ...v, comando: command } : v;
         default:

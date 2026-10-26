@@ -1,0 +1,120 @@
+import { spawnSync } from "node:child_process";
+import { mkdirSync, symlinkSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { describe, expect, it } from "vitest";
+import { TOPE_ARCHIVO, leerDocumento, nombreSeguro } from "../src/docs/lectura.js";
+import { tempDir, write } from "./helpers.js";
+
+describe("leerDocumento", () => {
+  it("lee un archivo regular", () => {
+    const root = tempDir();
+    write(root, "a.md", "# Hola\nñandú\n");
+
+    expect(leerDocumento(join(root, "a.md"))).toEqual({ ok: true, texto: "# Hola\nñandú\n" });
+  });
+
+  it("lee un archivo del tamaño exacto del tope y rechaza uno de un byte más", () => {
+    const root = tempDir();
+    write(root, "justo.md", "x".repeat(TOPE_ARCHIVO));
+    write(root, "pasado.md", "x".repeat(TOPE_ARCHIVO + 1));
+
+    expect(leerDocumento(join(root, "justo.md")).ok).toBe(true);
+    expect(leerDocumento(join(root, "pasado.md"))).toMatchObject({
+      ok: false,
+      motivo: expect.stringMatching(/demasiado grande/),
+    });
+  });
+
+  it("no sigue un enlace simbólico, ni a un archivo de dentro ni a uno de fuera", () => {
+    const root = tempDir();
+    const fuera = tempDir();
+    write(fuera, "secreto.md", "no debe leerse");
+    write(root, "real.md", "dentro");
+    symlinkSync(join(fuera, "secreto.md"), join(root, "enlace-fuera.md"));
+    symlinkSync(join(root, "real.md"), join(root, "enlace-dentro.md"));
+
+    for (const nombre of ["enlace-fuera.md", "enlace-dentro.md"]) {
+      const r = leerDocumento(join(root, nombre));
+      expect(r.ok, nombre).toBe(false);
+      expect(JSON.stringify(r), nombre).not.toContain("no debe leerse");
+    }
+  });
+
+  it("rechaza una carpeta", () => {
+    const root = tempDir();
+    mkdirSync(join(root, "carpeta"));
+
+    expect(leerDocumento(join(root, "carpeta"))).toMatchObject({ ok: false });
+  });
+
+  it("rechaza una FIFO sin quedarse esperando", () => {
+    const root = tempDir();
+    const fifo = join(root, "tuberia.md");
+    const hecho = spawnSync("mkfifo", [fifo]);
+    expect(hecho.status).toBe(0);
+
+    expect(leerDocumento(fifo)).toMatchObject({ ok: false });
+  });
+
+  it("un archivo que no existe es un hallazgo, no una excepción", () => {
+    const r = leerDocumento(join(tempDir(), "no-existe.md"));
+
+    expect(r).toMatchObject({ ok: false, motivo: expect.stringMatching(/no se puede leer/) });
+  });
+
+  it("los bytes que no son UTF-8 se reemplazan en vez de lanzar", () => {
+    const root = tempDir();
+    writeFileSync(join(root, "roto.md"), Buffer.from([0x61, 0xff, 0xfe, 0x62]));
+
+    const r = leerDocumento(join(root, "roto.md"));
+
+    expect(r).toMatchObject({ ok: true });
+    expect(r.ok && r.texto.startsWith("a") && r.texto.endsWith("b")).toBe(true);
+  });
+
+  it("el motivo no incluye la ruta ni el contenido", () => {
+    const root = tempDir();
+    write(root, "enorme.md", "SECRETO".repeat(TOPE_ARCHIVO));
+
+    const r = leerDocumento(join(root, "enorme.md"));
+
+    expect(JSON.stringify(r)).not.toContain("SECRETO");
+    expect(JSON.stringify(r)).not.toContain(root);
+  });
+});
+
+describe("nombreSeguro", () => {
+  it("deja intacto un nombre normal, con tildes y espacios", () => {
+    expect(nombreSeguro("docs/proyecto/db/esquemas ñandú.md")).toBe(
+      "docs/proyecto/db/esquemas ñandú.md",
+    );
+  });
+
+  it("quita las secuencias de color y de control de la terminal", () => {
+    expect(nombreSeguro("\u001b[31mrojo\u001b[0m.md")).toBe("rojo.md");
+    expect(nombreSeguro("\u001b]0;titulo falso\u0007a.md")).toBe("a.md");
+  });
+
+  it("sustituye saltos de línea y otros caracteres de control por «?»", () => {
+    expect(nombreSeguro("a\nb\rc\td\u0000e\u007ff")).toBe("a?b?c?d?e?f");
+  });
+
+  it("sustituye las marcas bidireccionales que invierten el texto", () => {
+    expect(nombreSeguro("a\u202eb\u2066c.md")).toBe("a?b?c.md");
+  });
+
+  it("trunca a 80 caracteres terminando en «…»", () => {
+    const largo = nombreSeguro("x".repeat(200));
+
+    expect([...largo]).toHaveLength(80);
+    expect(largo.endsWith("…")).toBe(true);
+    expect(nombreSeguro("x".repeat(80))).toBe("x".repeat(80));
+  });
+
+  it("no parte un carácter fuera del plano básico al truncar", () => {
+    const largo = nombreSeguro("😀".repeat(100));
+
+    expect([...largo]).toHaveLength(80);
+    expect(largo).not.toContain("\ufffd");
+  });
+});

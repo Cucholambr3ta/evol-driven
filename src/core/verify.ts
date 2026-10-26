@@ -5,6 +5,8 @@ import YAML from "yaml";
 import type { Artifact, Discipline, Format } from "./disciplines.js";
 import { appliesIn, verificationAppliesIn } from "./disciplines.js";
 import type { Phase } from "./phases.js";
+import { encabezados, normalizar } from "../docs/markdown.js";
+import { leerDocumento, nombreSeguro } from "../docs/lectura.js";
 import { blockers, scan } from "../security/scan.js";
 
 export interface Finding {
@@ -113,10 +115,11 @@ export function validateFormat(format: Format, content: string): string | null {
 }
 
 function checkArtifact(artifact: Artifact, ctx: VerifyContext, d: Discipline): Finding[] {
-  const finding = (mensaje: string): Finding => ({
+  const finding = (mensaje: string, nivel?: "bloqueo" | "aviso"): Finding => ({
     modulo: ctx.moduleName,
     disciplina: d.id,
     mensaje,
+    ...(nivel ? { nivel } : {}),
   });
   const files = matchFiles(artifact.patron, ctx.moduleRoot);
   const findings: Finding[] = [];
@@ -140,12 +143,18 @@ function checkArtifact(artifact: Artifact, ctx: VerifyContext, d: Discipline): F
 const CRITICAL_OPEN = /^\s*[-*]\s*\[ \]\s*.*\b(CRITICAL|CR[IÍ]TIC[OA])\b/im;
 
 /** Verifies one discipline for one module in one phase. Returns the problems found. */
+/** A verification type that no `case` handles would verify nothing: this makes that a compile error. */
+function sinCaso(v: never): never {
+  throw new Error(`verificación sin implementar: ${JSON.stringify(v)}`);
+}
+
 export function verifyDiscipline(d: Discipline, ctx: VerifyContext): Finding[] {
   if (!appliesIn(d, ctx.phase)) return [];
-  const finding = (mensaje: string): Finding => ({
+  const finding = (mensaje: string, nivel?: "bloqueo" | "aviso"): Finding => ({
     modulo: ctx.moduleName,
     disciplina: d.id,
     mensaje,
+    ...(nivel ? { nivel } : {}),
   });
   const findings: Finding[] = [];
   for (const artifact of d.artefactos) findings.push(...checkArtifact(artifact, ctx, d));
@@ -167,6 +176,25 @@ export function verifyDiscipline(d: Discipline, ctx: VerifyContext): Finding[] {
             const content = readFileSync(join(ctx.moduleRoot, rel), "utf8");
             if (!FEATURE_SCENARIO.test(content))
               findings.push(finding(`«${rel}» no tiene ningún escenario`));
+          }
+        }
+        break;
+      }
+      case "secciones": {
+        for (const rel of matchFiles(v.patron, ctx.moduleRoot)) {
+          const nombre = nombreSeguro(rel);
+          const lectura = leerDocumento(join(ctx.moduleRoot, rel));
+          if (!lectura.ok) {
+            findings.push(finding(`«${nombre}»: ${lectura.motivo}`));
+            continue;
+          }
+          const titulos = new Set(encabezados(lectura.texto).map((h) => normalizar(h.titulo)));
+          for (const seccion of v.secciones) {
+            if (titulos.has(normalizar(seccion.nombre))) continue;
+            const motivo = seccion.motivo ? `: ${seccion.motivo}` : "";
+            findings.push(
+              finding(`«${nombre}» no tiene la sección «${seccion.nombre}»${motivo}`, v.nivel),
+            );
           }
         }
         break;
@@ -204,6 +232,8 @@ export function verifyDiscipline(d: Discipline, ctx: VerifyContext): Finding[] {
         }
         break;
       }
+      default:
+        return sinCaso(v);
     }
   }
   return findings;
