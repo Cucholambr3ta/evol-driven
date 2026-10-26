@@ -1,6 +1,6 @@
 {
-  "version": "0.3.2",
-  "fecha": "2026-10-25",
+  "version": "0.4.0",
+  "fecha": "2026-10-26",
   "skills": {
     "a11ydd": "79b320c29c5a10b896723f3c0968d3215baa825b5bc108f01624f3f3d330e5cc",
     "add": "ee5878a704a29f308bc8622e3a722961f4ecd9448fb0f11af8c7f644fa842b77",
@@ -62,5 +62,6 @@
     "uxdd": "dcd3f6c61a60ee44574e04911fe6976dae6ffce23a4d5eb66abd7db68cebd81c",
     "verificador": "d02bef9b6d5eb24c8a0aaf96b0b9c65feeb44ae1ef26a7f2856552a8844fe92e",
     "verificar-afirmaciones": "de57c83e6e37ffa6a81027980cb9e27f4e153196ed9e92af7d40a8ea7b59e1f3"
-  }
+  },
+  "sbom": "incluido"
 }

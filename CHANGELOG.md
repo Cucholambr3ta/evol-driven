@@ -1,5 +1,41 @@
 # Cambios
 
+## 0.4.0 — 2026-10-26
+
+- chore: aprobación de retro — ciclo del pipeline terminado (done)
+- retro: lecciones y Ampliación 7 (criterios CA-128 a CA-149)
+- chore: aprobación de qa (con evol-dev) y avance a retro
+- chore: aprobación de build y avance a qa
+- perf: paraleliza MemPalace y el sondeo de seguridad en doctor (CA-145)
+- fix: evita que las pruebas del marcador [[COMPLETAR]] se autobloqueen
+- chore: ignora los hallazgos CRITICAL/HIGH de qa, decididos por la persona
+- chore: checkpoint y resultados de qa (security scan, coverage)
+- docs: reserva CA-145 (presupuesto de 3 s de doctor es ajustado) y m-003
+- build(M10): instrucciones según el repositorio (CA-148)
+- build(M9): «evol ciclo nuevo» para seguir en un segundo ciclo (CA-146, CA-147)
+- build(M8): acorta a 1,5 s el presupuesto de red del aviso de versión
+- build(M8): aviso de versión nueva en doctor (CA-145)
+- build(M7): SBOM y sumas firmadas en cada versión (CA-142, CA-143, CA-144)
+- build(M6): identidad «Evol» en Claude Code (CA-140, CA-141)
+- build(M5): agente «evol» en OpenCode (CA-137, CA-138, CA-139)
+- build(M4): aislar el proyecto y diagnosticar la convivencia (CA-135, CA-136, CA-149)
+- build(M3): lista de bloqueo de rutas sensibles (CA-134)
+- build(M2): copia antes de escribir, ensayo y vuelta atrás (CA-132, CA-133)
+- spec: confirma el Paso 0 en Claude Code; OpenCode queda con un matiz hasta M5
+- docs: ensayo del Paso 0 en Claude Code (deny de proyecto se aplica; bypassPermissions global queda pendiente)
+- chore: checkpoint tras M1
+- build(M1): proyectos que no son TypeScript (CA-128 a CA-131)
+- plan: orden de construcción de la ola 1, interrogado dos veces
+- chore: aprobación de spec y avance a plan
+- spec: corrige los hallazgos de la revisión de seguridad en THREATS.md
+- spec: especificación, dominio y amenazas de la ola 1 (CA-128 a CA-148)
+- briefing: ancla el umbral de CA-136 a las 9 rutas bloqueadas de CA-134
+- briefing: corrige los hallazgos del verificador en las pruebas de aceptación
+- briefing: features, escenarios y pruebas de aceptación de la ola 1 (CA-128 a CA-148)
+- chore: nota de aislamiento en CLAUDE.md y excepciones del escáner de seguridad
+- chore: evol se desarrolla con evol
+- fix: la segunda lectura da la línea real de la cita y avisa si la frase está junto a una prohibición
+
 ## 0.3.2 — 2026-10-25
 
 - fix: el CI deja de romperse por la versión en la documentación y por dos herramientas inestables
