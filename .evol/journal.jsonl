@@ -20,3 +20,5 @@
 {"ts":"2026-10-26T00:11:04.192Z","type":"approved","phase":"retro","approver":"cucholambreta","seq":5,"artifacts":2}
 {"ts":"2026-10-26T00:11:12.104Z","type":"phase-completed","phase":"retro","next":"done"}
 {"ts":"2026-10-26T14:50:20.787Z","type":"checkpoint","fase":"briefing","sinCommit":0,"traspaso":false,"nota":true}
+{"ts":"2026-10-26T14:51:07.929Z","type":"approved","phase":"briefing","approver":"cucholambreta","seq":7,"artifacts":34}
+{"ts":"2026-10-26T14:51:09.991Z","type":"phase-completed","phase":"briefing","next":"spec"}
