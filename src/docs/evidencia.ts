@@ -80,18 +80,22 @@ export function comprobarEvidencia(raiz: string, hoy: Hoy = fechasDeHoy()): DocF
       continue;
     }
     if (listado.archivos.length === 0) continue;
-    const indices = listado.archivos.filter(
-      (a) => !a.includes("/") && a.endsWith("-evidence-index.md"),
+    const esperado = `${tema}-evidence-index.md`;
+    const otros = listado.archivos.filter(
+      (a) => !a.includes("/") && a.endsWith("-evidence-index.md") && a !== esperado,
     );
-    if (indices.length === 0) {
-      bloqueo(carpeta, "el tema no tiene índice de evidencia («<tema>-evidence-index.md»)");
+    if (!listado.archivos.includes(esperado)) {
+      bloqueo(
+        carpeta,
+        `el tema no tiene su índice de evidencia: se espera «${nombreSeguro(esperado)}»${otros.length > 0 ? ` (hay otro con distinto nombre: «${nombreSeguro(otros[0] ?? "")}»)` : ""}`,
+      );
       continue;
     }
-    if (indices.length > 1) {
+    if (otros.length > 0) {
       bloqueo(carpeta, "el tema tiene más de un índice de evidencia");
       continue;
     }
-    const indice = `${carpeta}/${indices[0] ?? ""}`;
+    const indice = `${carpeta}/${esperado}`;
     const lecturaIndice = leer(indice);
     if (!lecturaIndice.ok) {
       bloqueo(indice, lecturaIndice.motivo);

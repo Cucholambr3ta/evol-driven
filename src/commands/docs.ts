@@ -6,7 +6,7 @@ import { comprobarDocs, PARTES } from "../docs/check.js";
 import type { DocFinding, Parte } from "../docs/check.js";
 import { out, requireProject } from "./shared.js";
 
-export const USAGE = "Uso: evol docs <check [--estricto] | evidencia> [--json]";
+export const USAGE = "Uso: evol docs <check | evidencia> [--estricto] [--json]";
 
 interface Hallazgo extends DocFinding {
   modulo: string;

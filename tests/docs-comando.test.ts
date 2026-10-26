@@ -144,6 +144,19 @@ describe("evol docs evidencia", () => {
     expect(todo.status).toBe(1);
   });
 
+  it("--estricto hace fallar un aviso (una fuente que nadie cita); sin él solo se avisa", () => {
+    const root = makeProject(DISC);
+    write(root, "investigacion/t/t-evidence-index.md", indice);
+    write(root, "investigacion/t/a.md", "# A\n\nNo cita nada.\n");
+
+    const suave = cli(["docs", "evidencia"], { cwd: root, env: env() });
+    const estricto = cli(["docs", "evidencia", "--estricto"], { cwd: root, env: env() });
+
+    expect(suave.status, salida(suave)).toBe(0);
+    expect(suave.stdout).toMatch(/^ {2}! .*E-1.*\(aviso\)/m);
+    expect(estricto.status).toBe(1);
+  });
+
   it("--json devuelve las partes y los hallazgos", () => {
     const root = makeProject(DISC);
     write(root, "investigacion/t/t-evidence-index.md", indice);

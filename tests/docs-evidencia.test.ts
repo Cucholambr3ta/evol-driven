@@ -89,6 +89,19 @@ describe("el índice de evidencia", () => {
     ]);
   });
 
+  it("un índice con otro nombre no vale: se pide el del tema y se nombra el que hay", () => {
+    const root = con({
+      "investigacion/hermes/otro-evidence-index.md": indice(fila("E-1")),
+      "investigacion/hermes/hermes-audit.md": auditoria("E-1"),
+    });
+
+    const t = textos(root);
+
+    expect(t).toHaveLength(1);
+    expect(t[0]).toMatch(/hermes-evidence-index\.md/);
+    expect(t[0]).toMatch(/otro-evidence-index\.md/);
+  });
+
   it("dos índices en el mismo tema se rechazan", () => {
     const root = con({
       ...BASE,
