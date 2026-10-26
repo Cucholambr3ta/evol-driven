@@ -1,43 +1,36 @@
 {
   "version": 1,
-  "ts": "2026-10-26T16:08:52.309Z",
+  "ts": "2026-10-26T16:15:52.206Z",
   "proyecto": "evol-driven",
-  "fase": "qa",
+  "fase": "retro",
   "aprobacion": "obsoleta",
   "estado": [
     "Proyecto: evol-driven",
-    "Pipeline: ✓briefing → ✓spec → ✓plan → ✓build → qa → retro",
-    "Fase actual: qa",
+    "Pipeline: ✓briefing → ✓spec → ✓plan → ✓build → ✓qa → retro",
+    "Fase actual: retro",
     "  [app] SDD — Spec-Driven Development",
     "      ✓ docs/specs/SPEC.md  (1 encontrado(s), ≥1)",
-    "  [app] BDD — Behavior-Driven Development",
-    "      ✓ tests/features/*.feature  (16 encontrado(s), ≥1)",
-    "  [app] ATDD — Acceptance Test-Driven Development",
-    "      ✓ tests/acceptance/*.acceptance.test.ts  (16 encontrado(s), ≥1)",
-    "  [app] SecDD — Security-Driven Development",
-    "      ✓ .evol/qa/QA_REPORT.md  (1 encontrado(s), ≥1)",
-    "Aprobación de «qa»: obsoleta (los artefactos cambiaron)"
+    "Aprobación de «retro»: obsoleta (los artefactos cambiaron)"
   ],
   "git": {
     "rama": "main",
-    "commit": "812852b",
+    "commit": "8952846",
     "sinCommit": [
-      "M .evol/qa/security/sbom.cdx.json"
+      "M .evol/gate-log.jsonl",
+      "M .evol/journal.jsonl",
+      "M .evol/qa/security/sbom.cdx.json",
+      "M .evol/state.json"
     ],
-    "totalSinCommit": 1,
+    "totalSinCommit": 4,
     "ultimos": [
+      "retro: lecciones del ciclo 2 y Ampliación 8 (CA-150 a CA-170)",
+      "chore: checkpoint",
       "fix(qa): el índice de evidencia se llama <tema>-evidence-index.md y --estricto de evidencia queda declarado y probado",
       "chore: checkpoint de QA",
-      "chore: informe de QA",
-      "fix(qa): lectura acotada y dentro de la raíz (tope total, enlaces en el camino, líneas, tablas y hallazgos), checklist según el SPEC y pruebas más estrictas",
-      "chore(qa): quita la clave de ejemplo de lecciones.md, un texto no parecido a una clave en la prueba de rutas y ajusta la línea del ignorado de verify.ts"
+      "chore: informe de QA"
     ]
   },
   "notas": [
-    {
-      "ts": "2026-10-25T22:37:54.227Z",
-      "texto": "Ola 1 build: M1-M10 completos y comiteados (CA-128 a CA-148). npm run ci queda rojo por un solo motivo: CA-145 (menos de 3s sin red) es flaky/ajustado por overhead preexistente de doctor (MemPalace+sondeo seguridad, ~2.6-2.7s antes de esta mejora); documentado en SPEC.md y anotado como m-003. evol coverage (vía dist/cli.js, NO vía el binario estable que aun no tiene estos cambios) está limpio: sin escenario ninguno, sin prueba ninguno. evol security scan encontró 5 CRITICAL y 3 HIGH que parecen falsos positivos preexistentes (hashes de skills en release.json, claves AWS EXAMPLE en fixtures, shell:true en el runner de comandos, avisos genéricos de guarddog en package.json); la persona decidió revisarlos ella misma antes de aprobar qa, no los toqué. Próximo paso: la persona corre evol verify/approve build en su terminal (bloqueará por [[COMPLETAR]] literal en tests/cli.test.ts, tests/disciplines.test.ts, tests/e2e.test.ts y tests/orchestration.test.ts: falso positivo preexistente de Ola 0, anotado como m-004) y decide cómo seguir."
-    },
     {
       "ts": "2026-10-26T14:50:20.774Z",
       "texto": "Ciclo 2, briefing corregido y comiteado (ac9c990): 26 pruebas de aceptación en rojo por la razón correcta, evol verify PASS. Siguiente: la persona ejecuta evol approve briefing y evol next; después spec (SPEC.md, DOMAIN.md, THREATS.md del ciclo 2) y plan por módulos M0 a M5 según el plan aprobado."
@@ -73,28 +66,32 @@
     {
       "ts": "2026-10-26T16:08:52.309Z",
       "texto": "QA: índice de evidencia exige su nombre; --estricto de docs evidencia probado. Espera evol approve qa + next."
+    },
+    {
+      "ts": "2026-10-26T16:15:52.206Z",
+      "texto": "Retro lista: lecciones, memoria y Ampliación 8 escritas, verify PASS. Espera evol approve retro + evol next. Después: release 0.5.0 con evol-dev release 0.5.0 (push lo hace la persona) y reaprobar skills."
     }
   ],
   "eventos": [
     {
-      "ts": "2026-10-26T15:47:29.418Z",
-      "type": "approved"
-    },
-    {
-      "ts": "2026-10-26T15:51:46.681Z",
+      "ts": "2026-10-26T16:08:52.323Z",
       "type": "checkpoint"
     },
     {
-      "ts": "2026-10-26T15:54:35.926Z",
+      "ts": "2026-10-26T16:14:18.168Z",
       "type": "approved"
     },
     {
-      "ts": "2026-10-26T15:55:43.422Z",
+      "ts": "2026-10-26T16:14:49.991Z",
       "type": "phase-completed"
     },
     {
-      "ts": "2026-10-26T16:05:22.700Z",
-      "type": "checkpoint"
+      "ts": "2026-10-26T16:15:40.282Z",
+      "type": "memory-add"
+    },
+    {
+      "ts": "2026-10-26T16:15:41.616Z",
+      "type": "memory-add"
     }
   ],
   "traspaso": false
