@@ -73,11 +73,15 @@ const EXTENDED = [
   "construir-mcp",
 ];
 
+/** The third wave: the four skills of the documentation disciplines (granular, evidence, requirements, sprints). */
+const TERCERA_OLA = ["granular", "investigacion", "reqdd", "sprintdd"];
+
 describe("las skills y sus evaluaciones", () => {
-  it("son las sesenta previstas: las veintitrés de la primera ola, una por cada disciplina extendida, las dos de las herramientas FilmCraft y EffectCraft y trece más de proceso, diseño, documentación y dominio", () => {
+  it("son las sesenta y cuatro previstas: las veintitrés de la primera ola, las treinta y siete de la segunda y las cuatro de la documentación atómica", () => {
     expect([...NAMES].sort()).toEqual(
       [
         ...EXTENDED,
+        ...TERCERA_OLA,
         "afinar-idea",
         "analista",
         "arquitecto",
@@ -146,8 +150,8 @@ describe("las skills y sus evaluaciones", () => {
   );
 
   // The router of an evaluation is a snapshot of the skills that existed when it was written: the
-  // first wave lists the 23 of its time (changing those files would void their approvals), the
-  // second wave lists all 45. Whatever it lists must be the real description, and the skill itself must be there.
+  // first wave lists the 23 of its time and the second wave the 60 of its time (changing those files
+  // would void their approvals); only the third wave lists all 64. Whatever it lists must be the real description, and the skill itself must be there.
   it.each(NAMES)(
     "«%s»: el enrutador de la evaluación copia las descripciones reales de las skills que lista",
     (name) => {
@@ -161,7 +165,11 @@ describe("las skills y sus evaluaciones", () => {
         name,
       ).toContain(name);
       for (const m of listed) expect(m[2], `${name} → ${m[1]}`).toBe(description(m[1] ?? ""));
-      const expected = EXTENDED.includes(name) ? NAMES.length : 23;
+      const expected = TERCERA_OLA.includes(name)
+        ? NAMES.length
+        : EXTENDED.includes(name)
+          ? 60
+          : 23;
       expect(listed, name).toHaveLength(expected);
     },
   );

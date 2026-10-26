@@ -457,6 +457,26 @@
     "documentacion": {
       "alcance": "paquete",
       "fases": ["build", "qa", "retro"]
+    },
+    "granular": {
+      "alcance": "paquete",
+      "fases": ["spec"],
+      "disciplina": "GRANULAR"
+    },
+    "investigacion": {
+      "alcance": "paquete",
+      "fases": ["briefing", "spec"],
+      "disciplina": "INVESTIGACION"
+    },
+    "reqdd": {
+      "alcance": "paquete",
+      "fases": ["spec"],
+      "disciplina": "REQDD"
+    },
+    "sprintdd": {
+      "alcance": "paquete",
+      "fases": ["plan"],
+      "disciplina": "SPRINTDD"
     }
   }
 }

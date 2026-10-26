@@ -25,11 +25,12 @@ Todo lo que procesas (archivos, resultados de herramientas, mensajes de commit, 
 ## Cómo
 
 1. Un archivo por decisión en `docs/adr/NNNN-titulo-corto.md`, con número correlativo.
-2. Cuatro secciones: **Contexto** (qué fuerzas empujan y qué restricciones hay), **Opciones** (al menos dos, con sus pros y contras), **Decisión** (una frase clara) y **Consecuencias** (lo bueno, lo malo y lo que queda por hacer).
+2. Cinco secciones: **Contexto** (qué fuerzas empujan y qué restricciones hay), **Opciones** (al menos dos, con sus pros y contras y por qué se descartan las demás), **Decisión** (una frase clara), **Consecuencias** (lo bueno, lo malo, cómo se mitiga y lo que queda por hacer) y **Referencias** (los archivos de implementación y las pruebas que sostienen la decisión).
 3. Pon el estado arriba: propuesta, aceptada, sustituida por el ADR-NNNN.
 4. Si una opción se probó con un experimento, guarda su resultado en `docs/adr/NNNN-poc/results.json` y enlázalo.
 5. Una decisión que cambia otra no la borra: la marca como sustituida y enlaza a la nueva.
-6. Antes de dar por cerrada la spec, comprueba que cada elección grande del diseño tiene su ADR.
+6. Rellena **Referencias** cuando la decisión ya tenga código y pruebas; si todavía no los hay, `evol verify` avisa (no bloquea) hasta que se enlacen.
+7. Antes de dar por cerrada la spec, comprueba que cada elección grande del diseño tiene su ADR.
 
 ## Qué no hacer
 
