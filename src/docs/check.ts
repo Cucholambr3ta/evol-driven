@@ -4,17 +4,19 @@ import { comprobarEvidencia, CARPETA_EVIDENCIA } from "./evidencia.js";
 import { comprobarGranular, CARPETA_GRANULAR } from "./granular.js";
 import type { DocFinding } from "./hallazgo.js";
 import { comprobarRequisitos, CARPETA_REQUISITOS } from "./requisitos.js";
+import { comprobarSprints, CARPETA_SPRINTS } from "./sprints.js";
 
 export type { DocFinding } from "./hallazgo.js";
 
 /** The parts of the documentation a check can look at, each in a folder of its own. */
-export const PARTES = ["granular", "requisitos", "evidencia"] as const;
+export const PARTES = ["granular", "requisitos", "evidencia", "sprints"] as const;
 export type Parte = (typeof PARTES)[number];
 
 const PARTE: Record<Parte, { carpeta: string; comprobar: (raiz: string) => DocFinding[] }> = {
   granular: { carpeta: CARPETA_GRANULAR, comprobar: comprobarGranular },
   requisitos: { carpeta: CARPETA_REQUISITOS, comprobar: comprobarRequisitos },
   evidencia: { carpeta: CARPETA_EVIDENCIA, comprobar: (raiz) => comprobarEvidencia(raiz) },
+  sprints: { carpeta: CARPETA_SPRINTS, comprobar: comprobarSprints },
 };
 
 function existe(ruta: string): boolean {

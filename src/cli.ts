@@ -137,6 +137,10 @@ const COMMANDS: Record<string, CommandSpec> = {
       "Comprueba la documentación del proyecto: dominios, requisitos y dossiers, con su trazabilidad (check | evidencia)",
     load: async () => await import("./commands/docs.js"),
   },
+  sprint: {
+    summary: "Historias y sprints: comprueba su documentación y cuenta las tareas (check | estado)",
+    load: async () => await import("./commands/sprint.js"),
+  },
   ciclo: {
     summary: "Abre un segundo ciclo del pipeline tras terminar el primero (nuevo)",
     load: async () => await import("./commands/ciclo.js"),
