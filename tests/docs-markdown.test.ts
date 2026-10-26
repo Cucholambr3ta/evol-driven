@@ -151,3 +151,21 @@ describe("secciones", () => {
     expect(secciones(md, 3).map((x) => x.titulo)).toEqual(["Sub"]);
   });
 });
+
+describe("enlaces: acotados", () => {
+  it("una línea de corchetes o de enlaces repetidos se analiza deprisa y sin agotar la memoria", () => {
+    const t0 = Date.now();
+
+    expect(enlaces("[".repeat(200_000))).toEqual([]);
+    expect(enlaces("[a](".repeat(40_000)).length).toBeLessThanOrEqual(1000);
+    expect(enlaces(`[x](${"a".repeat(100_000)})`)[0]?.destino).toHaveLength(2048);
+    expect(Date.now() - t0).toBeLessThan(2000);
+  });
+
+  it("un texto de enlace con corchetes dentro sigue dando su destino", () => {
+    expect(enlaces("[a[b](x.md) y ![i](y.png) y [c](z.md)").map((e) => e.destino)).toEqual([
+      "x.md",
+      "z.md",
+    ]);
+  });
+});

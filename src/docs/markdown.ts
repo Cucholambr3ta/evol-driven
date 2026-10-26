@@ -133,26 +133,48 @@ export interface Enlace {
   linea: number;
 }
 
-/** The inline links of a Markdown text (not images, not inside code blocks), without their title. */
+const MAX_DESTINO = 2048;
+const MAX_ENLACES_POR_LINEA = 1000;
+
+/**
+ * The inline links of a Markdown text (not images, not inside code blocks), without their title.
+ * One pass per line and bounded (a destination is cut at 2048 characters, a line yields at most
+ * 1000 links), so a line made of nothing but brackets cannot make it quadratic.
+ */
 export function enlaces(md: string): Enlace[] {
   const salida: Enlace[] = [];
   for (const { n, texto } of lineasDeTexto(md)) {
-    for (const m of texto.matchAll(/(?<!!)\[[^\]]*\]\(/g)) {
-      let i = (m.index ?? 0) + m[0].length;
-      while (/\s/.test(texto.charAt(i))) i++;
-      let profundidad = 0;
-      let destino = "";
-      for (; i < texto.length; i++) {
-        const c = texto.charAt(i);
-        if (/\s/.test(c)) break;
-        if (c === "(") profundidad++;
-        if (c === ")") {
-          if (profundidad === 0) break;
-          profundidad--;
+    let inicio = -1; // the first «[» since the last «]»
+    let imagen = false;
+    let encontrados = 0;
+    for (let i = 0; i < texto.length && encontrados < MAX_ENLACES_POR_LINEA; i++) {
+      const c = texto.charAt(i);
+      if (c === "[" && inicio < 0) {
+        inicio = i;
+        imagen = i > 0 && texto.charAt(i - 1) === "!";
+      } else if (c === "]") {
+        if (inicio >= 0 && !imagen && texto.charAt(i + 1) === "(") {
+          let j = i + 2;
+          while (/\s/.test(texto.charAt(j))) j++;
+          let profundidad = 0;
+          let destino = "";
+          for (; j < texto.length && destino.length < MAX_DESTINO; j++) {
+            const d = texto.charAt(j);
+            if (/\s/.test(d)) break;
+            if (d === "(") profundidad++;
+            if (d === ")") {
+              if (profundidad === 0) break;
+              profundidad--;
+            }
+            destino += d;
+          }
+          if (destino !== "") {
+            salida.push({ destino, linea: n });
+            encontrados++;
+          }
         }
-        destino += c;
+        inicio = -1;
       }
-      if (destino !== "") salida.push({ destino, linea: n });
     }
   }
   return salida;
