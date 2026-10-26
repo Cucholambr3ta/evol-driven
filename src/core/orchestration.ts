@@ -132,6 +132,8 @@ export function phaseDisciplines(
             return `cada migración de ${v.base} lleva up.sql y down.sql`;
           case "escenarios":
             return "cada feature tiene al menos un escenario";
+          case "documentos":
+            return `comprobación de documentos: ${v.comprobacion}`;
           case "secciones":
             return `cada documento de ${v.patron} tiene las secciones ${v.secciones.map((x) => x.nombre).join(", ")}${v.nivel === "aviso" ? " (si faltan, avisa)" : ""}`;
           case "escaneoSeguridad":

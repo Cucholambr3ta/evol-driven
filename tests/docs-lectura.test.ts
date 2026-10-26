@@ -2,7 +2,7 @@ import { spawnSync } from "node:child_process";
 import { mkdirSync, symlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { TOPE_ARCHIVO, leerDocumento, nombreSeguro } from "../src/docs/lectura.js";
+import { TOPE_ARCHIVO, leerDocumento, nombreSeguro, resolverEnRaiz } from "../src/docs/lectura.js";
 import { tempDir, write } from "./helpers.js";
 
 describe("leerDocumento", () => {
@@ -116,5 +116,81 @@ describe("nombreSeguro", () => {
 
     expect([...largo]).toHaveLength(80);
     expect(largo).not.toContain("\ufffd");
+  });
+});
+
+describe("resolverEnRaiz", () => {
+  const raiz = tempDir();
+  write(raiz, "docs/proyecto/db/a.md", "x");
+  write(raiz, "docs/specs/SPEC.md", "x");
+  const fuera = tempDir();
+  write(fuera, "secreto.md", "x");
+  symlinkSync(fuera, join(raiz, "docs", "enlace-a-fuera"));
+
+  it("resuelve una ruta relativa que existe y dice que existe", () => {
+    expect(resolverEnRaiz(raiz, "docs/proyecto", "db/a.md")).toMatchObject({
+      ok: true,
+      rel: "docs/proyecto/db/a.md",
+      existe: true,
+    });
+  });
+
+  it("una ruta de dentro que no existe sigue siendo válida, y dice que no existe", () => {
+    expect(resolverEnRaiz(raiz, "docs/proyecto", "db/nuevo.md")).toMatchObject({
+      ok: true,
+      existe: false,
+    });
+  });
+
+  it("quita el ancla y la consulta, y decodifica un solo nivel de %", () => {
+    expect(resolverEnRaiz(raiz, "docs/proyecto", "db/a.md#titulo")).toMatchObject({
+      ok: true,
+      existe: true,
+    });
+    expect(resolverEnRaiz(raiz, "docs/proyecto", "db/a.md?x=1")).toMatchObject({
+      ok: true,
+      existe: true,
+    });
+    expect(resolverEnRaiz(raiz, "docs/proyecto", "db/a%2Emd")).toMatchObject({
+      ok: true,
+      existe: true,
+    });
+  });
+
+  it.each([
+    ["../specs/SPEC.md"],
+    ["db/../../specs/SPEC.md"],
+    ["%2e%2e/specs/SPEC.md"],
+    ["%2E%2E%2Fspecs/SPEC.md"],
+    ["/etc/passwd"],
+    ["\\\\servidor\\carpeta"],
+    ["C:\\Windows\\a.md"],
+    ["//host/a.md"],
+    ["file:///etc/passwd"],
+    ["data:text/plain,x"],
+    ["javascript:alert(1)"],
+    ["db/a.md%00.png"],
+    ["db/a\u0000.md"],
+    ["db/a\n.md"],
+    ["%zz"],
+    [""],
+    ["#solo-ancla"],
+  ])("rechaza «%s»", (texto) => {
+    expect(resolverEnRaiz(raiz, "docs/proyecto", texto)).toEqual({ ok: false });
+  });
+
+  it("rechaza una ruta que, por un enlace simbólico, sale de la raíz, exista o no el destino", () => {
+    const existe = resolverEnRaiz(raiz, "docs", "enlace-a-fuera/secreto.md");
+    const noExiste = resolverEnRaiz(raiz, "docs", "enlace-a-fuera/inventado.md");
+
+    expect(existe).toEqual({ ok: false });
+    expect(noExiste).toEqual(existe);
+  });
+
+  it("la misma respuesta para una ruta de fuera que existe y para una que no", () => {
+    const a = resolverEnRaiz(raiz, "docs/proyecto", `../../../${fuera}/secreto.md`);
+    const b = resolverEnRaiz(raiz, "docs/proyecto", "../../../../no/existe.md");
+
+    expect(a).toEqual(b);
   });
 });

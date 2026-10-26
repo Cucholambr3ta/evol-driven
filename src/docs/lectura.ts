@@ -1,4 +1,14 @@
-import { closeSync, constants, fstatSync, openSync, readSync } from "node:fs";
+import {
+  closeSync,
+  constants,
+  fstatSync,
+  lstatSync,
+  openSync,
+  readdirSync,
+  readSync,
+  realpathSync,
+} from "node:fs";
+import { dirname, join, posix, relative, resolve, sep } from "node:path";
 
 /** The biggest file a documentation check reads (1 MiB): a bigger one can hide what it should show. */
 export const TOPE_ARCHIVO = 1024 * 1024;
@@ -67,4 +77,95 @@ export function nombreSeguro(nombre: string): string {
   return caracteres.length <= LARGO_NOMBRE
     ? limpio
     : `${caracteres.slice(0, LARGO_NOMBRE - 1).join("")}…`;
+}
+
+export type Resolucion = { ok: false } | { ok: true; abs: string; rel: string; existe: boolean };
+
+function lexicamenteValida(texto: string): boolean {
+  if (texto === "" || /\p{Cc}/u.test(texto)) return false;
+  if (texto.startsWith("/") || texto.startsWith("\\")) return false;
+  if (/^[A-Za-z]:/.test(texto) || /^[a-z][a-z0-9+.-]*:/i.test(texto)) return false;
+  return !texto.split(/[\\/]+/).includes("..");
+}
+
+/**
+ * Turns the text of a link or an origin into a path inside `raiz`, or refuses. First the text alone
+ * (no `..`, no absolute path, no scheme, no control characters, before and after decoding `%` once),
+ * then the nearest existing ancestor is resolved with `realpath` and must stay inside the root. A
+ * path that leaves the root, or that cannot be resolved, always answers the same: `{ ok: false }`.
+ */
+export function resolverEnRaiz(raiz: string, base: string, texto: string): Resolucion {
+  const sinAncla = texto.split("#")[0]?.split("?")[0] ?? "";
+  if (!lexicamenteValida(sinAncla)) return { ok: false };
+  let decodificado: string;
+  try {
+    decodificado = decodeURIComponent(sinAncla);
+  } catch {
+    return { ok: false };
+  }
+  if (!lexicamenteValida(decodificado)) return { ok: false };
+  const abs = resolve(raiz, base, decodificado);
+  const rel = relative(raiz, abs).split(sep).join(posix.sep);
+  if (rel === "" || rel.startsWith("..")) return { ok: false };
+  try {
+    const raizReal = realpathSync(raiz);
+    let ancestro = abs;
+    let existe = true;
+    for (;;) {
+      try {
+        lstatSync(ancestro);
+        break;
+      } catch {
+        existe = false;
+        const padre = dirname(ancestro);
+        if (padre === ancestro) return { ok: false };
+        ancestro = padre;
+      }
+    }
+    const real = realpathSync(ancestro);
+    if (real !== raizReal && !real.startsWith(raizReal + sep)) return { ok: false };
+    return { ok: true, abs, rel, existe };
+  } catch {
+    return { ok: false };
+  }
+}
+
+export const TOPE_DOCUMENTOS = 500;
+export const PROFUNDIDAD_MAXIMA = 6;
+
+export interface Listado {
+  /** Markdown files, relative to the folder, with `/` separators and sorted. */
+  archivos: string[];
+  /** Symbolic links found (never followed), relative to the folder. */
+  enlaces: string[];
+  /** True when there are more documents or more depth than the caps allow. */
+  excedido: boolean;
+}
+
+/** The Markdown files under `dir`, without following symbolic links and within the caps. */
+export function listarMarkdown(dir: string): Listado {
+  const listado: Listado = { archivos: [], enlaces: [], excedido: false };
+  const recorrer = (actual: string, relativo: string, profundidad: number): void => {
+    let entradas;
+    try {
+      entradas = readdirSync(actual, { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const entrada of entradas.sort((a, b) => a.name.localeCompare(b.name))) {
+      const rel = relativo === "" ? entrada.name : `${relativo}/${entrada.name}`;
+      if (entrada.isSymbolicLink()) listado.enlaces.push(rel);
+      else if (entrada.isDirectory()) {
+        if (profundidad >= PROFUNDIDAD_MAXIMA) listado.excedido = true;
+        else recorrer(join(actual, entrada.name), rel, profundidad + 1);
+      } else if (entrada.isFile() && entrada.name.endsWith(".md")) {
+        if (listado.archivos.length >= TOPE_DOCUMENTOS) listado.excedido = true;
+        else listado.archivos.push(rel);
+      }
+      if (listado.excedido) return;
+    }
+  };
+  recorrer(dir, "", 1);
+  listado.archivos.sort();
+  return listado;
 }

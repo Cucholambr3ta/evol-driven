@@ -1,3 +1,4 @@
+import { PARTES } from "../docs/check.js";
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { z } from "zod";
@@ -44,6 +45,8 @@ const VerificationSchema = z.discriminatedUnion("tipo", [
     ...optionalPhases,
   }),
   z.object({ tipo: z.literal("escenarios"), ...optionalPhases }),
+  /** A check of the documentation of the module (docs/proyecto, docs/requisitos…): each finding brings its own level. */
+  z.object({ tipo: z.literal("documentos"), comprobacion: z.enum(PARTES), ...optionalPhases }),
   /** Each document matching `patron` must have a heading for every section; `nivel: "aviso"` only warns. */
   z.object({
     tipo: z.literal("secciones"),
@@ -172,6 +175,18 @@ export function validateModuleOverrides(
     if (!paths.has(from)) {
       problems.push(`rutas: «${from}» no es un artefacto de las disciplinas de este módulo`);
     }
+    // the document checks look at fixed folders: moving the artifact would leave them checking nothing
+    const fija = mod.disciplinas
+      .flatMap((id) => registry.get(id) ?? [])
+      .find(
+        (d) =>
+          d.verificaciones.some((v) => v.tipo === "documentos") &&
+          d.artefactos.some((a) => a.patron === from),
+      );
+    if (fija)
+      problems.push(
+        `rutas: «${from}» es un artefacto de ${fija.id}, cuya comprobación de documentos mira carpetas fijas: no se puede mover`,
+      );
     if (!insideModule(to))
       problems.push(`rutas: «${to}» debe ser una ruta relativa dentro del módulo`);
   }

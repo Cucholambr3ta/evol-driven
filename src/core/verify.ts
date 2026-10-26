@@ -5,6 +5,7 @@ import YAML from "yaml";
 import type { Artifact, Discipline, Format } from "./disciplines.js";
 import { appliesIn, verificationAppliesIn } from "./disciplines.js";
 import type { Phase } from "./phases.js";
+import { comprobarParte } from "../docs/check.js";
 import { encabezados, normalizar } from "../docs/markdown.js";
 import { leerDocumento, nombreSeguro } from "../docs/lectura.js";
 import { blockers, scan } from "../security/scan.js";
@@ -178,6 +179,13 @@ export function verifyDiscipline(d: Discipline, ctx: VerifyContext): Finding[] {
               findings.push(finding(`«${rel}» no tiene ningún escenario`));
           }
         }
+        break;
+      }
+      case "documentos": {
+        for (const h of comprobarParte(v.comprobacion, ctx.moduleRoot))
+          findings.push(
+            finding(`${h.archivo}: ${h.mensaje}`, h.nivel === "aviso" ? "aviso" : undefined),
+          );
         break;
       }
       case "secciones": {

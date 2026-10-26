@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { encabezados, lineasDeTexto, normalizar } from "../src/docs/markdown.js";
+import {
+  encabezados,
+  enlaces,
+  lineasDeTexto,
+  normalizar,
+  secciones,
+  tablas,
+} from "../src/docs/markdown.js";
 
 describe("normalizar", () => {
   it.each([
@@ -64,5 +71,83 @@ describe("encabezados", () => {
 
   it("un encabezado de más de seis almohadillas no es un encabezado", () => {
     expect(encabezados("####### siete")).toEqual([]);
+  });
+});
+
+describe("tablas", () => {
+  const md = [
+    "# NFR",
+    "",
+    "| ID | Requisito | Umbral |",
+    "| --- | :---: | ---: |",
+    "| NFR-01 | Arranque | < 5 s |",
+    "| NFR-02 | Memoria |  |",
+    "",
+    "texto",
+  ].join("\n");
+
+  it("devuelve una fila por línea, con las cabeceras normalizadas y la línea de cada fila", () => {
+    expect(tablas(md)).toEqual([
+      {
+        cabeceras: ["id", "requisito", "umbral"],
+        filas: [
+          { linea: 5, celdas: { id: "NFR-01", requisito: "Arranque", umbral: "< 5 s" } },
+          { linea: 6, celdas: { id: "NFR-02", requisito: "Memoria", umbral: "" } },
+        ],
+      },
+    ]);
+  });
+
+  it("una celda con una barra escapada o entre comillas inversas no parte la fila", () => {
+    const t = tablas("| a | b |\n| - | - |\n| x \\| y | `p | q` |");
+
+    expect(t[0]?.filas[0]?.celdas).toEqual({ a: "x | y", b: "`p | q`" });
+  });
+
+  it("ignora una tabla dentro de un bloque de código y un texto con barras que no es tabla", () => {
+    expect(tablas("```\n| a |\n| - |\n| 1 |\n```")).toEqual([]);
+    expect(tablas("a | b\nc | d")).toEqual([]);
+  });
+
+  it("una fila con menos celdas que cabeceras deja las que faltan vacías", () => {
+    expect(tablas("| a | b |\n| - | - |\n| solo |")[0]?.filas[0]?.celdas).toEqual({
+      a: "solo",
+      b: "",
+    });
+  });
+});
+
+describe("enlaces", () => {
+  it("devuelve el destino de cada enlace y su línea, sin el título opcional", () => {
+    const md = 'ver [uno](db/a.md) y [dos](api/b.md "título")\n\n[tres]( c.md )';
+
+    expect(enlaces(md)).toEqual([
+      { destino: "db/a.md", linea: 1 },
+      { destino: "api/b.md", linea: 1 },
+      { destino: "c.md", linea: 3 },
+    ]);
+  });
+
+  it("no cuenta los enlaces de un bloque de código ni las imágenes", () => {
+    expect(enlaces("```\n[x](a.md)\n```\n![img](b.png)")).toEqual([]);
+  });
+
+  it("acepta paréntesis equilibrados dentro del destino", () => {
+    expect(enlaces("[x](a_(1).md)")).toEqual([{ destino: "a_(1).md", linea: 1 }]);
+  });
+});
+
+describe("secciones", () => {
+  const md = ["# T", "## Uno", "a", "b", "### Sub", "c", "## Dos", "d"].join("\n");
+
+  it("corta el texto en el siguiente encabezado del mismo nivel o menor", () => {
+    expect(secciones(md, 2).map((x) => [x.titulo, x.lineas])).toEqual([
+      ["Uno", ["a", "b", "### Sub", "c"]],
+      ["Dos", ["d"]],
+    ]);
+  });
+
+  it("a nivel 3 devuelve solo los encabezados de ese nivel", () => {
+    expect(secciones(md, 3).map((x) => x.titulo)).toEqual(["Sub"]);
   });
 });
