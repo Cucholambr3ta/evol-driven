@@ -242,7 +242,7 @@ describe("comprobarGranular: lo que no debe pasar", () => {
       .map((f) => `${f.archivo} ${f.mensaje}`)
       .join("\n");
 
-    expect(salida).not.toMatch(/[\u0000-\u0009\u000b-\u001f]/);
+    expect([...salida].some((c) => c !== "\n" && c.charCodeAt(0) < 32)).toBe(false);
     expect(salida).not.toContain("\u001b");
     expect(Math.max(...salida.split("\n").map((l) => [...l].length))).toBeLessThan(260);
   });
