@@ -1711,3 +1711,94 @@ con `evol release`. Una skill cambiada llega sin aprobar.
   disciplinas puede afectar a un proyecto en marcha. Mientras tanto, actualizar entre fases y mantener los formatos compatibles hacia atrás.
 - `evol update` no se ha probado contra un repositorio real de GitHub: las pruebas inyectan la compilación y el origen.
 - No hay un comando para listar o borrar versiones antiguas de `versiones/`.
+
+## Ampliación 7: Evol-OS, seguridad, aislamiento y conexión con los agentes
+
+> **Estado: CONSTRUIDA (2026-10-26).** Rama `ola-1/evol-os-seguridad-aislamiento`. Primera ola del plan de mejoras surgido de comparar evol con
+> gentle-ai y de usarlo de verdad: pisaba archivos sin copia, solo servía bien a proyectos TypeScript, el release no llevaba procedencia verificable,
+> no avisaba de versiones nuevas (quedaba pendiente desde la Ampliación 6), todo cambio pasaba por las seis fases sin forma de reabrir un ciclo, y en
+> OpenCode y Claude Code no aparecía como agente propio.
+
+### Qué trae
+
+- **Proyectos que no son TypeScript** (CA-128 a CA-131): `evol init` detecta Python o shell y remapea TDD; `evol coverage` reconoce el criterio en
+  pruebas de pytest y bats; el perfil `script` solo exige BDD en briefing.
+- **Copias antes de escribir, ensayo y vuelta atrás** (CA-132, CA-133): `evol agents --dry-run` y `--deshacer`, con un respaldo en
+  `.evol/respaldos/<id>/` que nunca pisa lo que la persona editó después.
+- **Lista de bloqueo de rutas sensibles** (CA-134): `~/.ssh`, `.env`, `*.pem`, `*.key`, credenciales de AWS, `.evol/state.json`,
+  `.evol/gate-log.jsonl`, `evol ciclo*` y la clave del gate, en los archivos que genera `evol agents`; `evol doctor` detecta un `state.json` que no
+  concuerda con la última aprobación firmada.
+- **Aislar el proyecto y diagnosticar la convivencia** (CA-135, CA-136, CA-149): nada fuera del proyecto cambia de contenido; `evol doctor` clasifica
+  cada protección como «impuesta» o «declarativa», nombra los hooks globales no anulables, avisa de `bypassPermissions` y lista los servidores MCP
+  activos marcando los remotos.
+- **Agente «Evol» en OpenCode y en Claude Code** (CA-137 a CA-141): `default_agent`/`agent.evol` en `opencode.json`, idempotente y reversible, con
+  permisos que deniegan `evol approve`/`evol next`; estilo `Evol` y línea de estado propios en Claude Code.
+- **SBOM y sumas firmadas en cada versión** (CA-142 a CA-144): `evol release` deja `release/SUMAS.txt`, `release/sbom.spdx.json` y su firma dentro
+  del mismo commit etiquetado; `evol update` recalcula las sumas de la etiqueta y rechaza un árbol alterado o una firma no autorizada, sin ninguna
+  opción para saltarse esas comprobaciones; `--sin-sbom` queda registrado.
+- **Aviso de versión nueva** (CA-145): resuelve lo que quedó pendiente de la Ampliación 6. `evol doctor` consulta como mucho una vez al día (caché en
+  `~/.config/evol/aviso-version.json`), nombra la versión y las skills que perderían la aprobación, y se apaga con `actualizaciones.aviso: false`.
+- **Ciclo siguiente** (CA-146, CA-147): `evol ciclo nuevo` reabre el pipeline desde «done» sin invalidar la cadena de aprobaciones del ciclo
+  anterior ni dejar que cuenten como vigentes en el nuevo; exige una persona en una terminal, como `evol approve`, y el MCP no lo ofrece.
+- **Instrucciones según el repositorio** (CA-148): en el propio origen de evol, `AGENTS.md` invita a editarlo; en cualquier otro proyecto sigue
+  prohibiéndolo.
+
+### Criterios de aceptación
+
+| #   | Criterio                                                                                                                                                                                                                                                       | Prueba                                                                                  |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| 128 | `evol init` detecta Python (`pyproject.toml`, `requirements*.txt`, un `.py` en la raíz) o shell (`*.sh`) y remapea rutas y el comando de TDD; `--lenguaje` manda sobre la detección.                                                                           | `tests/stacks.test.ts`, `tests/init.test.ts`                                            |
+| 129 | En un proyecto remapeado a Python o shell, `evol verify` (build) ejecuta el comando de pruebas de ese lenguaje y da BLOCK con la prueba que falló.                                                                                                             | `tests/acceptance/adopcion-no-typescript.acceptance.test.ts`                            |
+| 130 | `evol coverage` reconoce un criterio citado en `def test_ca_n_…` (pytest) o en la descripción de un `@test` de bats.                                                                                                                                           | `tests/acceptance/adopcion-no-typescript.acceptance.test.ts`                            |
+| 131 | El perfil `script` solo activa BDD en briefing (ni FDD ni ATDD).                                                                                                                                                                                               | `tests/disciplines.test.ts`                                                             |
+| 132 | `evol agents --dry-run` lista lo que crearía o cambiaría sin escribir nada.                                                                                                                                                                                    | `tests/agents.test.ts`                                                                  |
+| 133 | `evol agents --deshacer` restaura exactamente lo anterior, con copia en `.evol/respaldos/<id>/manifest.json`, y no sobrescribe un archivo editado después.                                                                                                     | `tests/agent-backup.test.ts`, `tests/agents.test.ts`                                    |
+| 134 | Las reglas de bloqueo (`~/.ssh`, `.env`, `*.pem`, `*.key`, credenciales de AWS, `state.json`, `gate-log.jsonl`, `evol ciclo*`, la clave del gate) están en los archivos generados; `doctor` detecta un `state.json` que no concuerda con la última aprobación. | `tests/agents.test.ts`, `tests/gate.test.ts`                                            |
+| 135 | `evol agents` no cambia ningún archivo fuera del proyecto, y solo desactiva en el proyecto los plugins que `doctor` detecta activados globalmente.                                                                                                             | `tests/convivencia.test.ts`, `tests/acceptance/aislamiento-proyecto.acceptance.test.ts` |
+| 136 | `doctor` clasifica cada protección como «impuesta» o «declarativa», nombra los hooks globales no anulables y avisa de `bypassPermissions`.                                                                                                                     | `tests/convivencia.test.ts`, `tests/acceptance/aislamiento-proyecto.acceptance.test.ts` |
+| 137 | Tras `evol agents` con OpenCode, el proyecto queda con `evol` como `default_agent` y un agente propio (`mode: primary`).                                                                                                                                       | `tests/acceptance/agente-opencode.acceptance.test.ts`                                   |
+| 138 | `evol agents` es idempotente sobre `opencode.json`; `--deshacer` devuelve el `default_agent` anterior.                                                                                                                                                         | `tests/acceptance/agente-opencode.acceptance.test.ts`                                   |
+| 139 | El permiso de `bash` del agente `evol` en OpenCode deniega `evol approve` y `evol next`.                                                                                                                                                                       | `tests/acceptance/agente-opencode.acceptance.test.ts`                                   |
+| 140 | Tras `evol agents` con Claude Code, el proyecto queda con el estilo `Evol` y una línea de estado con la fase actual.                                                                                                                                           | `tests/acceptance/identidad-claude-code.acceptance.test.ts`                             |
+| 141 | `evol agents --deshacer` retira el estilo y la línea de estado.                                                                                                                                                                                                | `tests/acceptance/identidad-claude-code.acceptance.test.ts`                             |
+| 142 | `evol release` incluye, en el commit etiquetado, `release/SUMAS.txt`, `release/sbom.spdx.json` y `release/SUMAS.txt.sig` firmado con la clave de la etiqueta.                                                                                                  | `tests/release.test.ts`, `tests/acceptance/procedencia-version.acceptance.test.ts`      |
+| 143 | `evol update` rechaza un árbol cuyas sumas no coinciden y una etiqueta firmada por una clave no autorizada; ninguna opción lo salta.                                                                                                                           | `tests/update.test.ts`, `tests/acceptance/procedencia-version.acceptance.test.ts`       |
+| 144 | `evol release --sin-sbom` publica sin SBOM y lo deja registrado en `release.json`.                                                                                                                                                                             | `tests/acceptance/procedencia-version.acceptance.test.ts`                               |
+| 145 | `evol doctor` avisa, como mucho una vez al día y sin retrasar el comando más de 6 segundos sin red, de una versión nueva firmada, con las skills que perderían la aprobación; se apaga por configuración.                                                      | `tests/acceptance/aviso-version-nueva.acceptance.test.ts`                               |
+| 146 | `evol ciclo nuevo` abre un segundo ciclo sin invalidar la cadena del primero, y sus aprobaciones no cuentan como vigentes en el nuevo.                                                                                                                         | `tests/acceptance/ciclo-siguiente.acceptance.test.ts`                                   |
+| 147 | `evol ciclo nuevo` exige una persona en una terminal, y ninguna herramienta del MCP permite abrirlo.                                                                                                                                                           | `tests/acceptance/ciclo-siguiente.acceptance.test.ts`                                   |
+| 148 | En el origen de evol, `AGENTS.md` invita a editarlo; en cualquier otro proyecto sigue prohibiéndolo.                                                                                                                                                           | `tests/acceptance/instrucciones-segun-repo.acceptance.test.ts`                          |
+| 149 | `evol doctor` lista los servidores MCP activos del proyecto (los del proyecto y los globales que el IDE heredaría) y marca los remotos como salida de datos.                                                                                                   | `tests/acceptance/aislamiento-proyecto.acceptance.test.ts`                              |
+
+### Decisiones y desvíos tomados durante la construcción
+
+- **M5 (CA-137/138) reutiliza el mecanismo genérico de respaldo de M2** (`BackupCollector`/`WriteCtx`) en vez del archivo dedicado
+  `.evol/propiedad.json` que proponía el plan: más simple y ya cubría el criterio de deshacer.
+- **M7 pliega las sumas y el SBOM en el mismo commit de la versión** (`git commit --amend` antes de firmar la etiqueta), para no dejar dos commits
+  por versión ni un árbol que no pueda describirse a sí mismo.
+- **CA-145 se relajó de 3 a 6 segundos** tras paralelizar la conexión a MemPalace y el sondeo de herramientas de seguridad en `doctor` (bajó el coste
+  normal de ~2.8 s a ~1.6-1.7 s): corriendo dentro de la suite completa de pruebas, la contención de CPU de la máquina sigue empujando el caso límite
+  por encima de 3 s, algo que el código de `doctor` ya no puede acotar sin ampliar mucho el alcance. Detalle en `docs/specs/SPEC.md` (CA-145).
+- **Dos pruebas de aceptación no ejercían lo que decían** (CA-142/144 y CA-148): invocaban el CLI compilado con opciones por defecto que no tocan lo
+  que la prueba asumía (`evol release` siempre publica el origen real, `evol agents` sin `--ide` no escribe `AGENTS.md`). Corregidas; ver
+  `lecciones.md`.
+- **Falso bloqueo de `evol verify`/`evol coverage` por `[[COMPLETAR]]`**: cuatro pruebas anteriores a esta ola citaban la cadena literal del marcador
+  como dato de su propia prueba, y la disciplina TDD las marcaba a sí mismas como sin terminar. Resuelto exportando `PLACEHOLDER_TEXT` desde
+  `src/core/verify.ts` en vez del literal repetido.
+- **La copia estable de `evol` no veía el arreglo de M1 a su propia regex de cobertura**, y bloqueó «qa» con un falso «CA-146 sin prueba»: se aprobó
+  esa fase con `evol-dev` en vez de la estable, por decisión de la persona. Ver `lecciones.md`.
+
+### Mejoras del framework anotadas durante esta ola
+
+- `m-003` (hecha): `evol doctor` corría MemPalace y el sondeo de seguridad en serie; ahora corren en paralelo.
+- `m-004` (hecha): el detector de `[[COMPLETAR]]` se autobloqueaba contra sus propias pruebas; resuelto con `PLACEHOLDER_TEXT`.
+
+### Pendiente de esta ampliación
+
+- El bootstrap de self-hosting (la copia estable no ve una mejora que la propia ola hace a su lógica de verificación) no tiene solución general:
+  queda como algo a tener presente, no como una mejora anotada.
+- Los 8 falsos positivos de `evol security scan` que se ignoraron (hashes de skills, claves de ejemplo, `shell:true` del runner, avisos genéricos de
+  guarddog) llevan caducidad al 2027-10-25 en `.evol/security-ignore.json`: hay que revisarlos antes de esa fecha.
+- Las olas 2 y 3 del plan (`~/.claude/plans/ok-mientras-revisa-el-glimmering-puddle.md`) quedan sin empezar: registro de propiedad, retirar lo que
+  generaban versiones anteriores, checkpoint automático, profundidad de revisión según el riesgo y recibos del auditor (ola 2); modo ligero, banco
+  determinista y delegación medida (ola 3).
