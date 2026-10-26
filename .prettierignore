@@ -19,3 +19,6 @@ rules/semgrep/*.js
 # evol
 evol.config.json
 .evol
+
+# Procedencia de cada versión (sumas, SBOM y firmas): los genera `evol release` y no se reformatean
+release
