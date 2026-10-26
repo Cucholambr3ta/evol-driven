@@ -1,293 +1,206 @@
-# Plan de implementación — Ola 1 (ampliación 7, CA-128 a CA-149)
+# Plan de implementación — Ciclo 2 (ampliación 8, CA-150 a CA-170)
 
-> Desarrolla `docs/specs/SPEC.md`, `docs/specs/DOMAIN.md` y `docs/specs/THREATS.md`. Traduce el
-> plan aprobado por la persona (`/home/cucholambreta/.claude/plans/ok-mientras-revisa-el-glimmering-puddle.md`,
-> sección «Ola 1») a pasos de construcción concretos, en orden.
-
-## Paso 0: resolver los supuestos «por confirmar» antes de M3, M4, M5 y M6
-
-`docs/specs/SPEC.md`, sección Supuestos, deja dos cosas sin comprobar de las que dependen varios
-criterios:
-
-1. Que un `outputStyle`/`agent` de proyecto prevalece sobre el del usuario en Claude Code y
-   OpenCode (CA-135, CA-137, CA-140).
-2. Que `permissions.deny` de un proyecto sigue aplicándose aunque el `defaultMode` **global** sea
-   `bypassPermissions` (de lo que dependen T-1 y T-3 de `docs/specs/THREATS.md` — y T-1/T-3 son,
-   literalmente, las mitigaciones de **CA-134**, no solo de CA-135/136: la clasificación «impuesta»
-   de las 9 reglas de bloqueo de M3 depende de este segundo supuesto exactamente igual que M4-M6).
-
-**Antes de escribir código de M3 a M6**, un ensayo real y corto, documentado en
-`docs/design/consultas/` (como ya hace el repositorio con otras consultas a IDEs reales):
-
-- un proyecto de prueba con `.claude/settings.json` que fija `outputStyle` y `permissions.deny`, y
-  un `~/.claude/settings.json` de usuario con `outputStyle` distinto y `bypassPermissions`;
-- abrir Claude Code en ese proyecto y comprobar, a mano, qué estilo queda activo y si una regla
-  `deny` del proyecto bloquea algo que `bypassPermissions` global dejaría pasar;
-- lo mismo en OpenCode con `default_agent` y `permission`.
-
-Si el resultado confirma el supuesto, M3-M6 siguen como están. Si lo desmiente, los criterios
-**CA-134** (clasificación «impuesta» de las reglas de bloqueo, no solo CA-135/CA-136) y
-CA-137/CA-140 (prevalencia del agente/estilo) se marcan en el propio `evol doctor` como «a
-verificar» en vez de «impuesta»/confirmado, y se avisa en la retro para decidir si entra en esta
-ola o se recorta a la 0.4.1. M3 se sigue construyendo igual (las reglas se instalan de todos
-modos): lo único que cambia es la etiqueta que `evol doctor` les pone.
+> Desarrolla `docs/specs/SPEC.md`, `docs/specs/DOMAIN.md` y `docs/specs/THREATS.md` (secciones «Ciclo
+> 2»). Traduce el plan aprobado por la persona
+> (`/home/cucholambreta/.claude/plans/ok-mientras-revisa-el-glimmering-puddle.md`, «Paso 4») a pasos
+> de construcción concretos y en orden. El plan del ciclo 1 queda en el historial de git y en
+> `docs/ESPECIFICACION.md` («Ampliación 7»).
 
 ## Orden de construcción
 
-1. **M1 — proyectos que no son TypeScript** (CA-128 a CA-131). Sin dependencias de los demás.
-   - `src/core/stacks.ts` (nuevo): `STACKS` (`ts|python|shell|generico`).
-   - `src/core/adopt.ts`: `detectLayout` reconoce `pyproject.toml`/`requirements*.txt`/`*.sh`.
-   - `src/core/disciplines.ts` (`resolveDiscipline`, ya existe): sin cambios, solo lo usa `stacks.ts`.
-   - `src/core/coverage.ts` (`parseTestTitles`): añade los patrones de pytest y bats.
-   - `src/core/profiles.ts`: perfil `script`.
-   - `src/commands/init.ts`: opción `--lenguaje`.
+Cada módulo: rojo (la prueba de aceptación o la unitaria falla por la razón correcta) → verde →
+refactor, `npm run ci` en verde y un commit. El orden evita dejar la CI en rojo: primero los
+comprobadores y los comandos, que no tocan el registro de disciplinas; el registro y las plantillas
+al final, ya validados por los comprobadores reales. Las plantillas y `writeValidArtifacts` de las
+pruebas se escriben cuando hay comprobadores con los que probarlas.
 
-2. **M2 — copia, ensayo y vuelta atrás** (CA-132, CA-133). Depende de M1 solo en que ambos tocan
-   `init`/`agents`, pero no hay dependencia de datos entre ellos; puede ir en paralelo con M1.
-   **Va antes que M3 a M6**, porque M3 a M6 escriben archivos de agentes y deben pasar por el mismo
-   camino de copia.
-   - `src/agents/backup.ts` (nuevo): `.evol/respaldos/<ts>/manifest.json`, con el patrón atómico de
-     `src/core/checkpoint.ts` (`writeCheckpoint`).
-   - `src/agents/files.ts`: separa `writeAgentFiles` en `planAgentFiles()`/`applyPlan()`.
-   - `src/commands/agents.ts`: `--dry-run`, `--deshacer [id]`.
-   - `src/commands/init.ts`: `.evol/respaldos/` a `.gitignore`.
+### Reglas comunes de los comprobadores (`src/docs/`)
 
-3. **M3 — lista de bloqueo de rutas sensibles** (CA-134). Depende del Paso 0 (clasificación
-   «impuesta»/«a verificar») y de M2 (usa `planAgentFiles`).
-   - `src/agents/files.ts`: `DENY_RULES` (hoy 3 entradas) gana las 9 de CA-134.
-   - `src/core/gate.ts`/`src/commands/doctor.ts`: comparación de `state.currentPhase` contra
-     `verifyChain`/`findValidApproval`. **M9 cambia `findValidApproval`** (añade el filtro por
-     ciclo): si M9 se construye antes que M3, la prueba de M3 ya debe ejercitar esa función con la
-     firma final; si M3 va primero, revisar al construir M9 que su cambio no rompe lo que M3 ya
-     probó.
-   - `src/agents/adapters.ts`: mismas reglas para OpenCode (fragmento, hasta M5).
+Las fija `docs/specs/SPEC.md` («Reglas de lectura comunes», 1 a 7) y las cumplen todos los
+comprobadores a través de **una sola capa de lectura**, `src/docs/lectura.ts`, que ningún otro
+archivo de `src/docs/` esquiva:
 
-4. **M4 — aislar el proyecto y diagnosticar la convivencia** (CA-135, CA-136, CA-149). Depende del
-   Paso 0 y de M2 (usa `planAgentFiles`/`applyPlan`). CA-149 (MCP) es nuevo desde spec: añade a
-   `evol doctor` la lectura de `mcp.servers` tanto de `opencode.json` (global y del proyecto) como
-   de `.mcp.json`/`.claude/settings.json` de Claude Code (global y del proyecto) — CA-149 no se
-   limita a un IDE, y esta ola da a evol identidad propia en ambos (M5, M6).
-   - `src/agents/convivencia.ts` (nuevo): `detectGlobalAgents(home)`.
-   - `src/agents/files.ts`: sección «Reglas de este proyecto» en `CLAUDE.md`/`AGENTS.md`, bloque
-     `env` en `.claude/settings.json`.
-   - `src/core/config.ts`: `ConfigSchema` gana `agentes: {aislar, commits, atribucion}` (opcional).
-   - `src/commands/doctor.ts`: sección «Convivencia» (hooks, `bypassPermissions`, MCP remotos,
-     impuesta/declarativa).
-   - `src/skills/audit.ts` (`auditSkill`, reutilizada, sin cambios): pasada determinista sobre una
-     copia temporal de las instrucciones ajenas detectadas.
+- `resolverRuta(raiz, texto)`: comprobación léxica, luego `realpath` del ancestro existente dentro de
+  la raíz; un único resultado para «fuera de la raíz», «no existe» y «no se puede resolver».
+- `leerDocumento(ruta)`: abre sin seguir el enlace final, `fstat` sobre el descriptor, solo archivos
+  regulares, lectura con tope + 1 byte, UTF-8 con reemplazo; los errores de E/S son hallazgos.
+- `Topes` (1 MiB por archivo, 500 archivos y 5 MiB por parte, profundidad 6) y el recorrido de
+  carpetas sin seguir enlaces simbólicos.
+- `nombreSeguro(texto)`: sanea (control, ANSI, saltos de línea, bidi) y trunca a 80 caracteres; todo
+  mensaje y todo `--json` construyen sus nombres solo con esta función, y un identificador que no
+  cumple su patrón sale como «identificador no válido en la línea N».
+- `src/docs/markdown.ts`: `normalizar()` (NFD, sin tildes ni mayúsculas, sin numeración ni `:`
+  final), analizadores línea a línea que ignoran los bloques de código.
+- Fechas (`AAAA-MM-DD` reales, futura solo si supera la fecha local y la UTC, `hoy` inyectable),
+  `MIN_LINEAS = 15` exportada, y los mensajes sin la palabra «desconocido/a».
+- Por módulo: `evol docs check` recorre `config.modules` como `coverageReport`
+  (`src/core/coverage.ts:122-126`) y `verifyPhase` (`src/core/pipeline.ts:94`); el `CA-n` de un
+  `Origen:` se busca en el SPEC de `resolveDiscipline(SDD)`.
+- Cada comprobador que crea un control escribe en su mismo módulo la prueba de seguridad del
+  ciclo (T-14 a T-20): `tests/security/docs-{rutas,limites,indice-json,no-cita}.security.test.ts` y
+  `aprobacion-fija-evidencia.security.test.ts`, con el cambio entre comprobar y leer inyectado de
+  forma determinista y una entrada patológica con tiempo máximo.
 
-5. **M5 — agente «Evol» en OpenCode** (CA-137 a CA-139). Depende del Paso 0, M2 y M3 (reglas de
-   bloqueo) y M4 (permisos del agente deniegan lo mismo que M3 en general).
-   - `src/agents/adapters.ts`: el adaptador OpenCode escribe `opencode.json` del proyecto
-     (`agent.evol`, `default_agent`, `permission`, `mcp.evol`), con `readJson`/`formatJson` de
-     `src/agents/files.ts`.
-   - `.evol/propiedad.json` (nuevo): `default_agent` anterior, para `--deshacer`.
+### M0. Arreglos independientes: `m-005` y el campo `rol` del listado
 
-6. **M6 — identidad «Evol» en Claude Code** (CA-140, CA-141). Depende del Paso 0 y M2.
-   - `.claude/output-styles/evol.md` (plantilla nueva).
-   - `src/agents/files.ts`: `outputStyle`, `statusLine`, `permissions.defaultMode` en
-     `.claude/settings.json` del proyecto.
-   - `src/commands/status.ts` (nuevo): `evol status --linea`.
+- `src/core/status.ts:48`: la rama «obsoleta» cuenta solo `action === "approved"` del ciclo actual
+  (`(e.ciclo ?? 1) === ctx.state.ciclo`); al abrir un ciclo la fase dice «pendiente». Prueba en
+  `tests/status.test.ts`; `evol mejora hecha m-005`.
+- `src/commands/disciplines.ts` `list` (l.56-64): `rol: d.rol` en el JSON; el campo ya es
+  obligatorio en el esquema (`src/core/disciplines.ts:57`).
 
-7. **M7 — SBOM y sumas firmadas** (CA-142 a CA-144). Sin dependencia de M1-M6; puede ir en paralelo.
-   - `src/release/release.ts`: `release/SUMAS.txt`, `release/sbom.spdx.json` (reutiliza el núcleo de
-     `runSyft`, `src/security/runners-infra.ts:219`, con ruta de salida), `SUMAS.txt.sig`.
-   - `src/release/update.ts`: `verifyTag` (ya existe) más la verificación de sumas antes de
-     compilar.
+### M1. Markdown y verificación por secciones
 
-8. **M8 — aviso de versión nueva** (CA-145). Depende de M7 (solo cuentan etiquetas con SBOM/sumas
-   firmadas) y de que exista el registro de skills aprobadas (`src/skills/manifest.ts`, ya existe)
-   para nombrar las que perderían aprobación.
-   - `src/commands/doctor.ts` y `src/commands/hook.ts`: `inspectUpdate` (ya existe) con caché diaria
-     en `~/.config/evol/aviso-version.json`.
-   - `src/core/config.ts`: `actualizaciones.aviso`.
+- `src/docs/markdown.ts`: `normalizar`, `secciones(md, nivel)`, `tablas(md)`, `enlaces(md)`.
+- `src/core/disciplines.ts`: variante `secciones: { patron, nivel?, secciones: [{ nombre, motivo? }] }`
+  (el `nivel` solo existe aquí); `resolveDiscipline` y `artifactPaths` la remapean como un
+  artefacto. `src/core/verify.ts`: implementación con `matchFiles`, el hallazgo lleva `v.nivel`, y el
+  `switch` de `verifyDiscipline` gana un `default` exhaustivo. `src/core/orchestration.ts:123-137`:
+  la describe.
 
-9. **M9 — ciclo siguiente** (CA-146, CA-147). Sin dependencia de M1-M8 (toca pipeline/gate/state, no
-   agentes ni release). **Debe estar terminado antes de cerrar la ola**, porque sin él la ola 2 no
-   puede abrir su propio ciclo.
-   - `src/core/state.ts`: `StateSchema` gana `ciclo`/`ciclos[]`.
-   - `src/core/gate.ts`: `GateEntry` gana `ciclo?` opcional (no rompe `canonicalPayload` existente);
-     `findValidApproval` ignora lo anterior al ciclo.
-   - `src/commands/ciclo.ts` (nuevo): `evol ciclo nuevo`, con el mismo patrón de confirmación de
-     terminal que `src/commands/approve.ts`.
-   - `src/mcp.ts`: sin cambios (no se añade ninguna herramienta de ciclo).
+### M2. Comprobadores y comandos (sin tocar el registro)
 
-10. **M10 — instrucciones según el repo** (CA-148). Depende de M5/M6 solo en que toca los mismos
-    archivos generados, pero es independiente en lógica. Va último porque es el de menor prioridad.
-    - `src/agents/files.ts` (`claudeBlock`) y `src/agents/adapters.ts` (`instructionsBlock`):
-      detectan `package.json.name === "evol-driven"` y `.git` presente.
+Tres commits: a) documentos de dominio y requisitos, b) dossier, c) sprints.
 
-## Cobertura: criterio → mejora
+- `src/docs/lectura.ts` (primero, con sus pruebas de seguridad T-14, T-15 y T-20), `src/docs/check.ts`
+  (`DocFinding { archivo, mensaje, nivel }`, `comprobarDocs`), `granular.ts`,
+  `requisitos.ts`, `evidencia.ts`, `sprints.ts`.
+- `src/commands/docs.ts` (`check [--estricto] [--json]`, `evidencia [--json]`) y
+  `src/commands/sprint.ts` (`check`, `estado`), con `USAGE` y alta en `src/cli.ts`. Salida
+  `  × archivo: mensaje` / `  ! archivo: mensaje (aviso)`; sale con 1 si hay bloqueos (o avisos con
+  `--estricto`); sin subcomando, error con el uso.
+- Variante de verificación `documentos: { comprobacion }` **sin** `nivel` (cada hallazgo trae el
+  suyo); nace junto a su primer comprobador, nunca vacía.
 
-| Criterio                       | M   |
-| ------------------------------ | --- |
-| CA-128, CA-129, CA-130, CA-131 | M1  |
-| CA-132, CA-133                 | M2  |
-| CA-134                         | M3  |
-| CA-135, CA-136, CA-149         | M4  |
-| CA-137, CA-138, CA-139         | M5  |
-| CA-140, CA-141                 | M6  |
-| CA-142, CA-143, CA-144         | M7  |
-| CA-145                         | M8  |
-| CA-146, CA-147                 | M9  |
-| CA-148                         | M10 |
+### M3. Las cinco disciplinas de base: registro, perfiles, plantillas y cifras
 
-Los 22 criterios tienen M asignado: ninguno queda sin construir en esta ola.
+- `disciplines/{GRANULAR,INVESTIGACION,REQDD,SPRINTDD}.json` (cada una con su verificación
+  `documentos`; `REQDD` con tres artefactos separados; `SPRINTDD` transversal desde `plan`;
+  `INVESTIGACION` con todo opcional) y `ADD.json` a `tipo: base` con la verificación `secciones` en
+  nivel de aviso. Los artefactos opcionales de lecciones, memoria y documentos del dossier entran en
+  la huella de la aprobación.
+- `src/core/disciplines.ts` `validateModuleOverrides`: rechaza remapear las rutas de una disciplina
+  con verificación `documentos` (L1).
+- `src/core/profiles.ts`: `BASE_DISCIPLINES` pasa a 14; `lib` y `script` no cambian.
+- `INVESTIGACION` es la única disciplina con todo opcional: las pruebas genéricas de
+  `tests/disciplines.test.ts` (:49 y :67) la excluyen con una lista fijada por otra prueba y le
+  aplican «vacío pasa» y «falla con un artefacto inválido».
+- `tests/helpers.ts` `writeValidArtifacts` (con un mapa de archivos auxiliares por disciplina) y
+  `templates/project/` (ADR completo, documento de dominio de 15 líneas con `Origen:` válido,
+  requisitos con un NFR, una limitación y un término, sprints e historia sin marcar); el reemplazo
+  ciego de `[[COMPLETAR]]` de `tests/e2e.test.ts` nunca toca `Origen:`, enlaces, IDs, fechas ni
+  claves JSON; `!templates/project/docs` en `.prettierignore`.
+- Skills de rol: GRANULAR en `skills/arquitecto/SKILL.md`; INVESTIGACION, REQDD y SPRINTDD en
+  `skills/analista/SKILL.md`, sin tocar su `description`.
+- Cifras 31 → 35 (14 base, 21 extendidas; roles 7, 10, 4, 5, 5, 4) en las pruebas, `README.md` y
+  `docs/ESPECIFICACION.md`.
+
+### M4. Las cuatro skills nuevas y `add` enriquecida
+
+- `skills/{granular,investigacion,reqdd,sprintdd}/` con `SKILL.md`, `evals/casos.yaml` y
+  `evals/promptfooconfig.yaml`; alta en `skills/manifest.json`. Los enrutadores de la segunda ola
+  quedan como foto de sus 60 skills (para no cambiar la huella de 37 skills ya aprobadas); las nuevas
+  forman una tercera ola con enrutador de 64.
+- `skills/add/SKILL.md`: «Referencias» y mitigaciones, sin tocar su `description`.
+
+### M5. Cierre
+
+- `README.md` con los comandos nuevos y sus límites; `evol coverage` sin huecos; `npm run ci` en
+  verde. Se comprueba qué persisten `evol checkpoint` y `evol handoff` (privacidad del ciclo 2).
+- No hay herramienta del MCP para estos comandos (limitación L4 de la spec).
+
+## Cobertura: criterio → módulo
+
+| Criterio                       | Módulo          | Prueba que pasa a verde                                        |
+| ------------------------------ | --------------- | -------------------------------------------------------------- |
+| CA-150, CA-151, CA-152, CA-154 | M2a             | `tests/acceptance/documentacion-atomica…`, `adopcion-gradual…` |
+| CA-161, CA-162, CA-163         | M2a             | `tests/acceptance/requisitos-atomicos…`                        |
+| CA-157, CA-158, CA-159         | M2b             | `tests/acceptance/dossier-investigacion…`                      |
+| CA-167, CA-168, CA-169         | M2c             | `tests/acceptance/historias-sprints…`                          |
+| CA-153, CA-164, CA-170, CA-160 | M0 (`rol`) y M3 | los cuatro de «figura con el rol» y el BLOCK/PASS de CA-160    |
+| CA-155, CA-165, CA-166         | M1 y M3         | `tests/acceptance/adr-con-referencias…`, `adopcion-gradual…`   |
+| CA-156                         | M3              | `tests/acceptance/adopcion-gradual…`                           |
 
 ## Riesgos y plan B
 
-| Riesgo                                                                                                        | Plan B                                                                                                                                                                                                                                           |
-| ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| La ola 1 es grande (10 mejoras, 22 criterios)                                                                 | Si el avance se atasca, M6, M8 y M10 se recortan a una 0.4.1 sin romper dependencias (ninguna otra mejora depende de ellas)                                                                                                                      |
-| `TDD: npm run ci` es lento (pty, semgrep) y el semgrep intermitente puede bloquear aprobaciones               | Reintentos ya existentes en `runSemgrep` (`src/skills/tools.ts`); si bloquea una aprobación real, se diagnostica con el log de `EVOL_DIAGNOSTICS_DIR` antes de reintentar, no se ignora el fallo                                                 |
-| El supuesto del Paso 0 (outputStyle/agent, permissions.deny bajo bypassPermissions) se desmiente              | T-1/T-3 de THREATS.md se degradan a «a verificar»; **CA-134**, CA-135/137/140 se construyen igual pero `evol doctor` deja de afirmar «impuesta» sin comprobarlo; se decide en la retro si entra en esta ola                                      |
-| El escenario de `evol ciclo nuevo` (M9) depende del comando `script` para simular una terminal en las pruebas | Mismo convenio que `tests/e2e.test.ts`: se acepta porque ya es la práctica del repositorio; si el entorno de CI real no tiene `script`, esas pruebas quedan sin ejecutar (riesgo ya señalado en la revisión del briefing, no nuevo de este plan) |
-| T-9 y T-13 (riesgos aceptados de THREATS.md) caducan y nadie los revisa a tiempo                              | T-9 caduca el 2026-12-31, antes de construir la ola 2; se añade a la retro de esta ola como recordatorio explícito                                                                                                                               |
+- **El perfil base pasa de 9 a 14 y la plantilla debe pasar los comprobadores**: la e2e
+  (`tests/e2e.test.ts`, seis fases sobre `evol new`) es la red de seguridad. Plan B: si una
+  plantilla no se puede mantener válida tras completar sus marcadores, esa parte entra como aviso.
+- **Cifras repartidas en muchos archivos** (31, 22 extendidas, reparto por rol, cuentas de skills):
+  se cambian todas en M3 y la CI las verifica; un olvido se ve como una prueba en rojo, no pasa en
+  silencio.
+- **Skills que cambian de huella** (`analista`, `arquitecto`, `add`): vuelven a «sin aprobar» al
+  actualizar; se avisa en el changelog y en la retro.
+- **Comprobadores lentos o frágiles con documentos reales**: límite de tamaño, analizadores lineales
+  y prueba con el árbol de `docs/` de este repositorio como entrada real.
 
 ## Qué se recortaría si falta la mitad del tiempo
 
-Por este orden: M10 (menor prioridad, cosmético), M8 (aviso de versión nueva: útil pero no
-bloqueante para nada más), M6 (identidad en Claude Code: M5 ya cubre el valor equivalente en
-OpenCode). M1 a M5, M7 y M9 no se recortan: M1 es lo que motivó la ola (Evol-OS), M2 a M5 son
-seguridad y aislamiento explícitamente pedidos por la persona, M7 es procedencia de versiones y M9
-es necesario para seguir con la ola 2.
+`evol sprint` (M2c) pasa a un ciclo posterior; M0, M1, M2a, M2b y M3 son el núcleo.
 
 ## Verificación de punta a punta
 
-Además de lo que ya describe «Cómo se ejecuta» del plan de la persona (una rama por ola, `evol
-verify` en PASS en cada fase, `npm run ci`, `evol security scan`, `evol coverage`, aprobación y
-avance en terminal):
-
-- **Antes de publicar la primera versión con M7** (SBOM y sumas), además de que pasen las pruebas
-  automatizadas (`tests/acceptance/procedencia-version.acceptance.test.ts`,
-  `tests/release.test.ts`, `tests/update.test.ts`), instalar esa etiqueta de verdad desde una
-  máquina de prueba con `evol update --repositorio <el propio origen>` y comprobar que la
-  instalación real la acepta. Un error en el primer `release/SUMAS.txt` real (no simulado en una
-  prueba) que deje toda la cadena de actualización rota no es reversible una vez que alguien la
-  instaló.
-- Tras M4, repetir en un proyecto real (no un fixture de prueba) el ensayo del Paso 0, ya con el
-  código construido, para confirmar que lo que `evol doctor` clasifica como «impuesta» lo es de
-  verdad en la máquina de la persona (la que tiene gentle-ai, antes de que se retire del todo).
-- Tras M9, en una copia de este mismo repositorio, ejecutar `evol ciclo nuevo` real y comprobar que
-  `evol status`/`evol prerequisites` del ciclo nuevo no arrastran nada del ciclo anterior.
+- Por módulo: la prueba de aceptación pasa de rojo a verde, las unitarias nuevas pasan y
+  `npm run ci` queda en verde.
+- `evol new demo`: su `evol.config.json` trae 14 disciplinas; con los marcadores completados recorre
+  las seis fases con aprobación humana en cada una.
+- Comandos a mano: un árbol con un documento huérfano y un enlace roto, un dossier con una cita
+  huérfana y un sprint cerrado sin lecciones; cada comando nombra exactamente lo que falla.
+- Diferencial: en una copia de la versión anterior (`mktemp -d`), `evol verify` sobre un proyecto
+  existente de 9 disciplinas da el mismo veredicto; `evol disciplines list --json` solo gana `rol`,
+  `ADD.tipo` y cuatro filas.
+- Evol-OS (en una copia): tras `evol update` sigue con sus 9 disciplinas; con
+  `evol disciplines enable GRANULAR …` aparecen las exigencias nuevas.
 
 ## Interrogado
 
-> Interrogación de `interrogar-plan`, fecha 2026-10-25. La persona que escribió este plan es quien
-> lo interroga a continuación, con la distancia de releerlo contra `docs/specs/*` y el código real
-> en vez de contra su propia memoria de haberlo escrito; cada hallazgo cita archivo y línea, no una
-> impresión general.
+> Interrogación de `interrogar-plan`, 2026-10-26. Además de releer este plan contra
+> `docs/specs/*` y el código, antes de escribirlo se interrogó el plan aprobado con un agente de
+> diseño independiente que no lo había redactado; sus hallazgos ya están incorporados arriba.
 
 ### Cobertura
 
-- Cada criterio CA-128..CA-149 tiene un M (tabla de arriba); cada feature de
-  `docs/features/FEATURES.md` corresponde a uno o más de esos CA-n, ya enlazados en la propia
-  spec. No hay feature huérfana: las 10 de FEATURES.md se corresponden una a una con M1-M10 más
-  CA-149 dentro de M4.
-- `evol coverage` (ejecutado en la fase spec) ya confirmó escenario y prueba por cada criterio; este
-  plan no repite esa comprobación, solo el reparto en pasos de construcción.
+- Cada criterio CA-150 a CA-170 tiene un módulo (tabla de arriba) y las 6 features de
+  `docs/features/FEATURES.md` se corresponden con M2, M3 y M4. `evol coverage` ya confirmó escenario
+  y prueba por cada criterio en la fase spec.
 
 ### Supuestos
 
-- **Comprobado** (en spec, por la revisión del rol `seguridad` y del rol `verificador`): que los
-  criterios citan correctamente sus disciplinas y pruebas; que el ámbito de T-9/T-13 es
-  proporcional.
-- **Por comprobar** (Paso 0, explícito arriba): precedencia de `outputStyle`/`agent` y de
-  `permissions.deny` bajo `bypassPermissions` global. Es el supuesto más importante del plan porque
-  3 de los 10 M dependen de él (M4, M5, M6) y una de las dos motivaciones centrales de la ola
-  (aislarse de gentle-ai) depende de que sea cierto.
-- **Por comprobar, menor**: que `evol-driven` puede detectarse a sí mismo de forma fiable con
-  `package.json.name === "evol-driven"` (M10, CA-148): un fork o una copia renombrada rompería la
-  detección, pero el impacto de equivocarse es bajo (un texto de instrucción, no una protección de
-  seguridad), así que no se trata como supuesto crítico.
+- Los formatos y los umbrales (15 líneas, 1 MiB) son supuestos de `FEATURES.md` y de `SPEC.md`; si
+  la persona los cambia, se cambian en una constante y en las pruebas.
+- `INVESTIGACION` con todo opcional rompe dos pruebas genéricas; está previsto y fijado en M3.
 
 ### Orden y dependencias
 
-- Verificado paso a paso en la sección «Orden de construcción»: M2 antes de M3-M6 (comparten el
-  camino de escritura), Paso 0 antes de M3-M6 (clasificación de las reglas de bloqueo y de la
-  convivencia), M3/M4 antes de M5 (comparten reglas de bloqueo), M7 antes de M8 (el aviso exige
-  SBOM/sumas), M9 sin dependencias previas pero obligatorio antes de cerrar la ola.
-- No encontrado ningún paso que dependa de algo que otro paso **posterior** crea (ningún ciclo).
-- Sí encontrado, en la segunda interrogación, el caso inverso: un paso posterior (M9) que modifica
-  una función (`findValidApproval`) de la que un paso anterior (M3) ya depende. No es un ciclo ni
-  bloquea el plan, pero queda anotado en M3 como advertencia de construcción, porque la
-  interrogación original solo miraba dependencias hacia adelante, no modificaciones hacia atrás.
+- La revisión independiente encontró que el orden anterior (registro antes que comprobadores) dejaba
+  la CI en rojo en el primer módulo; se reordenó como arriba. M3 depende de M1 (nivel de aviso) y
+  de M2 (el registro cita los comprobadores); M4 depende de que los formatos de M2 y M3 estén
+  cerrados.
 
 ### Riesgos
 
-- Los tres riesgos ya señalados por la persona (tamaño de la ola, `npm run ci` lento, semgrep
-  intermitente) tienen plan B explícito en la tabla de arriba, igual que el supuesto del Paso 0 y
-  el riesgo de `script` en CI, que no eran nuevos de este plan sino ya señalados en el briefing.
-- **Lo que impide aprobar**: ninguno de los riesgos identificados carece de plan B o de dueño; no
-  hay bloqueo encontrado en esta sección.
+- Ver «Riesgos y plan B». El mayor es la plantilla de `evol new` bajo el reemplazo ciego de
+  marcadores de la e2e, con reglas escritas en M3.
 
 ### Seguridad
 
-- `docs/specs/THREATS.md` ya cubre la superficie de esta ola con 13 amenazas y sus mitigaciones,
-  revisado por el rol `seguridad`. Este plan no añade superficie nueva que THREATS.md no contemple.
-  No es un mapeo uno a uno de los 10 M (una revisión más detallada lo corrigió): M1 no tiene
-  amenaza asociada porque no añade superficie de riesgo (correcto, no es un hueco), y M6 tampoco
-  aparece citado en ninguna mitigación (T-5 cubre el agente «evol» solo para CA-134/CA-139, no para
-  el estilo o la línea de estado de CA-140/141) — ninguno de los dos es un hallazgo de seguridad en
-  sí, porque ni M1 ni la identidad visual de M6 manejan datos sensibles ni permisos, pero la
-  afirmación de «uno a uno» era inexacta y se corrige aquí.
-- No se incorpora ninguna dependencia nueva en esta ola (M1-M10 usan solo Node, `node:fs`,
-  `node:crypto`, `ssh-keygen` ya usado por `release.ts`, y herramientas de seguridad ya instaladas
-  por `evol setup`); no aplica `incorporar-dependencia`.
+- Las amenazas T-14 a T-20 de `THREATS.md` tienen su control en la capa de lectura y en los
+  comprobadores, y su prueba de seguridad se escribe en el módulo que crea el control (STDD, en
+  build). La revisión independiente del rol `seguridad` (2026-10-26) encontró seis puntos que
+  bloqueaban aprobar el spec (mensajes que citaban nombres sin sanear, T-14 mal planteada, MCP sin
+  contrato, T-17, T-15 y T-18 incompletas); están corregidos en la spec y aquí.
 
 ### Reversibilidad
 
-- M2 (copia y vuelta atrás) es, precisamente, lo que hace reversible la escritura de M3 a M6: si
-  algo de esas mejoras sale mal a medio construir, `evol agents --deshacer` recupera el estado
-  anterior del proyecto en desarrollo (no solo de un proyecto de prueba).
-- M9 (ciclo nuevo) es, por diseño, no reversible hacia atrás (abrir un ciclo no se deshace,
-  CA-146/CA-147): correcto, porque revertirlo invalidaría el propósito de separar las aprobaciones
-  por ciclo; queda anotado como decisión consciente, no como hueco.
-- Para M7 (SBOM y sumas), un error en la primera versión publicada con esta mejora (0.4.0 en
-  adelante) no es reversible una vez que alguien instaló esa etiqueta: **lo que impide aprobar**
-  hasta que quede dicho en el propio plan: antes de publicar la primera versión con M7, ejecutar
-  `evol update` contra esa etiqueta desde una máquina de prueba (no solo los tests automatizados)
-  para confirmar que una instalación real la acepta, no solo que las pruebas pasan. Añadido como
-  paso explícito en «Verificación de punta a punta» de esta ola.
+- Todo es aditivo salvo el perfil base y el tipo de `ADD`. Revertir es quitar las cinco
+  disciplinas de `BASE_DISCIPLINES`; los proyectos ya creados no se ven afectados.
 
 ### Recorte
 
-- Ya resuelto arriba («Qué se recortaría si falta la mitad del tiempo»): M10, M8, M6, en ese orden,
-  sin romper ninguna dependencia de los M restantes.
+- Ver «Qué se recortaría si falta la mitad del tiempo».
 
-### Resumen (primera pasada)
+### Resumen
 
-**Lo que impide aprobar:** un único hallazgo, ya corregido en este mismo documento (sección
-Reversibilidad, M7): falta un paso de instalación real antes de publicar la primera versión con
-SBOM y sumas, más allá de las pruebas automatizadas. Con ese paso añadido a «Verificación de
-punta a punta», no queda nada pendiente de esta interrogación.
-
-**Lo que mejora el plan:** ninguno adicional a lo ya incorporado en «Riesgos» y «Supuestos».
-
-## Segunda interrogación (independiente, sin haber escrito el plan)
-
-> Quien interroga en esta sección no escribió el documento ni su primera autointerrogación: lo lee
-> contra `docs/specs/*` desde cero. Fecha 2026-10-25.
-
-**Lo que impide aprobar, encontrado y ya corregido arriba:**
-
-1. El Paso 0 (versión original) solo bloqueaba M4 a M6, pero `docs/specs/SPEC.md` y
-   `docs/specs/THREATS.md` atan el supuesto de `permissions.deny` bajo `bypassPermissions`
-   directamente a T-1/T-3, que son las mitigaciones de **CA-134** (M3), no solo de CA-135/136. Con
-   el plan sin corregir, M3 se habría construido y etiquetado «impuesta» antes de que el ensayo
-   confirmara si eso es cierto. Corregido: el Paso 0, la entrada de M3 y la fila de Riesgos ahora
-   incluyen M3 y CA-134 explícitamente.
-
-**Lo que mejora el plan, ya incorporado arriba:**
-
-2. La afirmación «los 10 M mapean uno a uno a mitigaciones de THREATS.md» era inexacta para M1 y
-   M6 (ninguno de los dos tiene amenaza asociada, y con razón, pero la frase lo daba a entender).
-   Corregida en «Seguridad».
-3. El alcance de CA-149 dentro de M4 solo mencionaba `opencode.json`, cuando el criterio no se
-   limita a un IDE y esta misma ola da a evol identidad en Claude Code también. Corregido en la
-   entrada de M4.
-4. M9 modifica `findValidApproval`, que M3 ya usa; no es un ciclo de dependencias, pero la primera
-   interrogación no revisaba ese caso (algo posterior que cambia algo anterior). Anotado en M3 y en
-   «Orden y dependencias».
-
-Con estas cuatro correcciones, la segunda interrogación no deja nada más pendiente.
+- El plan es ejecutable en el orden dado y la CI queda en verde tras cada módulo; las tres decisiones
+  que más pesan (perfil base, comprobadores sin remapeo de rutas, enrutadores de skills congelados)
+  están justificadas arriba.

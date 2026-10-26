@@ -61,3 +61,71 @@
 - Un ciclo nuevo solo lo abre una persona en una terminal, nunca un agente ni una herramienta
   automatizada; abrirlo no invalida ni reescribe el registro de aprobaciones de los ciclos
   anteriores.
+
+---
+
+# Dominio — Ciclo 2
+
+> Vocabulario nuevo de este ciclo. Lo que ya existe (fase, disciplina, rol, aprobación, ciclo,
+> skill, criterio, escenario) no se repite.
+
+## Entidades
+
+- **Dominio técnico**: una parte separable del sistema (`db`, `api`, `auth`…). Tiene una carpeta
+  `docs/proyecto/<dominio>/`.
+- **Subdominio**: una unidad técnica que un agente puede implementar o consultar sin leer otra. Tiene
+  exactamente un documento de dominio dentro de la carpeta de su dominio.
+- **Documento de dominio**: el archivo `.md` de un subdominio. Tiene un `Origen:` (la ruta del
+  archivo del que sale: la especificación, una decisión, un dossier) y un contenido mínimo.
+- **Índice de dominios**: `docs/proyecto/INDEX.md`. Enlaza todos los documentos de dominio; es el
+  único lugar donde se ve el mapa completo.
+- **Origen**: la línea `Origen: <ruta>` de un documento. Lo que evol comprueba es que la ruta exista
+  dentro del proyecto, no que el documento diga lo que el origen dice.
+- **Tema**: un asunto investigado, con carpeta propia `investigacion/<tema>/`.
+- **Dossier**: el conjunto de documentos de un tema: auditoría, índice de evidencia y, si hacen
+  falta, matriz de capacidades y modelo de amenazas.
+- **Fuente**: una entrada del índice de evidencia, con identificador `E-n`, lo que se consultó, la
+  fecha de consulta y una clasificación.
+- **Clasificación**: el grado de certeza de lo que aporta una fuente. Vocabulario cerrado:
+  **hecho** (comprobado en la fuente primaria), **supuesto** (se da por cierto sin comprobarlo) y
+  **contradicción** (dos fuentes se contradicen).
+- **Cita**: la marca `[E-n]` dentro de un documento del dossier. Una cita es **huérfana** si su
+  fuente no está en el índice; una fuente es **sin citar** si ningún documento del tema la cita.
+- **Requisito no funcional (NFR)**: una fila de `NO_FUNCIONALES.md` con identificador `NFR-n`,
+  métrica, umbral y validación (cómo se comprueba).
+- **Limitación conocida**: una restricción aceptada a sabiendas, `Ln`, con razón, impacto y roadmap.
+  No es una amenaza de seguridad (esas viven en `THREATS.md`).
+- **Término**: una entrada del glosario; su nombre se compara sin distinguir mayúsculas ni tildes.
+- **Historia**: una unidad de trabajo `HU-n` con sus cuatro documentos y un checklist de tareas.
+- **Checklist**: la lista de tareas atómicas de una historia; cada tarea está marcada o sin marcar.
+- **Sprint**: un lote de historias con identificador, título y, al cerrarse, su memoria y sus
+  lecciones.
+- **Sprint cerrado**: aquel en que todas las tareas de los checklists de sus historias están
+  marcadas, y hay al menos una. Un sprint sin tareas o con alguna sin marcar está **abierto**.
+- **Hallazgo de documentación**: lo que un comprobador informa de un archivo, con su ruta, su mensaje
+  y su nivel.
+- **Nivel de un hallazgo**: **bloqueo** (hace fallar el comando y bloquea la fase) o **aviso** (se
+  informa, el comando termina bien y la fase se puede aprobar; con `--estricto` hace fallar).
+
+## Reglas
+
+- Todo documento de dominio está enlazado en el índice, y todo enlace del índice apunta a un
+  documento que existe: la trazabilidad se comprueba en las dos direcciones.
+- Un identificador de fuente (`E-n`), de requisito (`NFR-n`), de limitación (`Ln`), de historia
+  (`HU-n`) o de sprint no se repite dentro de su documento.
+- Una cita huérfana, una fuente sin fecha, una clasificación fuera del vocabulario o una fecha de
+  consulta futura bloquean; una fuente sin citar solo avisa.
+- Un sprint abierto nunca exige memoria ni lecciones; uno cerrado las exige siempre.
+- Un comprobador nunca lee fuera de la raíz del módulo (no del proyecto: en un monorepo la raíz es la
+  de cada módulo), nunca ejecuta lo que lee y nunca cita el **contenido** de un documento.
+- Un **nombre** (ruta, identificador, término) sí puede salir en un mensaje, saneado y truncado; el
+  contenido (frases, celdas, valores) no.
+- Un tope superado (tamaño, cantidad, profundidad) bloquea: un documento demasiado grande no se da
+  por bueno.
+- Fuera de la raíz, «no existe» y «no se puede resolver» dan el mismo mensaje.
+- Todo archivo que lee un comprobador es artefacto de su disciplina: cambiarlo tras aprobar la fase
+  invalida la aprobación.
+- Un aviso nunca impide aprobar una fase; solo `--estricto` lo convierte en fallo.
+- Las disciplinas nuevas no cambian los proyectos que ya existen: un perfil solo se aplica al crear
+  o adoptar un proyecto.
+- Una disciplina con comprobación de documentos no admite remapear sus rutas (limitación L1).
