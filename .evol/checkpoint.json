@@ -1,42 +1,37 @@
 {
   "version": 1,
-  "ts": "2026-10-26T15:51:46.668Z",
+  "ts": "2026-10-26T16:05:22.686Z",
   "proyecto": "evol-driven",
-  "fase": "build",
-  "aprobacion": "vigente",
+  "fase": "qa",
+  "aprobacion": "obsoleta",
   "estado": [
     "Proyecto: evol-driven",
-    "Pipeline: ✓briefing → ✓spec → ✓plan → build → qa → retro",
-    "Fase actual: build",
+    "Pipeline: ✓briefing → ✓spec → ✓plan → ✓build → qa → retro",
+    "Fase actual: qa",
     "  [app] SDD — Spec-Driven Development",
     "      ✓ docs/specs/SPEC.md  (1 encontrado(s), ≥1)",
-    "  [app] TDD — Test-Driven Development",
-    "      ✓ tests/*.test.ts  (60 encontrado(s), ≥1)",
-    "  [app] STDD — Security-Test-Driven Development",
-    "      ✓ tests/security*.test.ts  (7 encontrado(s), ≥1)",
-    "Aprobación de «build»: vigente"
+    "  [app] BDD — Behavior-Driven Development",
+    "      ✓ tests/features/*.feature  (16 encontrado(s), ≥1)",
+    "  [app] ATDD — Acceptance Test-Driven Development",
+    "      ✓ tests/acceptance/*.acceptance.test.ts  (16 encontrado(s), ≥1)",
+    "  [app] SecDD — Security-Driven Development",
+    "      ✓ .evol/qa/QA_REPORT.md  (1 encontrado(s), ≥1)",
+    "Aprobación de «qa»: obsoleta (los artefactos cambiaron)"
   ],
   "git": {
     "rama": "main",
-    "commit": "2d7d1d3",
-    "sinCommit": [
-      "M .evol/gate-log.jsonl",
-      "M .evol/journal.jsonl"
-    ],
-    "totalSinCommit": 2,
+    "commit": "6d72fc8",
+    "sinCommit": [],
+    "totalSinCommit": 0,
     "ultimos": [
-      "test: CA-145 mide el retraso del aviso contra doctor sin aviso, no el tiempo total bajo carga",
-      "chore: checkpoint al cerrar el build del ciclo 2",
-      "docs: README con evol docs y evol sprint",
-      "build(M4): skills granular, investigacion, reqdd y sprintdd; add con Referencias; tercera ola de enrutadores",
-      "chore: checkpoint tras M3 del ciclo 2"
+      "chore: informe de QA",
+      "fix(qa): lectura acotada y dentro de la raíz (tope total, enlaces en el camino, líneas, tablas y hallazgos), checklist según el SPEC y pruebas más estrictas",
+      "chore(qa): quita la clave de ejemplo de lecciones.md, un texto no parecido a una clave en la prueba de rutas y ajusta la línea del ignorado de verify.ts",
+      "chore: checkpoint",
+      "test: CA-145 mide el retraso del aviso contra doctor sin aviso, no el tiempo total bajo carga"
     ]
   },
   "notas": [
-    {
-      "ts": "2026-10-25T09:41:03.422Z",
-      "texto": "Briefing de la ola 1 (CA-128 a CA-148): escritos docs/features/FEATURES.md (10 features), tests/features/*.feature (10) y tests/acceptance/*.acceptance.test.ts (10, 29 pruebas). evol status confirma los tres artefactos (FDD/BDD/ATDD) completos. Lint y typecheck en verde; las 29 pruebas de aceptación fallan por la razón correcta (funcionalidad aún no construida). Pendiente: revisión del rol verificador (agente en curso) antes de proponer evol approve briefing. Siguiente paso tras la revisión: corregir lo que señale, y pedir la aprobación en terminal."
-    },
     {
       "ts": "2026-10-25T18:02:21.021Z",
       "texto": "M1 (CA-128 a CA-131, proyectos que no son TypeScript) construido y comiteado (64f9348). Faltan M2 a M10 de la ola 1 en fase build. Próximo paso: Paso 0 del plan (ensayo real de outputStyle/agent y permissions.deny bajo bypassPermissions en Claude Code y OpenCode, documentado en docs/design/consultas/), necesario antes de M3 a M6."
@@ -72,21 +67,13 @@
     {
       "ts": "2026-10-26T15:51:46.668Z",
       "texto": "CA-145 hecho robusto (retraso vs base). Build listo otra vez: la persona repite evol approve build + evol next."
+    },
+    {
+      "ts": "2026-10-26T16:05:22.686Z",
+      "texto": "QA: revisiones de seguridad y verificador aplicadas (tope 5 MiB, symlinks en camino, líneas 8 KiB, tablas acotadas, dedupe de historias). ci verde. Espera: la persona repasa y hace evol approve qa + evol next; luego retro (lección, Ampliación 8) y release 0.5.0."
     }
   ],
   "eventos": [
-    {
-      "ts": "2026-10-26T15:18:39.650Z",
-      "type": "checkpoint"
-    },
-    {
-      "ts": "2026-10-26T15:21:11.590Z",
-      "type": "checkpoint"
-    },
-    {
-      "ts": "2026-10-26T15:29:35.602Z",
-      "type": "checkpoint"
-    },
     {
       "ts": "2026-10-26T15:34:02.689Z",
       "type": "checkpoint"
@@ -94,6 +81,18 @@
     {
       "ts": "2026-10-26T15:47:29.418Z",
       "type": "approved"
+    },
+    {
+      "ts": "2026-10-26T15:51:46.681Z",
+      "type": "checkpoint"
+    },
+    {
+      "ts": "2026-10-26T15:54:35.926Z",
+      "type": "approved"
+    },
+    {
+      "ts": "2026-10-26T15:55:43.422Z",
+      "type": "phase-completed"
     }
   ],
   "traspaso": false
