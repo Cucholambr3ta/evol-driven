@@ -12,3 +12,5 @@
 {"ts":"2026-10-25T22:37:54.240Z","type":"checkpoint","fase":"build","sinCommit":4,"traspaso":false,"nota":true}
 {"ts":"2026-10-25T23:55:18.655Z","type":"approved","phase":"build","approver":"cucholambreta","seq":3,"artifacts":48}
 {"ts":"2026-10-25T23:56:49.929Z","type":"phase-completed","phase":"build","next":"qa"}
+{"ts":"2026-10-26T00:03:59.669Z","type":"approved","phase":"qa","approver":"cucholambreta","seq":4,"artifacts":23}
+{"ts":"2026-10-26T00:04:33.214Z","type":"phase-completed","phase":"qa","next":"retro"}

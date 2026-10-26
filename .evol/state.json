@@ -1,7 +1,7 @@
 {
   "version": 1,
   "projectId": "f99d5a54-3f05-42df-a86a-e3ebc7c2db5e",
-  "currentPhase": "qa",
+  "currentPhase": "retro",
   "completed": [
     {
       "phase": "briefing",
@@ -18,11 +18,17 @@
     {
       "phase": "build",
       "at": "2026-10-25T23:56:49.928Z"
+    },
+    {
+      "phase": "qa",
+      "at": "2026-10-26T00:04:33.214Z"
     }
   ],
   "creadoCon": {
     "version": "0.3.2",
     "canal": "estable",
     "commit": "e3a2570"
-  }
+  },
+  "ciclo": 1,
+  "ciclos": []
 }
