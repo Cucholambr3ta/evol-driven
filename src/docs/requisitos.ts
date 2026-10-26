@@ -1,6 +1,5 @@
-import { join } from "node:path";
 import type { DocFinding } from "./hallazgo.js";
-import { leerDocumento, nombreSeguro } from "./lectura.js";
+import { crearLector, nombreSeguro } from "./lectura.js";
 import { encabezados, normalizar, secciones, tablas } from "./markdown.js";
 
 export const CARPETA_REQUISITOS = "docs/requisitos";
@@ -81,6 +80,7 @@ function glosario(archivo: string, texto: string, bloqueo: Aviso): void {
 /** The non-functional requirements, the known limitations and the glossary of `docs/requisitos`. */
 export function comprobarRequisitos(raiz: string): DocFinding[] {
   const hallazgos: DocFinding[] = [];
+  const leer = crearLector(raiz);
   const partes: [string, (a: string, t: string, b: Aviso) => void][] = [
     ["NO_FUNCIONALES.md", noFuncionales],
     ["RESTRICCIONES.md", limitaciones],
@@ -90,7 +90,7 @@ export function comprobarRequisitos(raiz: string): DocFinding[] {
     const archivo = `${CARPETA_REQUISITOS}/${nombre}`;
     const bloqueo: Aviso = (a, mensaje) =>
       hallazgos.push({ archivo: nombreSeguro(a), mensaje, nivel: "bloqueo" });
-    const lectura = leerDocumento(join(raiz, archivo));
+    const lectura = leer(archivo);
     if (!lectura.ok) {
       // a missing file is the discipline's artifact to report; an unreadable one is ours
       if (!lectura.motivo.includes("no existe o no es accesible")) bloqueo(archivo, lectura.motivo);

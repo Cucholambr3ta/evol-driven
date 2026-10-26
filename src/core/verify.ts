@@ -7,7 +7,7 @@ import { appliesIn, verificationAppliesIn } from "./disciplines.js";
 import type { Phase } from "./phases.js";
 import { comprobarParte } from "../docs/check.js";
 import { encabezados, normalizar } from "../docs/markdown.js";
-import { leerDocumento, nombreSeguro } from "../docs/lectura.js";
+import { crearLector, nombreSeguro } from "../docs/lectura.js";
 import { blockers, scan } from "../security/scan.js";
 
 export interface Finding {
@@ -189,9 +189,10 @@ export function verifyDiscipline(d: Discipline, ctx: VerifyContext): Finding[] {
         break;
       }
       case "secciones": {
+        const leer = crearLector(ctx.moduleRoot);
         for (const rel of matchFiles(v.patron, ctx.moduleRoot)) {
           const nombre = nombreSeguro(rel);
-          const lectura = leerDocumento(join(ctx.moduleRoot, rel));
+          const lectura = leer(rel);
           if (!lectura.ok) {
             findings.push(finding(`«${nombre}»: ${lectura.motivo}`));
             continue;

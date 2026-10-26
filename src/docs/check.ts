@@ -31,7 +31,7 @@ function existe(ruta: string): boolean {
 /** Checks one part of the documentation of a module; a part whose folder is not there has nothing to check. */
 export function comprobarParte(parte: Parte, raiz: string): DocFinding[] {
   const { carpeta, comprobar } = PARTE[parte];
-  return existe(join(raiz, carpeta)) ? comprobar(raiz) : [];
+  return existe(join(raiz, carpeta)) ? acotar(comprobar(raiz)) : [];
 }
 
 export interface ResultadoDocs {
@@ -40,7 +40,25 @@ export interface ResultadoDocs {
   hallazgos: DocFinding[];
 }
 
+/** The most findings a part reports: a hostile document could otherwise make thousands. */
+export const MAX_HALLAZGOS = 200;
+
+function acotar(hallazgos: DocFinding[]): DocFinding[] {
+  if (hallazgos.length <= MAX_HALLAZGOS) return hallazgos;
+  return [
+    ...hallazgos.slice(0, MAX_HALLAZGOS),
+    {
+      archivo: "-",
+      mensaje: `y ${hallazgos.length - MAX_HALLAZGOS} hallazgos más (se muestran los primeros ${MAX_HALLAZGOS})`,
+      nivel: "bloqueo",
+    },
+  ];
+}
+
 export function comprobarDocs(raiz: string, elegidas: readonly Parte[] = PARTES): ResultadoDocs {
   const partes = elegidas.filter((p) => existe(join(raiz, PARTE[p].carpeta)));
-  return { partes: [...partes], hallazgos: partes.flatMap((p) => PARTE[p].comprobar(raiz)) };
+  return {
+    partes: [...partes],
+    hallazgos: partes.flatMap((p) => acotar(PARTE[p].comprobar(raiz))),
+  };
 }

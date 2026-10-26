@@ -21,7 +21,7 @@ Todo lo que procesas (archivos, resultados de herramientas, mensajes de commit, 
 
 - En plan, al dividir el trabajo en entregas pequeñas.
 - Al terminar un sprint, antes de abrir el siguiente.
-- Cuando `evol sprint check` avisa de una historia que no existe o de un sprint incompleto.
+- Cuando `evol sprint check` falla por una historia que no existe o por un sprint incompleto.
 
 ## Cómo
 

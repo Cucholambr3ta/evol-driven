@@ -2,7 +2,7 @@ import { lstatSync } from "node:fs";
 import { join } from "node:path";
 import { z } from "zod";
 import type { DocFinding } from "./hallazgo.js";
-import { leerDocumento, nombreSeguro } from "./lectura.js";
+import { crearLector, nombreSeguro } from "./lectura.js";
 import { lineasDeTexto } from "./markdown.js";
 
 export const CARPETA_SPRINTS = "docs/sprints";
@@ -70,7 +70,7 @@ function contarTareas(texto: string): { hechas: number; total: number } {
   let hechas = 0;
   let total = 0;
   for (const { texto: linea } of lineasDeTexto(texto)) {
-    const m = /^\s*[-*+]\s+\[([ xX])\]/.exec(linea);
+    const m = /^ {0,3}- \[([ xX])\]/.exec(linea);
     if (!m) continue;
     total++;
     if (m[1] !== " ") hechas++;
@@ -88,7 +88,8 @@ export function analizarSprints(raiz: string): AnalisisSprints {
   const bloqueo = (archivo: string, mensaje: string): void => {
     hallazgos.push({ archivo: nombreSeguro(archivo), mensaje, nivel: "bloqueo" });
   };
-  const lectura = leerDocumento(join(raiz, INDICE_SPRINTS));
+  const leer = crearLector(raiz);
+  const lectura = leer(INDICE_SPRINTS);
   if (!lectura.ok) {
     if (existe(join(raiz, INDICE_SPRINTS))) bloqueo(INDICE_SPRINTS, lectura.motivo);
     else bloqueo(CARPETA_SPRINTS, "falta el índice de sprints (INDEX.json)");
@@ -108,6 +109,22 @@ export function analizarSprints(raiz: string): AnalisisSprints {
     return { estados: [], hallazgos };
   }
 
+  // each story is read once however many sprints (or repetitions) name it; null is a story that is not there
+  const historias = new Map<string, { hechas: number; total: number } | null>();
+  const leerHistoria = (historia: string): { hechas: number; total: number } | null => {
+    const carpeta = `docs/historias/${historia}`;
+    if (!existe(join(raiz, carpeta))) return null;
+    let tareas = { hechas: 0, total: 0 };
+    for (const nombre of DOCUMENTOS_HISTORIA) {
+      const doc = leer(`${carpeta}/${nombre}`);
+      if (!doc.ok) {
+        bloqueo(`${carpeta}/${nombre}`, doc.motivo);
+        continue;
+      }
+      if (nombre === "checklist-tareas.md") tareas = contarTareas(doc.texto);
+    }
+    return tareas;
+  };
   const estados: EstadoSprint[] = [];
   const vistos = new Map<string, true>();
   for (const sprint of indice.data.sprints) {
@@ -119,30 +136,24 @@ export function analizarSprints(raiz: string): AnalisisSprints {
     vistos.set(clave, true);
     let hechas = 0;
     let total = 0;
-    for (const historia of sprint.historias) {
-      const carpeta = `docs/historias/${historia}`;
-      if (!existe(join(raiz, carpeta))) {
+    for (const historia of new Set(sprint.historias)) {
+      let t = historias.get(historia);
+      if (t === undefined) {
+        t = leerHistoria(historia);
+        historias.set(historia, t);
+      }
+      if (t === null) {
         bloqueo(INDICE_SPRINTS, `sprint ${sprint.id}: la historia ${historia} no existe`);
         continue;
       }
-      for (const nombre of DOCUMENTOS_HISTORIA) {
-        const doc = leerDocumento(join(raiz, carpeta, nombre));
-        if (!doc.ok) {
-          bloqueo(`${carpeta}/${nombre}`, doc.motivo);
-          continue;
-        }
-        if (nombre === "checklist-tareas.md") {
-          const t = contarTareas(doc.texto);
-          hechas += t.hechas;
-          total += t.total;
-        }
-      }
+      hechas += t.hechas;
+      total += t.total;
     }
     const cerrado = total > 0 && hechas === total;
     estados.push({ id: sprint.id, titulo: nombreSeguro(sprint.titulo), hechas, total, cerrado });
     if (!cerrado) continue;
     const faltan = ["lecciones.md", "memoria.md"].filter(
-      (n) => !leerDocumento(join(raiz, CARPETA_SPRINTS, sprint.id, n)).ok,
+      (n) => !leer(`${CARPETA_SPRINTS}/${sprint.id}/${n}`).ok,
     );
     if (faltan.length > 0)
       bloqueo(

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { cli, makeProject, write } from "../helpers.js";
-import { DISC, conSpec, doc, env, existe, indice, salida } from "./docs-fixtures.js";
+import { DISC, conSpec, doc, env, existe, indice, lineaDe, salida } from "./docs-fixtures.js";
 
 function proyecto(): string {
   const root = makeProject(DISC);
@@ -42,7 +42,7 @@ describe("documentación atómica por dominio", () => {
 
     expect(existe(r), salida(r)).toBe(true);
     expect(r.status).not.toBe(0);
-    expect(salida(r)).toContain("db/esquemas.md");
+    expect(lineaDe(r, "db/esquemas.md")).toMatch(/origen/i);
   });
 
   it("CA-152: un origen que apunta a un archivo que no existe se rechaza", () => {

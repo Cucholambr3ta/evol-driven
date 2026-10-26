@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { cli, makeProject, makeProjectAt, write } from "../helpers.js";
-import { DISC, FECHA, env, existe, indiceEvidencia, salida } from "./docs-fixtures.js";
+import { DISC, FECHA, env, existe, indiceEvidencia, lineaDe, salida } from "./docs-fixtures.js";
 
 const FUENTES: [string, string, string, string][] = [
   ["E-1", "https://example.org/a", FECHA, "hecho"],
@@ -39,8 +39,8 @@ describe("dossier de investigación con índice de evidencia", () => {
 
     expect(existe(r), salida(r)).toBe(true);
     expect(r.status).not.toBe(0);
-    expect(salida(r)).toContain("E-2");
-    expect(salida(r)).toContain("E-3");
+    expect(lineaDe(r, "E-2")).toMatch(/fecha/i);
+    expect(lineaDe(r, "E-3")).toMatch(/clasificaci/i);
     expect(salida(r)).not.toContain("E-1");
   });
 

@@ -2,7 +2,8 @@ import { statSync } from "node:fs";
 import { join } from "node:path";
 import type { DocFinding } from "./hallazgo.js";
 import {
-  leerDocumento,
+  carpetaSegura,
+  crearLector,
   listarMarkdown,
   nombreSeguro,
   resolverEnRaiz,
@@ -23,6 +24,14 @@ export function comprobarGranular(raiz: string): DocFinding[] {
   const bloqueo = (archivo: string, mensaje: string): void => {
     hallazgos.push({ archivo: nombreSeguro(archivo), mensaje, nivel: "bloqueo" });
   };
+  if (!carpetaSegura(raiz, CARPETA_GRANULAR)) {
+    bloqueo(
+      CARPETA_GRANULAR,
+      "no es una carpeta del proyecto (enlace simbólico o fuera de la raíz): no se comprueba",
+    );
+    return hallazgos;
+  }
+  const leer = crearLector(raiz);
   const listado = listarMarkdown(join(raiz, CARPETA_GRANULAR));
   for (const enlace of listado.enlaces)
     bloqueo(`${CARPETA_GRANULAR}/${enlace}`, "enlace simbólico: no se sigue");
@@ -46,7 +55,7 @@ export function comprobarGranular(raiz: string): DocFinding[] {
   if (!listado.archivos.includes("INDEX.md")) {
     bloqueo(indice, "falta el índice de documentos");
   } else {
-    const lectura = leerDocumento(join(raiz, indice));
+    const lectura = leer(indice);
     if (!lectura.ok) bloqueo(indice, lectura.motivo);
     else {
       for (const { destino } of enlaces(lectura.texto)) {
@@ -68,7 +77,7 @@ export function comprobarGranular(raiz: string): DocFinding[] {
 
   for (const doc of documentos) {
     const archivo = `${CARPETA_GRANULAR}/${doc}`;
-    const lectura = leerDocumento(join(raiz, archivo));
+    const lectura = leer(archivo);
     if (!lectura.ok) {
       bloqueo(archivo, lectura.motivo);
       continue;

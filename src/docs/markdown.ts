@@ -18,12 +18,15 @@ export interface Linea {
 }
 
 const VALLA = /^ {0,3}(`{3,}|~{3,})/;
+/** A longer line is cut: no pattern runs on more than this, so none can be made quadratic. */
+export const MAX_LINEA = 8192;
 
 /** The lines that are not inside a fenced code block; an unclosed fence hides the rest of the text. */
 export function lineasDeTexto(md: string): Linea[] {
   const salida: Linea[] = [];
   let valla: { caracter: string; largo: number } | null = null;
-  md.split(/\r?\n/).forEach((texto, i) => {
+  md.split(/\r?\n/).forEach((completo, i) => {
+    const texto = completo.length > MAX_LINEA ? completo.slice(0, MAX_LINEA) : completo;
     const abre = VALLA.exec(texto);
     if (valla) {
       const cierra = new RegExp(`^ {0,3}${valla.caracter}{${valla.largo},}\\s*$`);
@@ -69,6 +72,8 @@ export interface Tabla {
   filas: Fila[];
 }
 
+export const MAX_COLUMNAS = 50;
+export const MAX_FILAS = 2000;
 const SEPARADOR = /^\s*\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)*\|?\s*$/;
 
 function partirCeldas(linea: string): string[] {
@@ -109,12 +114,14 @@ export function tablas(md: string): Tabla[] {
       continue;
     if (!SEPARADOR.test(separador.texto) || !separador.texto.includes("-")) continue;
     const cabeceras = partirCeldas(cabecera?.texto ?? "").map(normalizar);
+    if (cabeceras.length > MAX_COLUMNAS) continue;
     const filas: Fila[] = [];
     let j = i + 2;
     let anterior = separador.n;
     for (; j < lineas.length; j++) {
       const fila = lineas[j];
-      if (!fila || !empiezaPorBarra(fila) || fila.n !== anterior + 1) break;
+      if (!fila || !empiezaPorBarra(fila) || fila.n !== anterior + 1 || filas.length >= MAX_FILAS)
+        break;
       const celdas = partirCeldas(fila.texto);
       filas.push({
         linea: fila.n,

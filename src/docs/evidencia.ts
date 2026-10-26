@@ -1,7 +1,13 @@
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
 import type { DocFinding } from "./hallazgo.js";
-import { leerDocumento, listarMarkdown, nombreSeguro, TOPE_DOCUMENTOS } from "./lectura.js";
+import {
+  carpetaSegura,
+  crearLector,
+  listarMarkdown,
+  nombreSeguro,
+  TOPE_DOCUMENTOS,
+} from "./lectura.js";
 import { lineasDeTexto, normalizar, tablas } from "./markdown.js";
 
 export const CARPETA_EVIDENCIA = "investigacion";
@@ -40,6 +46,14 @@ export function comprobarEvidencia(raiz: string, hoy: Hoy = fechasDeHoy()): DocF
   const bloqueo = (archivo: string, mensaje: string): void => {
     hallazgos.push({ archivo: nombreSeguro(archivo), mensaje, nivel: "bloqueo" });
   };
+  if (!carpetaSegura(raiz, CARPETA_EVIDENCIA)) {
+    bloqueo(
+      CARPETA_EVIDENCIA,
+      "no es una carpeta del proyecto (enlace simbólico o fuera de la raíz): no se comprueba",
+    );
+    return hallazgos;
+  }
+  const leer = crearLector(raiz);
   let temas: string[];
   try {
     temas = readdirSync(join(raiz, CARPETA_EVIDENCIA), { withFileTypes: true })
@@ -51,6 +65,10 @@ export function comprobarEvidencia(raiz: string, hoy: Hoy = fechasDeHoy()): DocF
   }
   for (const tema of temas) {
     const carpeta = `${CARPETA_EVIDENCIA}/${tema}`;
+    if (!carpetaSegura(raiz, carpeta)) {
+      bloqueo(carpeta, "enlace simbólico: no se sigue");
+      continue;
+    }
     const listado = listarMarkdown(join(raiz, carpeta));
     for (const enlace of listado.enlaces)
       bloqueo(`${carpeta}/${enlace}`, "enlace simbólico: no se sigue");
@@ -74,7 +92,7 @@ export function comprobarEvidencia(raiz: string, hoy: Hoy = fechasDeHoy()): DocF
       continue;
     }
     const indice = `${carpeta}/${indices[0] ?? ""}`;
-    const lecturaIndice = leerDocumento(join(raiz, indice));
+    const lecturaIndice = leer(indice);
     if (!lecturaIndice.ok) {
       bloqueo(indice, lecturaIndice.motivo);
       continue;
@@ -117,7 +135,7 @@ export function comprobarEvidencia(raiz: string, hoy: Hoy = fechasDeHoy()): DocF
     for (const rel of listado.archivos) {
       const archivo = `${carpeta}/${rel}`;
       if (archivo === indice) continue;
-      const lectura = leerDocumento(join(raiz, archivo));
+      const lectura = leer(archivo);
       if (!lectura.ok) {
         bloqueo(archivo, lectura.motivo);
         continue;

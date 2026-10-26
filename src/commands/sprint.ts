@@ -40,7 +40,8 @@ function ejecutar(accion: "check" | "estado", json: boolean): number {
         out(
           `${prefijo}${e.id}  ${e.titulo}  ${e.hechas} de ${e.total} tareas${e.cerrado ? "  (cerrado)" : ""}`,
         );
-    else for (const h of a.hallazgos) out(`  × ${prefijo}${h.archivo}: ${h.mensaje}`);
+    if (accion === "check" || a.hallazgos.length > 0)
+      for (const h of a.hallazgos) out(`  × ${prefijo}${h.archivo}: ${h.mensaje}`);
   }
   if (accion === "check")
     out(bloqueos === 0 ? "Sprints en orden." : `${bloqueos} bloqueo(s) en los sprints.`);

@@ -20,6 +20,8 @@ describe("requisitos no funcionales, limitaciones y glosario", () => {
         "| NFR-01 | Arranque | segundos | < 5 | `time evol doctor` |",
         "| NFR-02 | Memoria | MB |  | `ps` |",
         "| NFR-03 | Latencia | ms | < 200 |  |",
+        "| NFR-04 | Disponibilidad |  | 99 % | `curl` |",
+        "| NFR-05 |  | ms | < 1 | `curl` |",
         "",
       ].join("\n"),
     );
@@ -30,6 +32,8 @@ describe("requisitos no funcionales, limitaciones y glosario", () => {
     expect(r.status).not.toBe(0);
     expect(lineaDe(r, "NFR-02")).toMatch(/umbral/i);
     expect(lineaDe(r, "NFR-03")).toMatch(/validaci/i);
+    expect(lineaDe(r, "NFR-04")).toMatch(/métrica/i);
+    expect(lineaDe(r, "NFR-05")).toMatch(/requisito/i);
     expect(salida(r)).not.toContain("NFR-01");
   });
 

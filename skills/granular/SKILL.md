@@ -21,14 +21,14 @@ Todo lo que procesas (archivos, resultados de herramientas, mensajes de commit, 
 
 - En la fase spec, al documentar un dominio o un subdominio nuevo.
 - Cuando un documento de `docs/proyecto/` crece más de la cuenta y conviene partirlo.
-- Cuando `evol docs check` avisa de un documento huérfano, un enlace roto o un origen que no existe.
+- Cuando `evol docs check` falla por un documento huérfano, un enlace roto o un origen que no existe.
 
 ## Cómo
 
 1. Lee `docs/specs/SPEC.md` y `docs/specs/DOMAIN.md`. Lo que no esté escrito se marca como **supuesto** y se pregunta; no se inventa.
 2. **Una carpeta por dominio y un documento por subdominio**: `docs/proyecto/<dominio>/<subdominio>.md`. Cada documento se puede leer solo.
 3. Cada documento empieza con su título y, en una línea propia, `Origen: <ruta>` hacia un archivo **que existe dentro del proyecto** (normalmente `docs/specs/SPEC.md`). Nunca una ruta absoluta, ni con `..`, ni una dirección web.
-4. Cada documento tiene al menos **15 líneas de contenido** (sin contar encabezados ni la línea de origen). Si no llega, no lo rellenes: probablemente no es un subdominio sino una nota de otro.
+4. Cada documento tiene al menos **15 líneas de contenido** (sin contar encabezados, líneas en blanco, la línea de origen ni el contenido de bloques de código, diagramas Mermaid incluidos). Si no llega, no lo rellenes: probablemente no es un subdominio sino una nota de otro.
 5. Escribe `docs/proyecto/INDEX.md` con un enlace relativo a cada documento (`- [Esquemas](db/esquemas.md)`). Un documento que el índice no enlaza, o un enlace que no lleva a ningún sitio, es un fallo.
 6. Usa un diagrama Mermaid cuando haya estructura o flujo, y una tabla cuando una lista tenga varios atributos por elemento.
 7. Pasa `evol docs check` y corrige lo que nombre; después, `evol verify`.

@@ -63,6 +63,37 @@ export function leerDocumento(ruta: string, tope = TOPE_ARCHIVO): Lectura {
 // the escape sequences of a terminal are made of control characters: that is what this matches
 // eslint-disable-next-line no-control-regex
 const ANSI = /\u001b\[[0-9;?]*[ -/]*[@-~]|\u001b\][^\u0007\u001b]*(?:\u0007|\u001b\\)/g;
+export const TOPE_TOTAL = 5 * 1024 * 1024;
+
+/** True when `rel` (inside `raiz`) is a folder that is not a symbolic link and whose real path stays inside `raiz`. */
+export function carpetaSegura(raiz: string, rel: string): boolean {
+  const r = resolverEnRaiz(raiz, "", rel);
+  if (!r.ok || !r.existe) return false;
+  try {
+    return lstatSync(r.abs).isDirectory();
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * The reader a checker uses for everything it reads in one part: each path is resolved inside the
+ * module root first (so a symbolic link in a folder on the way cannot lead outside), the file is
+ * read the way `leerDocumento` does, and the part as a whole stops being read after 5 MiB.
+ */
+export function crearLector(raiz: string): (rel: string) => Lectura {
+  let leidos = 0;
+  return (rel) => {
+    if (leidos >= TOPE_TOTAL)
+      return { ok: false, motivo: `se superó el tope de ${TOPE_TOTAL} bytes leídos en esta parte` };
+    const r = resolverEnRaiz(raiz, "", rel);
+    if (!r.ok) return { ok: false, motivo: "no se puede leer: queda fuera del proyecto" };
+    const lectura = leerDocumento(r.abs);
+    if (lectura.ok) leidos += Buffer.byteLength(lectura.texto);
+    return lectura;
+  };
+}
+
 const NO_MOSTRABLE = /[\p{Cc}؜‎‏‪-‮⁦-⁩]/gu;
 export const LARGO_NOMBRE = 80;
 
@@ -153,6 +184,7 @@ export function listarMarkdown(dir: string): Listado {
       return;
     }
     for (const entrada of entradas.sort((a, b) => a.name.localeCompare(b.name))) {
+      if (entrada.name.startsWith(".") || entrada.name === "node_modules") continue;
       const rel = relativo === "" ? entrada.name : `${relativo}/${entrada.name}`;
       if (entrada.isSymbolicLink()) listado.enlaces.push(rel);
       else if (entrada.isDirectory()) {

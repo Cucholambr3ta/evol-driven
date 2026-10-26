@@ -1,4 +1,4 @@
-import { relative } from "node:path";
+import { join, relative } from "node:path";
 import type * as Lectura from "../src/docs/lectura.js";
 import { describe, expect, it, vi } from "vitest";
 import { loadDisciplines } from "../src/core/disciplines.js";
@@ -10,9 +10,13 @@ vi.mock("../src/docs/lectura.js", async (importOriginal) => {
   const real = await importOriginal<typeof Lectura>();
   return {
     ...real,
-    leerDocumento: (ruta: string, tope?: number) => {
-      leidos.push(ruta);
-      return real.leerDocumento(ruta, tope);
+    // everything a checker reads goes through its reader: note each path it asks for
+    crearLector: (raiz: string) => {
+      const leer = real.crearLector(raiz);
+      return (rel: string) => {
+        leidos.push(join(raiz, rel));
+        return leer(rel);
+      };
     },
   };
 });

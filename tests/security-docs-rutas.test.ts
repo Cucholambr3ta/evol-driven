@@ -78,3 +78,47 @@ describe("los comprobadores de documentación no leen fuera de la raíz del mód
     expect(todo(raiz)).not.toContain(SECRETO);
   });
 });
+
+describe("un enlace simbólico en una carpeta del camino no lleva fuera de la raíz", () => {
+  it("un tema de investigación que es un enlace se señala y no se lista", () => {
+    const { raiz, fuera } = conFuera();
+    write(fuera, "x/y.md", `Dice [E-1] ${SECRETO}\n`);
+    mkdirSync(join(raiz, "investigacion"));
+    symlinkSync(fuera, join(raiz, "investigacion/tema"));
+
+    const r = comprobarDocs(raiz);
+
+    expect(r.hallazgos.map((h) => h.mensaje)).toEqual(["enlace simbólico: no se sigue"]);
+  });
+
+  it.each(["docs/proyecto", "investigacion", "docs/requisitos", "docs/sprints"])(
+    "«%s» como enlace simbólico se señala y no se recorre",
+    (carpeta) => {
+      const { raiz, fuera } = conFuera();
+      mkdirSync(join(raiz, carpeta, ".."), { recursive: true });
+      symlinkSync(fuera, join(raiz, carpeta));
+
+      const r = comprobarDocs(raiz);
+
+      expect(JSON.stringify(r)).not.toContain(SECRETO);
+    },
+  );
+
+  it("docs/historias/HU-1 como enlace simbólico no se lee por dentro", () => {
+    const { raiz, fuera } = conFuera();
+    for (const n of ["propuesta", "requisitos-escenarios", "escenario-tecnico", "checklist-tareas"])
+      write(fuera, `${n}.md`, `- [x] ${SECRETO}\n`);
+    write(
+      raiz,
+      "docs/sprints/INDEX.json",
+      JSON.stringify({ sprints: [{ id: "01", titulo: "x", historias: ["HU-1"] }] }),
+    );
+    mkdirSync(join(raiz, "docs/historias"), { recursive: true });
+    symlinkSync(fuera, join(raiz, "docs/historias/HU-1"));
+
+    const r = comprobarDocs(raiz);
+
+    expect(JSON.stringify(r)).not.toContain(SECRETO);
+    expect(r.hallazgos.length).toBeGreaterThanOrEqual(4);
+  });
+});
