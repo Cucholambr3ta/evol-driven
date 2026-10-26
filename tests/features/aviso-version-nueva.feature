@@ -4,7 +4,7 @@ Feature: Saber cuándo hay una versión nueva
 
   @CA-145
   Scenario: doctor avisa de una versión nueva firmada
-    Given una versión 0.4.0 publicada y firmada, más nueva que la instalada
+    Given una versión 90.4.0 publicada y firmada, más nueva que la instalada
     When la persona ejecuta "evol doctor"
     Then el aviso nombra la versión nueva y el comando "evol update"
     And nombra las skills que perderían la aprobación al actualizar

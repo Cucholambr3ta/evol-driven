@@ -43,14 +43,14 @@ describe("saber cuándo hay una versión nueva", () => {
   it("CA-145: doctor avisa de una versión nueva firmada y de las skills que perderían aprobación", () => {
     const upstream = origin({ signing: true });
     const originalSkill = readFileSync(join(upstream, "skills", "tdd", "SKILL.md"), "utf8");
-    release({ root: upstream, version: "0.3.0", ci: null });
-    const approvedHash = hashOf(upstream, "0.3.0", "tdd");
+    release({ root: upstream, version: "90.3.0", ci: null });
+    const approvedHash = hashOf(upstream, "90.3.0", "tdd");
 
-    // la versión 0.4.0 cambia el contenido de la skill «tdd»: su hash ya no es el que se aprobó
-    write(upstream, "skills/tdd/SKILL.md", `${originalSkill}\n<!-- ajuste en 0.4.0 -->\n`);
+    // la versión 90.4.0 cambia el contenido de la skill «tdd»: su hash ya no es el que se aprobó
+    write(upstream, "skills/tdd/SKILL.md", `${originalSkill}\n<!-- ajuste en 90.4.0 -->\n`);
     git(upstream, "add", "-A");
     git(upstream, "commit", "-q", "-m", "ajusta tdd");
-    release({ root: upstream, version: "0.4.0", ci: null });
+    release({ root: upstream, version: "90.4.0", ci: null });
 
     const config = isolateUserConfig();
     approveSkillLocally(config, "tdd", originalSkill, approvedHash);
@@ -61,7 +61,7 @@ describe("saber cuándo hay una versión nueva", () => {
       env: { ...env(config), EVOL_UPDATE_REPO: upstream },
     });
 
-    expect(result.stdout).toMatch(/0\.4\.0/);
+    expect(result.stdout).toMatch(/90\.4\.0/);
     expect(result.stdout).toMatch(/evol update/);
     expect(result.stdout).toMatch(/tdd/);
     expect(result.stdout).toMatch(/perder(ía|ían)|sin aprobar|vuelve a pedir aprobaci/i);
@@ -106,7 +106,7 @@ describe("saber cuándo hay una versión nueva", () => {
       JSON.stringify({ actualizaciones: { aviso: false } }),
     );
     const upstream = origin({ signing: true });
-    release({ root: upstream, version: "0.4.0", ci: null });
+    release({ root: upstream, version: "90.4.0", ci: null });
     const project = tempDir("evol-aviso-apagado-");
 
     const result = cli(["doctor"], {

@@ -43,6 +43,8 @@ describe("una sola fuente de versión (criterio 16)", () => {
       "design",
       // This repo's own pipeline state: state.json records the evol version it was created with.
       ".evol",
+      // la procedencia de cada versión (SBOM, sumas) lleva su número por diseño
+      "release",
     ]);
     const holders = walk(REPO, skip)
       .filter((f) => readFileSync(f, "utf8").includes(pkg.version))
