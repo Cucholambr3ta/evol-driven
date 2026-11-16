@@ -1,43 +1,22 @@
 {
   "version": 1,
   "projectId": "f99d5a54-3f05-42df-a86a-e3ebc7c2db5e",
-  "currentPhase": "done",
-  "completed": [
-    {
-      "phase": "briefing",
-      "at": "2026-10-26T14:51:09.990Z"
-    },
-    {
-      "phase": "spec",
-      "at": "2026-10-26T14:58:12.192Z"
-    },
-    {
-      "phase": "plan",
-      "at": "2026-10-26T15:02:31.899Z"
-    },
-    {
-      "phase": "build",
-      "at": "2026-10-26T15:55:43.421Z"
-    },
-    {
-      "phase": "qa",
-      "at": "2026-10-26T16:14:49.991Z"
-    },
-    {
-      "phase": "retro",
-      "at": "2026-10-26T16:17:17.630Z"
-    }
-  ],
+  "currentPhase": "briefing",
+  "completed": [],
   "creadoCon": {
     "version": "0.3.2",
     "canal": "estable",
     "commit": "e3a2570"
   },
-  "ciclo": 2,
+  "ciclo": 3,
   "ciclos": [
     {
       "ciclo": 1,
       "cerradoEl": "2026-10-26T02:17:26.933Z"
+    },
+    {
+      "ciclo": 2,
+      "cerradoEl": "2026-11-16T05:02:00.234Z"
     }
   ]
 }
