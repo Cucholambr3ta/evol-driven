@@ -8,3 +8,6 @@ coverage/
 .evol/codegraph.sqlite*
 # evol agents: local safety copies before each write, never collaboration state
 .evol/respaldos/
+
+# Investigación de memoria de código (entregables locales, no se versionan)
+docs/code-memory-research.zip
