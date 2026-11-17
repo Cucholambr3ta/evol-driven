@@ -11,3 +11,7 @@ coverage/
 
 # Investigación de memoria de código (entregables locales, no se versionan)
 docs/code-memory-research.zip
+
+# Investigación de Evol-Driven Studio: los ZIP son derivados, no se versionan
+docs/research/*.zip
+docs/research/*.SHA256SUMS
