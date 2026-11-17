@@ -27,7 +27,11 @@ Directiva de cierre v3.1, 2026-11-17. **Sin commits.** Rama `feat/evol-driven-st
 | `26-propuesta-de-commit-y-paquete.md` | **nuevo** |
 | `27-manifiesto-y-perfiles-dsh.md` | **nuevo** |
 | `28-enmiendas-normativas.md` | **nuevo** |
+| `29-pendientes-consolidados.md` | **nuevo** (tabla única de 50 asuntos con estados; anexo con el original) |
+| `30-runbook-tanda-1-equipo-nuevo.md` | **nuevo** (preflight y fases de la Tanda 1; reparto desarrollo/instalación) |
+| `31-metodologia-de-benchmarks.md` | **nuevo** (metodología y umbrales propuestos) |
 | `18-archivos-modificados.md` | **reescrito** (este archivo) |
+| docs 02, 11, 17, 19, 21, 22, 23, 25, 27, 28, `evidence-v3.1.md` | modificados tras el primer commit (S-*, D-10, calendario AMD, EV-073/074, N-12) |
 
 ## Estado de Git
 

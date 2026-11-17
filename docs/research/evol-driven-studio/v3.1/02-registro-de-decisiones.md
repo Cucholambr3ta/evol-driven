@@ -44,6 +44,7 @@
 
 ## OD-08 — Licencias · BASELINE PROPUESTA
 - **Resolución:** código propio privado en desarrollo; decidir licencia pública/comercial antes de publicar; auditar licencias de dependencias, ejecutables, modelos y recursos. **No asumir MIT para todo:** Mnemon es Apache-2.0; Serena (no usada) es GPL en la aplicación; deja-vu MIT; CBM MIT; AgentTeams MIT; dsh-mnemon MIT. **Pendiente:** inventario de licencias transitivas (no hecho).
+- **D-10 (propuesta del propietario, pendiente de confirmación formal):** licencia **privada durante el desarrollo**; la **decisión de la licencia de publicación es obligatoria y se difiere hasta antes de cualquier distribución** (puerta de publicación, doc 25 §6).
 
 ## OD-09 — Baseline de Harness · RATIFICADA como baseline inicial de la Tanda 1 (v3.1)
 - **Resolución:** DSH `0.2.1-rc.2` + AgentTeams `0.1.30` (**ratificadas v3.1** como baseline inicial); versiones exactas fijadas; sin `latest`; revisar matrices oficiales antes de Tanda 1; comprobar selección de modelos, perfiles y razonamiento.
@@ -62,6 +63,7 @@
 
 ## OD-12 — Trazabilidad Git · PROPUESTA
 - **Resolución:** trailer `CA:` en commits propios aplicables; excepciones para merges y automatizaciones definidas explícitamente; sin reescribir historia. Excepciones propuestas: merges sin contenido propio llevan `CA: -`; commits de herramientas llevan `CA: -` más `Automation:`; commits previos a la adopción no se modifican. **Pendiente:** hook y política exacta.
+- **S-12 (propuesta del propietario, pendiente de confirmación formal):** el trailer `CA:` es **obligatorio cuando el commit se relaciona con criterios de aceptación** (`CA: CA-12, CA-13`). **Excepciones justificadas y verificables:** merges sin contenido propio (`CA: -`); commits de herramientas (`CA: -` y `Automation: <herramienta>`); documentación sin criterio asociado (`CA: -` y `Motivo: <texto>`); commits anteriores a la adopción (no se modifican). **Verificable:** un gancho `commit-msg` comprueba que cada `CA-n` citado existe en `SPEC.md` y que toda excepción lleva su motivo; `evol coverage` ya conoce los criterios. Implementación en H0.
 
 ## OD-13 — Gestión documental · PROPUESTA
 - **Resolución:** versionar investigación, specs, planes, ADR, evidencias y decisiones; preservar historia; no alterar informes previos (C-01…14 aplican esta regla). **Pendiente:** commit autorizado por una persona.
@@ -124,3 +126,21 @@
 ## OD-27 — Evol Repository Explorer · CONFIRMADA (v3.1)
 - **Resolución:** plugin propio (nombre provisional **Evol Repository Explorer**) para visualizar el historial Git y la actividad GitHub del proyecto, con **Git local** como fuente disponible sin conexión y **GitHub API** como complemento opcional; integrado con Pipeline, tareas, criterios y evidencias. **MVP de solo lectura**; sin motor Git nuevo; **sin `push`, `merge` ni borrado de ramas**; **sin tokens en lugares accesibles a los agentes**. Ubicación propuesta: **Proyectos → Repositorio**.
 - **Detalle:** doc 22 (RE-01…12). **Dependencias:** OD-12 (trailer `CA:`), OD-15, OD-17. **Riesgos:** custodia del token (pendiente de validación junto con el broker). **Pendiente:** Tanda 2 (hito H8b); sin implementación.
+
+## Paquete de ratificación propuesto (v3.1, directiva EVOL-STUDIO-PENDING-CLOSURE-001)
+
+**Estado: PROPUESTA DEL PROPIETARIO — pendiente de su confirmación formal.** Nada de lo siguiente cambia el estado de ninguna OD hasta que lo confirme expresamente.
+
+| ID | Resolución propuesta | Formalizada en |
+|---|---|---|
+| S-26-1 | Checklist individual con WebAuthn final vinculado al conjunto de ítems; autenticación adicional solo ante operaciones excepcionales | doc 21 §6 |
+| S-04-1 | Autenticadores FIDO2 vinculados al dispositivo preferidos; UV obligatoria; autenticadores de recuperación | doc 11 §6.1 |
+| S-04-2 | Rotación Ed25519 inicial de 12 meses, revocación anticipada y desafíos de hasta 5 minutos | doc 11 §3.2, §6.2 |
+| S-27-1 | GitHub público sin token; repositorios privados mediante servicio protegido y permisos mínimos | doc 22 §5 |
+| S-12 | Trailer `CA:` obligatorio con relación a criterios; excepciones justificadas y verificables | OD-12 (arriba) |
+| S-23-1 | Tipografía del sistema, tokens consistentes, WCAG 2.2 AA y movimiento reducido | doc 23 §2 |
+| D-10 | Licencia privada en desarrollo; licencia de publicación diferida hasta antes de distribuir | OD-08 (arriba) |
+| AMD-01…08 | Incorporación normativa controlada por fases, sin equiparar documento aprobado con código implementado | doc 28 §«Calendario» |
+| **OD-01, 02, 05, 06, 07, 08, 22, 23** (baseline) y **OD-10…18** (propuesta) | Ratificación conjunta conforme a la arquitectura v3.1 | este registro |
+
+**Conservadas sin alterar:** OD-03, 04, 09 (ratificadas), 19, 20, 21, 24, 25, 26, 27 (confirmadas).

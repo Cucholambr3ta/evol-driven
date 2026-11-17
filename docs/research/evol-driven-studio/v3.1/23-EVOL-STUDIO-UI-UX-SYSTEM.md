@@ -23,7 +23,7 @@ Estado: **normativo de diseño por directiva del propietario (v3.1 §8); no se h
 | Estados | `--good`, `--warning`, `--serious`, `--critical`, `--info` | PASS / WARN / BLOCK / error, siempre con **icono y texto** |
 | Foco | `--focus` | contorno visible en todo elemento interactivo |
 
-Los dos temas (claro y oscuro) se mantienen. **Pendiente de confirmar** (D-15): tipografía de la interfaz y comprobación de contrastes reales de cada par de tokens.
+Los dos temas (claro y oscuro) se mantienen. **S-23-1 (propuesta del propietario pendiente de confirmación formal):** **tipografía del sistema** (pila `system-ui`, sin fuentes incrustadas), **tokens consistentes**, **WCAG 2.2 AA** y **soporte de movimiento reducido**. Sigue pendiente la **comprobación de contrastes reales** de cada par de tokens (UX-03).
 
 ## 3. Mapa de navegación
 
@@ -87,4 +87,4 @@ Paneles de «salud» sin comprobación detrás; porcentajes sin denominador; gr�
 
 ## 9. Pendientes
 
-Confirmar tipografía y contrastes (D-15); actualizar las maquetas para las vistas nuevas **solo después** de aprobar este documento; definir la plantilla de componentes (estado, ítem de checklist, tarjeta de evidencia, insignia de permiso, insignia de frescura) en el momento de implementar el cliente.
+Comprobar los contrastes reales (UX-03; la tipografía ya está propuesta); actualizar las maquetas para las vistas nuevas **solo después** de aprobar este documento; definir la plantilla de componentes (estado, ítem de checklist, tarjeta de evidencia, insignia de permiso, insignia de frescura) en el momento de implementar el cliente.

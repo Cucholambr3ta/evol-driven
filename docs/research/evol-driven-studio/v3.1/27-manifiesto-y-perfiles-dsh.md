@@ -6,7 +6,7 @@ Estado: **preparación documental de la Tanda 1; no se instala nada.** Cubre lo 
 
 | Componente | Versión exacta | Procedencia conocida (doc 16, a completar al fijar) |
 |---|---|---|
-| DeepSeek Harness | **0.2.1-rc.2** | commit `687f282` (2026-10-17) |
+| DeepSeek Harness | **0.2.1-rc.2** | commit `687f282e8625c6b8d11ff58211a90524be2e4317` (2026-10-17); npm exacta, no `latest` (EV-073) |
 | dsh-agent-teams (AgentTeams) | **0.1.30** | commit `4354b0f` |
 
 Esto **no certifica** compatibilidad con los demás plugins. Cualquier otra versión (incluidas `0.2.2-rc.*` y `latest`) queda **fuera** de la baseline hasta una propuesta de cambio aprobada (§5).

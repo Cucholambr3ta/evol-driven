@@ -51,7 +51,7 @@ El broker construye, **a partir del estado real**, un objeto canónico (JSON ord
 
 ### 3.2 Vida de la solicitud
 
-`pendiente → consumida | expirada | cancelada | invalidada`. Un solo uso: tras una aserción válida o un fallo definitivo, el `request_id` no vuelve a aceptarse. Expiración propuesta: 5 minutos, máximo configurable 15. Cualquier cambio de `HEAD`, de un artefacto, de la configuración o del checklist **invalida** la solicitud antes de firmar.
+`pendiente → consumida | expirada | cancelada | invalidada`. Un solo uso: tras una aserción válida o un fallo definitivo, el `request_id` no vuelve a aceptarse. **Expiración: hasta 5 minutos** (S-04-2; no se admite un valor mayor). Cualquier cambio de `HEAD`, de un artefacto, de la configuración o del checklist **invalida** la solicitud antes de firmar.
 
 ### 3.3 Comprobaciones del backend (todas, en este orden; cualquier fallo = rechazo registrado sin firma)
 
@@ -82,7 +82,7 @@ Los datos personales quedan fuera de la cadena versionada en Git. Si el archivo 
 
 ### 4.2 Formato de la entrada v2 (diseño; no implementado)
 
-A los campos actuales de `GateEntry` (`seq, timestamp, phase, approver, action, anulacion, ciclo, artifacts, nonce, previous_hash`, EV-060) se añaden: `v: 2`, `sig_alg: "ed25519"`, `broker_kid`, `epoch`, `approver_id`, `request_digest`, `checklist_digest`, `webauthn_digest`. La firma es **Ed25519 sobre el JSON canónico con prefijo de dominio `evol-gate-v2`** (Node 26 lo soporta, EV-069); `payload_hash` se conserva. `action` gana valores: `approved`, `transition`, `ciclo-nuevo`, `key-rotation`, `key-revocation`, `credential-enrolled`, `credential-revoked`, `approver-reset`, `epoch-start`, `broker-incident` (este último no es una aprobación).
+A los campos actuales de `GateEntry` (`seq, timestamp, phase, approver, action, anulacion, ciclo, artifacts, nonce, previous_hash`, EV-060) se añaden: `v: 2`, `sig_alg: "ed25519"`, `broker_kid`, `epoch`, `approver_id`, `request_digest`, `checklist_digest`, `webauthn_digest`. La firma es **Ed25519 sobre el JSON canónico con prefijo de dominio `evol-gate-v2`** (Node 26 lo soporta, EV-069); `payload_hash` se conserva. `action` gana valores: `approved`, `rejected` (rechazo de una solicitud, con motivo; D-05), `transition`, `ciclo-nuevo`, `key-rotation`, `key-revocation`, `credential-enrolled`, `credential-revoked`, `approver-reset`, `epoch-start`, `broker-incident` (este último no es una aprobación).
 
 ### 4.3 Verificación sin capacidad de firmar
 
@@ -114,10 +114,11 @@ Una acción para la persona; **dos operaciones internas con dos registros** (apr
 ### 6.1 Custodia y generación
 - **Alta inicial** (`broker init`): la ejecuta el Administrador **en la cuenta del broker, fuera de cualquier sesión de agente**; genera el par Ed25519 y el ancla; no hay comando equivalente en ninguna herramienta de agente.
 - **Inscripción de credenciales** (`enroll_credential`): la **primera** credencial exige un código de un solo uso mostrado en la consola administrativa más presencia física; las siguientes exigen **una aserción de una credencial ya inscrita** (el agente no puede inscribir un autenticador virtual, BA-02/BA-06). Se inscriben **al menos dos autenticadores** (principal y de respaldo guardado aparte).
+- **Política de autenticadores (S-04-1, propuesta del propietario pendiente de confirmación formal):** se **prefieren autenticadores FIDO2 vinculados al dispositivo** (BE = 0); **verificación de usuario obligatoria**; se inscriben **autenticadores de recuperación** (guardados fuera de línea, usados solo para inscribir o recuperar, nunca para el trabajo diario). Las credenciales sincronizables solo con excepción escrita del propietario.
 - **Política de atestación:** pedir atestación directa y una lista de modelos aceptados (AAGUID) si el autenticador la ofrece; con atestación `none` (el valor por defecto de la spec, EV-068) se declara garantía menor.
 
 ### 6.2 Rotación
-- **Clave de firma Ed25519:** periódica (propuesta: 12 meses) o por evento. Se genera la nueva, se firma una entrada `key-rotation` con la anterior **y** una ceremonia WebAuthn; los verificadores usan para cada entrada la clave válida en su `seq`.
+- **Clave de firma Ed25519 (S-04-2):** rotación **inicial de 12 meses**, con **revocación anticipada** posible en cualquier momento, y por evento. Se genera la nueva, se firma una entrada `key-rotation` con la anterior **y** una ceremonia WebAuthn; los verificadores usan para cada entrada la clave válida en su `seq`.
 - **Credenciales WebAuthn:** inscribir la nueva, probar, revocar la antigua (`credential-revoked`); nunca quedan cero credenciales activas.
 - Las claves antiguas se conservan como **públicas** para verificar el pasado.
 
@@ -174,7 +175,7 @@ Requisitos mínimos para dar el mecanismo por válido (candidatas **sin probar**
 | BA-10 | El host (Harness) reenvía un paquete de revisión manipulado | El broker recalcula todo desde archivos | P-32 |
 | BA-11 | Cambio de un artefacto, de `HEAD` o del checklist entre la revisión y la firma | Revalidación (§3.3 punto 11) | P-05, P-31 |
 | BA-12 | **Spam de solicitudes** para fatigar a la persona | Límite de frecuencia; solicitudes agrupadas por fase; caducidad | P-19 |
-| BA-13 | Marcas de checklist hechas por un agente con la sesión abierta | Las marcas son consultivas hasta la ceremonia final, que sella `checklist_digest`; ítems críticos exigen UV por ítem (doc 21) | P-31 |
+| BA-13 | Marcas de checklist hechas por un agente con la sesión abierta | Las marcas son consultivas hasta la ceremonia final, que sella `checklist_digest`; las **operaciones excepcionales** exigen una verificación adicional (doc 21 §6) | P-31 |
 | BA-14 | Manipulación del reloj | Reloj monótono del broker; marcas de tiempo firmadas | P-19 |
 | BA-15 | Credencial sincronizable comprometida en la nube | Política BE = 0 por defecto | P-22 |
 | BA-16 | Comandos de configuración (`comandos`) alterados antes de `verify` | La configuración es artefacto con hash (EV-072); `config_digest` en el desafío; UI muestra los comandos | P-05 |

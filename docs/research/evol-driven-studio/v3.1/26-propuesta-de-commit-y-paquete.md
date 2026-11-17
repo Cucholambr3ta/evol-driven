@@ -186,3 +186,7 @@ Los ZIP de `docs/research/` quedan **sin rastrear** y sin ignorar, igual que el 
 ## 8. Qué se necesita de la persona
 
 Elegir A, B o C; aprobar el mensaje; decir si se hace el commit aparte de `.gitignore`; y, cuando quiera, el `git push` (siempre por la persona).
+
+## 9. Actualización posterior
+
+La opción A se ejecutó (commits `f8490ab` y `20ed7b8`, 98 archivos). Los archivos 29, 30 y 31 y las ediciones posteriores van en un commit adicional **solo de `docs/research/evol-driven-studio/v3.1/`**; el ZIP y las sumas se regeneraron con los 34 archivos de v3.1.

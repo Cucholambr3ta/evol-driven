@@ -33,7 +33,7 @@ Los ítems se **derivan** de datos que el framework ya tiene, no se escriben a m
 | `id` | estable y derivado: `c<ciclo>/<fase>/<fuente>/<clave>` (p. ej. `c3/spec/SDD/CA-12`); no cambia si el contenido cambia |
 | `requisito` | texto corto en español, generado de la fuente |
 | `obligatorio` | booleano; solo los obligatorios bloquean |
-| `critico` | booleano; los críticos exigen paso adicional de verificación de usuario (§6) |
+| `critico` | booleano; solo destaca el ítem en la interfaz; **no** añade autenticación por sí mismo (§6) |
 | `artefactos` | lista de `{ruta, hash}` actuales |
 | `evidencia` | lista de `{tipo, referencia, digest}` (informe de verificación, escaneo, prueba, diff) |
 | `resultado_verificacion` | `PASS` · `WARN` · `BLOCK` · `N/A`, con el hallazgo saneado (sin contenido de documentos, sin secretos) |
@@ -69,9 +69,13 @@ Los ítems se **derivan** de datos que el framework ya tiene, no se escriben a m
 
 No hay equivalente de línea de comandos para **marcar**: un TTY no demuestra presencia humana (doc 11 §1). La CLI ofrece solo `evol review list|show|export` de lectura; la accesibilidad se resuelve con navegación por teclado y lector de pantalla en el Centro de revisión (doc 23).
 
-## 6. Sellado y elementos críticos
+## 6. Sellado y operaciones excepcionales (S-26-1)
 
-La ceremonia final del broker incluye `checklist_digest`; la pantalla repite el resumen (n.º de ítems obligatorios válidos, críticos, WARN reconocidos). **Sub-decisión S-26-1 (abierta, propuesta):** los ítems `critico` (escaneo de seguridad, secretos, amenazas, plan interrogado, cambios de `comandos`/configuración) exigen una verificación de usuario WebAuthn propia al marcarlos, para que una sesión abierta no baste. Se justifica por BA-13 (doc 11).
+**Decisión propuesta por el propietario (pendiente de confirmación formal): checklist individual con una ceremonia WebAuthn final vinculada al conjunto de ítems; autenticación adicional solo ante operaciones excepcionales.**
+
+- **Regla general:** la persona marca ítem por ítem (consultivo); la ceremonia final del broker incluye `checklist_digest` y la pantalla repite el resumen (n.º de ítems obligatorios válidos, WARN reconocidos). **No** hay verificación de usuario por ítem.
+- **Operaciones excepcionales (exigen una verificación WebAuthn adicional, propia y con su desafío):** (a) aprobar con **anulación** firmada (p. ej. plan sin interrogar); (b) aceptar un **WARN de seguridad**; (c) cambiar `comandos` o las disciplinas tras sellar un ítem; (d) **reabrir** una fase ya aprobada; (e) las operaciones de claves y credenciales del doc 11 §6. Esta lista es una concreción propuesta, a revisar al implementar.
+- Justificación: una sesión abierta no basta para aprobar (BA-13, doc 11), y se evita la fatiga de pedir verificación decenas de veces.
 
 ## 7. Privacidad
 

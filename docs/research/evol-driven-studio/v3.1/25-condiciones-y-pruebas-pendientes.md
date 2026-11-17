@@ -46,7 +46,7 @@ Fecha de corte: 2026-11-17. **Ninguna prueba de esta lista se ha ejecutado.** Ra
 
 | ID | Decisión | Propone | Quién decide |
 |---|---|---|---|
-| S-26-1 | ¿Los ítems **críticos** del checklist exigen verificación WebAuthn propia al marcarse? | sí (doc 21 §6) | propietario |
+| S-26-1 | Checklist con ceremonia final; autenticación adicional solo en operaciones excepcionales | formalizada (doc 21 §6); **confirmación formal pendiente** | propietario |
 | S-04-1 | Política de credenciales sincronizables (BE = 1): prohibidas por defecto | prohibidas | propietario |
 | S-04-2 | Periodicidad de rotación de la clave de firma (propuesta: 12 meses) y de caducidad de solicitudes (5 min) | las indicadas | propietario |
 | S-27-1 | Custodia del token de GitHub: servicio protegido frente a «solo repositorios públicos» | servicio protegido, con alternativa sin token | propietario |

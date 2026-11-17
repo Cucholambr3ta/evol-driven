@@ -59,7 +59,7 @@ Matriz de compatibilidad con combinaciones «probadas», licencias transitivas i
 | D-06 | Inventario CLI→UI sin subcomandos/opciones exactos (doc 10) | H8 |
 | D-07 | **CERRADA documentalmente (v3.1):** lectura íntegra de la normativa (EV-057) y matriz de 35 filas (doc 19); ninguna contradicción material sin resolver; 8 enmiendas **redactadas, no incorporadas** al texto normativo (D-11); NC-01 (código) abierta | `19-matriz-de-conciliacion-normativa.md`, `28-enmiendas-normativas.md` |
 | D-08 | Licencias transitivas sin inventariar (OD-08) | doc 02 |
-| D-09 | `docs/code-memory-research/` y `docs/research/` sin commit | EV-032 |
+| D-09 | `docs/research/` **ya tiene commit** (`f8490ab`, `20ed7b8`; sin publicar en el remoto, EV-074); `docs/code-memory-research/` sigue sin rastrear y es ajena | EV-032, EV-074 |
 | D-10 | Evol-Driven con licencia privada: decisión antes de publicar | OD-08 |
 | D-11 | **Incorporar AMD-01…08** al texto normativo con notas «Enmendado por AMD-nn», en el ciclo y la fase que correspondan, con aprobación humana (doc 28) | H4 / ciclo de spec de Studio |
 | D-12 | `verify` ejecuta comandos de la configuración vía MCP/CLI: política de revisión de `comandos` y aviso previo (EV-048) | doc 10 |
@@ -67,7 +67,7 @@ Matriz de compatibilidad con combinaciones «probadas», licencias transitivas i
 | D-15 | Tipografía y contrastes del sistema visual sin confirmar (doc 23 §2) | primera interfaz |
 | D-16 | Viabilidad de llave FIDO2, reglas `udev` y navegador del host en CachyOS; rpId dedicado en `*.localhost` por verificar (EV-070) | H7 |
 | D-17 | Custodia del token de GitHub para el Repository Explorer (doc 22 §5) | H8b |
-| D-18 | Sub-decisión S-26-1 (verificación propia de ítems críticos del checklist) | H7 |
+| D-18 | S-26-1 (formalizada en doc 21 §6: ceremonia final + autenticación adicional solo en operaciones excepcionales); ratificación pendiente | H7 |
 | D-14 | `dsh-evidence`: evaluación completa pendiente (opcional) | doc 08 §11 |
 
 ## C. Pendientes de verificación (ninguna ejecutada)

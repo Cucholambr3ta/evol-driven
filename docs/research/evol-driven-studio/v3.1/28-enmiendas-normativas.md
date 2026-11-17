@@ -84,3 +84,18 @@
 
 - **O-01 (cifras antiguas):** criterios 6, 7 y 76 hablan de «31» disciplinas; la Ampliación 8 (`:1831`) fija 35. Es una inconsistencia previa y ajena a Studio; se anota para la próxima revisión de la spec.
 - **NC-01 (no conformidad de implementación, N-06):** la normativa es correcta («`doctor` y `verify` comparan `state.json` con el registro», T-2); el **código** solo lo hace `doctor` (EV-045). Se corrige en el código (H0, doc 14), **no** se enmienda la spec.
+
+## Calendario de incorporación (programado; nada incorporado hasta hoy)
+
+**Comprobado en `git`:** `docs/ESPECIFICACION.md` no se ha modificado (EV-074): **ninguna** enmienda está incorporada; AMD-01 y AMD-02 están solo **redactadas**. La frase «AMD-01 y 02 ya» del doc 29 era una **propuesta de calendario**, no un estado.
+
+**Mecanismo:** ciclo 3 de `evol`, fase *spec*, con aprobación humana; nota «Enmendado por AMD-nn» junto al texto original, sin borrarlo; incorporar un texto **no** equivale a haber implementado el código.
+
+| Orden | Enmienda | Debe estar incorporada antes de | Motivo |
+|---|---|---|---|
+| 1 | AMD-01, AMD-02 | H0 (Tanda 2) | corrigen una contradicción vigente y gobiernan la anotación del MCP y los miembros de AgentTeams |
+| 2 | AMD-07 | cierre de la Tanda 1 | gobierna instaladores y perfiles aislados |
+| 3 | AMD-05 | H2 (primera vista) | sustituye el criterio 62 y absorbe `evol ui` |
+| 4 | AMD-04 | H4 (`MemoryProvider`) | contrato de memoria |
+| 5 | AMD-03, AMD-06 | H7 | broker y checklist |
+| 6 | AMD-08 | H8b | Repository Explorer |

@@ -56,6 +56,17 @@ Cada cambio se liga a la **directiva de cierre v3.1** (secciones §1…§10), a 
 | `27-manifiesto-y-perfiles-dsh.md` | **nuevo** | manifiesto, perfiles, instaladores, cambio de baseline | §1, §5 | OD-09, 18 | EV-071 |
 | `28-enmiendas-normativas.md` | **nuevo** | AMD-01…08 | §4, §5 | N-01, 07, 10, 24… | EV-058, 059, 062 |
 
+## 2 bis. Cambios posteriores (directiva EVOL-STUDIO-PENDING-CLOSURE-001)
+
+| Archivo | Cambio | Evidencia |
+|---|---|---|
+| `29-pendientes-consolidados.md` | **nuevo**: 50 asuntos con estados `DECIDED…CLOSED`, contradicciones 17/25/29, dictamen | EV-074 |
+| `30-runbook-tanda-1-equipo-nuevo.md` | **nuevo**: preflight, fases, reparto de equipos | EV-073, 074 |
+| `31-metodologia-de-benchmarks.md` | **nuevo**: metodología y umbrales propuestos | — |
+| `02`, `11`, `21`, `22`, `23` | formalización de S-26-1, S-04-1/2, S-27-1, S-12, S-23-1, D-10 y paquete de OD | — |
+| `17`, `19`, `25`, `28` | D-09, D-18, N-12 (aviso activado por defecto) y calendario de AMD | EV-074 |
+| `27`, `evidence-v3.1.md` | hash completo de DSH; EV-073 y EV-074 | EV-073, 074 |
+
 ## 3. Lo que **no** se modificó
 
 `docs/ESPECIFICACION.md`, `docs/specs/*`, `docs/features/FEATURES.md`, `docs/plan/PLAN.md`, `CLAUDE.md`, `evol.config.json`, `.gitignore`, `.evol/`, código fuente, `disciplines/`, `skills/`, memorias (MemPalace, Engram), perfiles y configuraciones personales, `docs/code-memory-research/`, v1, v2 y v3 de la investigación. La incorporación de las enmiendas a esos textos queda para un ciclo y una fase propios (doc 28).
