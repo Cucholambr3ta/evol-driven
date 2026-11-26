@@ -1,40 +1,39 @@
 {
   "version": 1,
-  "ts": "2026-10-26T16:15:52.206Z",
+  "ts": "2026-11-26T03:42:01.061Z",
   "proyecto": "evol-driven",
-  "fase": "retro",
-  "aprobacion": "obsoleta",
+  "fase": "briefing",
+  "aprobacion": "pendiente",
   "estado": [
     "Proyecto: evol-driven",
-    "Pipeline: ✓briefing → ✓spec → ✓plan → ✓build → ✓qa → retro",
-    "Fase actual: retro",
-    "  [app] SDD — Spec-Driven Development",
-    "      ✓ docs/specs/SPEC.md  (1 encontrado(s), ≥1)",
-    "Aprobación de «retro»: obsoleta (los artefactos cambiaron)"
+    "Pipeline: briefing → spec → plan → build → qa → retro",
+    "Fase actual: briefing",
+    "  [app] FDD — Feature-Driven Development",
+    "      ✓ docs/features/FEATURES.md  (1 encontrado(s), ≥1)",
+    "  [app] BDD — Behavior-Driven Development",
+    "      ✓ tests/features/*.feature  (16 encontrado(s), ≥1)",
+    "  [app] ATDD — Acceptance Test-Driven Development",
+    "      ✓ tests/acceptance/*.acceptance.test.ts  (16 encontrado(s), ≥1)",
+    "Aprobación de «briefing»: pendiente"
   ],
   "git": {
-    "rama": "main",
-    "commit": "8952846",
+    "rama": "feat/evol-driven-studio",
+    "commit": "25b64a0",
     "sinCommit": [
-      "M .evol/gate-log.jsonl",
-      "M .evol/journal.jsonl",
-      "M .evol/qa/security/sbom.cdx.json",
-      "M .evol/state.json"
+      "M docs/research/evol-driven-studio/v3.1/evidence-v3.1.md",
+      "?? docs/code-memory-research/",
+      "?? docs/research/evol-driven-studio/v4/"
     ],
-    "totalSinCommit": 4,
+    "totalSinCommit": 3,
     "ultimos": [
-      "retro: lecciones del ciclo 2 y Ampliación 8 (CA-150 a CA-170)",
-      "chore: checkpoint",
-      "fix(qa): el índice de evidencia se llama <tema>-evidence-index.md y --estricto de evidencia queda declarado y probado",
-      "chore: checkpoint de QA",
-      "chore: informe de QA"
+      "docs: cierre integral de pendientes de Evol-Driven Studio (v3.1)",
+      "chore: ignora los ZIP derivados de la investigación de Studio",
+      "docs: investigación de Evol-Driven Studio hasta la v3.1",
+      "chore: apertura del ciclo 3 del pipeline (briefing)",
+      "chore: ignora el zip de la investigación de memoria de código"
     ]
   },
   "notas": [
-    {
-      "ts": "2026-10-26T14:50:20.774Z",
-      "texto": "Ciclo 2, briefing corregido y comiteado (ac9c990): 26 pruebas de aceptación en rojo por la razón correcta, evol verify PASS. Siguiente: la persona ejecuta evol approve briefing y evol next; después spec (SPEC.md, DOMAIN.md, THREATS.md del ciclo 2) y plan por módulos M0 a M5 según el plan aprobado."
-    },
     {
       "ts": "2026-10-26T15:08:39.687Z",
       "texto": "Ciclo 2 build: M0 y M1 comiteados (2ba8f41, M1 siguiente). Siguiente: M2a (src/docs/check.ts, granular.ts, requisitos.ts, comando evol docs check) con TDD; las 26 pruebas de aceptación del ciclo 2 siguen rojas hasta M2/M3. Estable evol 0.4.0 para el pipeline."
@@ -70,21 +69,13 @@
     {
       "ts": "2026-10-26T16:15:52.206Z",
       "texto": "Retro lista: lecciones, memoria y Ampliación 8 escritas, verify PASS. Espera evol approve retro + evol next. Después: release 0.5.0 con evol-dev release 0.5.0 (push lo hace la persona) y reaprobar skills."
+    },
+    {
+      "ts": "2026-11-26T03:42:01.061Z",
+      "texto": "Dossier v4 de migración a Studio escrito en docs/research/evol-driven-studio/v4/ (00-05 + evidence-v4, EV-079..094), sin commit: espera revisión de la persona. Siguiente: decisiones D1-D8 del doc 05 y Paso 0 del doc 04 (push de la rama, versionar el prototipo, clave del gate)."
     }
   ],
   "eventos": [
-    {
-      "ts": "2026-10-26T16:08:52.323Z",
-      "type": "checkpoint"
-    },
-    {
-      "ts": "2026-10-26T16:14:18.168Z",
-      "type": "approved"
-    },
-    {
-      "ts": "2026-10-26T16:14:49.991Z",
-      "type": "phase-completed"
-    },
     {
       "ts": "2026-10-26T16:15:40.282Z",
       "type": "memory-add"
@@ -92,6 +83,18 @@
     {
       "ts": "2026-10-26T16:15:41.616Z",
       "type": "memory-add"
+    },
+    {
+      "ts": "2026-10-26T16:15:52.218Z",
+      "type": "checkpoint"
+    },
+    {
+      "ts": "2026-10-26T16:17:16.299Z",
+      "type": "approved"
+    },
+    {
+      "ts": "2026-10-26T16:17:17.630Z",
+      "type": "phase-completed"
     }
   ],
   "traspaso": false
